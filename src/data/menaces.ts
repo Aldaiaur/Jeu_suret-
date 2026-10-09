@@ -1,0 +1,44 @@
+import type { MenaceDef } from '../sim/types';
+
+// ---------------------------------------------------------------------
+// MENACES : types et règles d'évolution paramétrées
+// sensibilite : poids des capacités des unités déployées dans la pression
+// plancher : niveau minimal (menace qu'on peut contenir mais pas éradiquer)
+// ---------------------------------------------------------------------
+export const MENACES: MenaceDef[] = [
+  { id:'TERRO', nom:'Réseau terroriste', criseTitre:'Attaque imminente sur le territoire', plancher:15, theatresDepart:['METRO'], forceDepart:[30,45], croissance:2.0,
+    sensibilite:{assaut:0.25, renseignement:0.6}, pressionServices:{DGSI:0.8}, servicesCles:{DGSI:3},
+    alimentePar:{DAECH:0.025, DJIHAD:0.008}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:55, attaque:{menaceInt:14, opinion:-6, capital:-4}, apresAttaque:-12,
+    poidsInterieur:0.6, impactInterieur:0, crise:true, secondaires:[] },
+  { id:'DJIHAD', nom:'Groupe armé djihadiste', criseTitre:'Offensive d’un groupe armé', theatresDepart:['SAHEL'], forceDepart:[40,60], croissance:2.2,
+    sensibilite:{assaut:0.35, frappe:0.3, renseignement:0.25, endurance:0.15}, pressionServices:{}, servicesCles:{DGSE:2},
+    alimentePar:{}, seuilExpansion:60, expansion:['GUINEE','LIBYE'], probExpansion:0.12,
+    seuilAttaque:50, attaque:{credibilite:-3, opinion:-2}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0.08, crise:true, secondaires:[{theatre:'LIBYE', p:0.5, force:[15,30]}] },
+  { id:'DAECH', nom:'Daech', criseTitre:'Offensive de Daech', theatresDepart:['LEVANT'], forceDepart:[55,75], croissance:2.6,
+    sensibilite:{frappe:0.4, assaut:0.3, renseignement:0.2}, pressionServices:{}, servicesCles:{DGSE:2, DRM:1},
+    alimentePar:{}, seuilExpansion:55, expansion:['LIBYE'], probExpansion:0.1,
+    seuilAttaque:50, attaque:{credibilite:-3, opinion:-2, menaceInt:3}, apresAttaque:-4,
+    poidsInterieur:0, impactInterieur:0.16, crise:true, secondaires:[{theatre:'LIBYE', p:0.35, force:[10,25]}] },
+  { id:'PIRATERIE', nom:'Piraterie maritime', criseTitre:'Navire détourné et équipage retenu', theatresDepart:['GUINEE','CORNE'], forceDepart:[20,45], croissance:1.4,
+    sensibilite:{renseignement:0.3, frappe:0.25, assaut:0.35, endurance:0.1}, pressionServices:{}, servicesCles:{DRM:1},
+    alimentePar:{}, seuilExpansion:50, expansion:['GUINEE','CORNE','INDOPAC'], probExpansion:0.08,
+    seuilAttaque:40, attaque:{credibilite:-2, budget:-5}, apresAttaque:-3,
+    poidsInterieur:0, impactInterieur:0, crise:true, secondaires:[] },
+  { id:'ETAT_EST', nom:'Pression d’une puissance étatique', criseTitre:'Crise militaire à la frontière d’un allié', theatresDepart:['EST'], forceDepart:[30,50], croissance:1.3,
+    sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.2}, pressionServices:{ANSSI:0.4}, servicesCles:{DRM:1, ANSSI:1},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:60, attaque:{credibilite:-5, opinion:-1}, apresAttaque:-6,
+    poidsInterieur:0, impactInterieur:0.03, crise:true, secondaires:[] },
+  { id:'CYBER', nom:'Campagne de cyberattaques', criseTitre:'Cyberattaque contre des infrastructures vitales', plancher:10, theatresDepart:['METRO'], forceDepart:[20,40], croissance:1.8,
+    sensibilite:{}, pressionServices:{ANSSI:1.2}, servicesCles:{ANSSI:12},
+    alimentePar:{ETAT_EST:0.02}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:45, attaque:{menaceInt:4, opinion:-3, budget:-8}, apresAttaque:-8,
+    poidsInterieur:0.2, impactInterieur:0, crise:false, secondaires:[] },
+  { id:'INDOPAC_P', nom:'Pression maritime étatique', criseTitre:'Incident naval grave', theatresDepart:['INDOPAC'], forceDepart:[20,35], croissance:1.0,
+    sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.15}, pressionServices:{}, servicesCles:{DRM:1},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:60, attaque:{credibilite:-4}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] }
+];
