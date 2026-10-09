@@ -1,0 +1,2753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cellule de crise — France 2015-2017</title>
+<style>
+:root {
+  --fond:#0a0e11; --panneau:#10171c; --panneau2:#151e24; --bord:#24323b; --texte:#c6d2d8; --pale:#7d8f99;
+  --ambre:#e0a030; --rouge:#d9534f; --vert:#4caf7a; --cyan:#5bc0de; --violet:#a58bd6;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; }
+body { background:var(--fond); color:var(--texte); font-family:Consolas,'Lucida Console','Courier New',monospace; font-size:12px; min-width:1280px; overflow:hidden; }
+button { font-family:inherit; font-size:11px; background:#1b2730; color:var(--texte); border:1px solid #33454f; padding:3px 7px; cursor:pointer; }
+button:hover:not(:disabled) { border-color:var(--ambre); color:#fff; }
+button:disabled { opacity:.4; cursor:not-allowed; }
+button.primaire { background:#3a2a0c; border-color:var(--ambre); color:#ffd27a; }
+button.danger { border-color:var(--rouge); color:#ffb3b0; }
+button.mini { padding:0 5px; min-width:20px; }
+input, select { font-family:inherit; font-size:12px; background:#0d1418; color:var(--texte); border:1px solid #33454f; padding:3px 5px; }
+h2 { font-size:12px; margin:0 0 6px; color:var(--ambre); letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--bord); padding-bottom:3px; }
+h3 { font-size:11px; margin:8px 0 4px; color:var(--cyan); text-transform:uppercase; }
+#app { display:grid; grid-template-columns:290px 1fr 350px; grid-template-rows:auto 1fr 230px; height:100vh; gap:4px; padding:4px; }
+#bandeau { grid-column:1 / 4; display:flex; align-items:center; gap:4px 12px; background:var(--panneau); border:1px solid var(--bord); padding:5px 10px; flex-wrap:wrap; }
+#bandeau .titre { color:var(--ambre); font-weight:bold; letter-spacing:2px; }
+.ind { display:flex; flex-direction:column; line-height:1.2; cursor:help; }
+.ind .lib { color:var(--pale); font-size:10px; text-transform:uppercase; }
+.ind .val { font-size:13px; color:#fff; white-space:nowrap; }
+.ind .delta { font-size:10px; margin-left:3px; }
+.ind .delta.p { color:var(--vert); } .ind .delta.n { color:var(--rouge); }
+.ind .val.alerte { color:var(--rouge); } .ind .val.moyen { color:var(--ambre); } .ind .val.bon { color:var(--vert); }
+#bandeau .boutons { margin-left:auto; display:flex; gap:5px; flex-wrap:wrap; }
+.effets { display:block; color:var(--pale); font-size:11px; margin-top:3px; }
+.aide p { margin:4px 0 8px; }
+.panneau { background:var(--panneau); border:1px solid var(--bord); padding:8px; overflow-y:auto; min-height:0; }
+#centre { padding:0; position:relative; overflow:hidden; }
+#carte { width:100%; height:100%; display:block; }
+#bas { grid-column:1 / 4; display:flex; gap:10px; }
+#bas > .bloc { flex:1; min-width:0; overflow-y:auto; border-right:1px solid var(--bord); padding-right:8px; }
+#bas > .bloc:last-child { border-right:none; flex:0 0 250px; }
+.ligne { display:flex; align-items:center; gap:6px; padding:2px 0; }
+.ligne .g { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.unite { padding:3px 4px; border:1px solid transparent; cursor:pointer; }
+.unite:hover, .service:hover { border-color:#33454f; }
+.unite.sel, .service.sel { border-color:var(--ambre); background:#1a1408; }
+.service { padding:3px 4px; border:1px solid transparent; cursor:pointer; margin-bottom:3px; }
+.etat { font-size:10px; padding:0 4px; border:1px solid; white-space:nowrap; }
+.etat.disponible { color:var(--vert); } .etat.projection { color:var(--cyan); } .etat.deployee { color:var(--ambre); }
+.etat.regeneration { color:var(--violet); } .etat.indisponible { color:var(--pale); }
+.barre { height:4px; background:#222d34; margin-top:2px; } .barre > div { height:100%; }
+.pale { color:var(--pale); } .violet { color:var(--violet); } .rouge { color:var(--rouge); } .vert { color:var(--vert); } .ambre { color:var(--ambre); } .cyan { color:var(--cyan); }
+.rapport { border-left:2px solid var(--cyan); padding:2px 6px; margin-bottom:4px; }
+.rapport .ent { color:var(--pale); font-size:10px; }
+.journal div { padding:2px 0; border-bottom:1px dotted #1d282f; }
+.journal .tour { color:var(--ambre); border-bottom:none; padding-top:6px; }
+.journal .alerte { color:#f0a5a2; } .journal .succes { color:#8fd6ad; } .journal .crise { color:var(--rouge); font-weight:bold; }
+.journal .evenement { color:var(--cyan); } .journal .decision { color:#d8dfe3; } .journal .info { color:var(--pale); }
+.grille-capteurs { display:grid; grid-template-columns:110px repeat(3, 1fr); gap:2px 6px; align-items:center; }
+.cap { display:flex; align-items:center; gap:3px; }
+#modal-fond, #zoom { position:fixed; inset:0; background:rgba(3,6,8,.82); display:flex; align-items:center; justify-content:center; z-index:20; }
+#modal-fond { z-index:25; }
+#modal-fond[hidden], #zoom[hidden], #debug[hidden] { display:none; }
+#modal { background:var(--panneau2); border:1px solid var(--ambre); width:760px; max-height:88vh; overflow-y:auto; padding:16px 18px; }
+#modal .entete { color:var(--ambre); font-size:14px; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
+#modal p { line-height:1.5; }
+.choix { display:block; width:100%; text-align:left; padding:8px; margin:6px 0; font-size:12px; }
+.cartes-doctrine { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.carte-doctrine { border:1px solid #33454f; padding:10px; cursor:pointer; background:#10171c; }
+.carte-doctrine:hover { border-color:var(--ambre); }
+table.t { border-collapse:collapse; width:100%; } table.t td, table.t th { border-bottom:1px solid var(--bord); padding:3px 5px; text-align:left; }
+table.t th { color:var(--pale); font-weight:normal; }
+#zoom { align-items:stretch; justify-content:stretch; padding:10px; }
+#zoom .cadre { flex:1; display:grid; grid-template-columns:260px 1fr 330px; grid-template-rows:auto 1fr 170px; gap:4px; background:var(--fond); border:1px solid var(--ambre); padding:4px; }
+#zoom .cadre > .zh { grid-column:1 / 4; }
+#zoom .cadre > .zb { grid-column:1 / 4; }
+#zoomcarte { width:100%; height:100%; display:block; }
+#debug { position:fixed; right:8px; bottom:8px; width:560px; max-height:70vh; overflow-y:auto; background:#120c14; border:1px solid var(--violet); padding:8px; z-index:30; }
+#debug h2 { color:var(--violet); }
+#infobulle { position:fixed; z-index:50; max-width:340px; background:#05080a; border:1px solid var(--cyan); padding:6px 8px; pointer-events:none; display:none; line-height:1.4; white-space:pre-line; }
+#toast { position:fixed; left:50%; top:60px; transform:translateX(-50%); z-index:40; background:#16110a; border:1px solid var(--ambre); padding:8px 12px; max-width:700px; display:none; }
+svg text { font-family:Consolas,'Courier New',monospace; }
+.clic { cursor:pointer; }
+@keyframes clign { 50% { opacity:.25; } }
+.clignote { animation:clign 1.2s infinite; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="bandeau"></header>
+  <aside id="gauche" class="panneau"></aside>
+  <section id="centre" class="panneau"><svg id="carte" viewBox="0 0 1040 580" preserveAspectRatio="xMidYMid meet"></svg></section>
+  <aside id="droite" class="panneau"></aside>
+  <footer id="bas" class="panneau"></footer>
+</div>
+<div id="modal-fond" hidden><div id="modal"></div></div>
+<div id="zoom" hidden></div>
+<div id="debug" hidden></div>
+<div id="infobulle"></div>
+<div id="toast"></div>
+<input type="file" id="fichier" accept=".json,application/json" hidden>
+<script>
+'use strict';
+// =====================================================================
+// COUCHE 1 — DONNÉES
+// Aucune règle de jeu ici : uniquement des constantes descriptives.
+// =====================================================================
+
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const ANNEE_DEPART = 2015;
+const NB_TOURS = 36;
+
+const TYPES_CAPTEURS = ['HUMINT','SIGINT','IMINT'];
+const POIDS_CAPTEUR = { HUMINT: 9, SIGINT: 7, IMINT: 6 };
+
+const CATEGORIES = {
+  FS:    'Forces spéciales',
+  INT:   'Sécurité intérieure',
+  TERRE: 'Armée de Terre',
+  AIR:   'Armée de l’Air',
+  MER:   'Marine nationale'
+};
+
+const ETATS_UNITE = {
+  disponible:   'Disponible',
+  projection:   'En projection',
+  deployee:     'Déployée',
+  regeneration: 'En régénération',
+  indisponible: 'Indisponible (entretien)'
+};
+
+// ---------------------------------------------------------------------
+// THÉÂTRES : nœuds du graphe stratégique (coordonnées schématiques)
+// ---------------------------------------------------------------------
+const THEATRES = [
+  { id:'METRO',   nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, basePermanente:true,  carteRegionale:null },
+  { id:'EST',     nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO'],                exterieur:true,  maritime:true,  rensBase:15, basePermanente:false, carteRegionale:null },
+  { id:'LIBYE',   nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT'], exterieur:true, maritime:true,  rensBase:5,  basePermanente:false, carteRegionale:null },
+  { id:'LEVANT',  nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE'], exterieur:true,  maritime:true,  rensBase:10, basePermanente:false, carteRegionale:'IRAK_NORD' },
+  { id:'SAHEL',   nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, basePermanente:false, carteRegionale:'SAHEL' },
+  { id:'GUINEE',  nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null },
+  { id:'CORNE',   nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18, basePermanente:true,  carteRegionale:null },
+  { id:'INDOPAC', nom:'Indo-Pacifique',            court:'INDO-PAC',  x:920, y:470, voisins:['CORNE'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null }
+];
+
+// ---------------------------------------------------------------------
+// UNITÉS — valeurs plausibles, ordres de grandeur, coûts en M€
+// cap : assaut, renseignement, frappe, discretion, endurance (0-10)
+// ---------------------------------------------------------------------
+const EXT = ['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE','INDOPAC'];
+const MARITIMES = ['EST','LIBYE','LEVANT','GUINEE','CORNE','INDOPAC'];
+
+const UNITES = [
+  // Forces spéciales (COS)
+  { id:'RPIMA1', nom:'1er RPIMa',          categorie:'FS', type:'Régiment de forces spéciales Terre', effectif:900,  cap:{assaut:9,renseignement:7,frappe:2,discretion:8,endurance:7}, delai:1, coutDeploiement:3,  coutMensuel:3,  theatres:EXT, depart:'SAHEL' }, // À VÉRIFIER (effectif)
+  { id:'RDP13',  nom:'13e RDP',            categorie:'FS', type:'Recherche humaine en profondeur',     effectif:900,  cap:{assaut:5,renseignement:9,frappe:1,discretion:9,endurance:8}, delai:1, coutDeploiement:3,  coutMensuel:3,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif)
+  { id:'CPA10',  nom:'CPA 10',             categorie:'FS', type:'Commando parachutiste de l’air',      effectif:120,  cap:{assaut:7,renseignement:6,frappe:4,discretion:8,endurance:6}, delai:1, coutDeploiement:2,  coutMensuel:2,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif)
+  { id:'CDOMAR', nom:'Commandos marine',   categorie:'FS', type:'Forces spéciales Marine',             effectif:650,  cap:{assaut:9,renseignement:6,frappe:2,discretion:9,endurance:6}, delai:1, coutDeploiement:3,  coutMensuel:3,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif)
+  { id:'RHFS4',  nom:'4e RHFS',            categorie:'FS', type:'Hélicoptères des forces spéciales',   effectif:400,  cap:{assaut:6,renseignement:4,frappe:5,discretion:6,endurance:5}, delai:2, coutDeploiement:5,  coutMensuel:4,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif, coûts)
+  // Sécurité intérieure
+  { id:'GIGN',   nom:'GIGN',               categorie:'INT', type:'Intervention Gendarmerie',          effectif:380,  cap:{assaut:9,renseignement:4,frappe:0,discretion:7,endurance:7}, delai:0, coutDeploiement:0.5, coutMensuel:1, theatres:['METRO'], depart:null, protection:2 }, // À VÉRIFIER (effectif)
+  { id:'RAID',   nom:'RAID',               categorie:'INT', type:'Intervention Police nationale',      effectif:170,  cap:{assaut:9,renseignement:4,frappe:0,discretion:7,endurance:7}, delai:0, coutDeploiement:0.5, coutMensuel:1, theatres:['METRO'], depart:null, protection:2 }, // À VÉRIFIER (effectif)
+  { id:'SENTI',  nom:'Protection du territoire', categorie:'INT', type:'Dispositif militaire (contrat 10 000 h)', effectif:10000, cap:{assaut:3,renseignement:2,frappe:0,discretion:1,endurance:4}, delai:0, coutDeploiement:5, coutMensuel:25, theatres:['METRO'], depart:null, protection:8 }, // À VÉRIFIER (coût mensuel)
+  // Terre
+  { id:'GTIA1',  nom:'GTIA 1',             categorie:'TERRE', type:'Groupement tactique interarmes',  effectif:1000, cap:{assaut:7,renseignement:4,frappe:3,discretion:2,endurance:8}, delai:2, coutDeploiement:20, coutMensuel:15, theatres:['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE'], depart:'SAHEL' }, // À VÉRIFIER (effectif, coûts)
+  { id:'GTIA2',  nom:'GTIA 2',             categorie:'TERRE', type:'Groupement tactique interarmes',  effectif:1000, cap:{assaut:7,renseignement:4,frappe:3,discretion:2,endurance:8}, delai:2, coutDeploiement:20, coutMensuel:15, theatres:['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'GTIA3',  nom:'GTIA 3',             categorie:'TERRE', type:'Groupement tactique interarmes',  effectif:1000, cap:{assaut:7,renseignement:4,frappe:3,discretion:2,endurance:8}, delai:2, coutDeploiement:20, coutMensuel:15, theatres:['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  // Air
+  { id:'RAFALE', nom:'Escadron Rafale',    categorie:'AIR', type:'Chasse polyvalente (détachement)',  effectif:250,  cap:{assaut:0,renseignement:4,frappe:9,discretion:3,endurance:6}, delai:1, coutDeploiement:6,  coutMensuel:10, theatres:EXT, depart:'LEVANT' }, // À VÉRIFIER (effectif détachement, coûts)
+  { id:'M2000D', nom:'Escadron Mirage 2000D', categorie:'AIR', type:'Attaque au sol (détachement)',   effectif:200,  cap:{assaut:0,renseignement:2,frappe:7,discretion:3,endurance:6}, delai:1, coutDeploiement:5,  coutMensuel:8,  theatres:EXT, depart:'SAHEL' }, // À VÉRIFIER (effectif détachement, coûts)
+  { id:'REAPER', nom:'Drones Reaper',      categorie:'AIR', type:'Drone MALE, non armé en 2015',      effectif:80,   cap:{assaut:0,renseignement:9,frappe:0,discretion:6,endurance:9}, delai:1, coutDeploiement:2,  coutMensuel:2,  theatres:['SAHEL','LEVANT','LIBYE'], depart:'SAHEL' }, // À VÉRIFIER (nombre de vecteurs, effectif)
+  { id:'ATL2',   nom:'Atlantique 2',       categorie:'AIR', type:'Patrouille maritime et ISR',        effectif:120,  cap:{assaut:0,renseignement:8,frappe:3,discretion:4,endurance:7}, delai:1, coutDeploiement:2,  coutMensuel:3,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'MRTT',   nom:'Ravitailleurs C-135FR', categorie:'AIR', type:'Ravitaillement en vol',          effectif:150,  cap:{assaut:0,renseignement:1,frappe:2,discretion:1,endurance:8}, delai:1, coutDeploiement:2,  coutMensuel:4,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'A400M',  nom:'Transport A400M',    categorie:'AIR', type:'Transport tactique et stratégique', effectif:120,  cap:{assaut:0,renseignement:0,frappe:0,discretion:2,endurance:7}, delai:1, coutDeploiement:2,  coutMensuel:4,  theatres:EXT, depart:null }, // À VÉRIFIER (flotte réduite en 2015, coûts)
+  // Mer
+  { id:'CDG',    nom:'Groupe aéronaval (Charles de Gaulle)', categorie:'MER', type:'Porte-avions et escorte', effectif:2600, cap:{assaut:1,renseignement:6,frappe:10,discretion:2,endurance:5}, delai:1, coutDeploiement:15, coutMensuel:25, theatres:['LIBYE','LEVANT','CORNE','INDOPAC'], depart:null, indisponibilites:[{debut:5,fin:9},{debut:25,fin:35}] }, // À VÉRIFIER (effectif, calendrier d'entretien)
+  { id:'FREMM',  nom:'FREMM',              categorie:'MER', type:'Frégate multimissions',             effectif:110,  cap:{assaut:1,renseignement:6,frappe:5,discretion:5,endurance:7}, delai:1, coutDeploiement:2,  coutMensuel:4,  theatres:MARITIMES, depart:null }, // À VÉRIFIER (coûts)
+  { id:'SNA',    nom:'Sous-marin nucléaire d’attaque', categorie:'MER', type:'SNA classe Rubis',       effectif:70,   cap:{assaut:0,renseignement:8,frappe:3,discretion:10,endurance:7}, delai:1, coutDeploiement:2, coutMensuel:3, theatres:MARITIMES, depart:null }, // À VÉRIFIER (coûts)
+  { id:'BPC',    nom:'Bâtiment de projection (BPC)', categorie:'MER', type:'Porte-hélicoptères amphibie', effectif:180, cap:{assaut:5,renseignement:3,frappe:2,discretion:2,endurance:6}, delai:2, coutDeploiement:4, coutMensuel:5, theatres:MARITIMES, depart:null }, // À VÉRIFIER (équipage hors troupes embarquées, coûts)
+  // Appui, renseignement et sécurité intérieure
+  { id:'GAM',    nom:'Groupement aéromobile (ALAT)', categorie:'TERRE', type:'Hélicoptères Tigre, Gazelle, Caïman', effectif:300, cap:{assaut:6,renseignement:4,frappe:6,discretion:4,endurance:5}, delai:2, coutDeploiement:8, coutMensuel:7, theatres:['SAHEL','LIBYE','GUINEE','CORNE','EST'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'CAESAR', nom:'Batterie CAESAR',          categorie:'TERRE', type:'Artillerie de 155 mm sur camion', effectif:150, cap:{assaut:2,renseignement:2,frappe:7,discretion:2,endurance:7}, delai:2, coutDeploiement:6, coutMensuel:4, theatres:['LEVANT','SAHEL','EST','LIBYE'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'RH2',    nom:'2e régiment de hussards',  categorie:'TERRE', type:'Recherche humaine (renseignement)', effectif:900, cap:{assaut:3,renseignement:8,frappe:0,discretion:7,endurance:7}, delai:1, coutDeploiement:2, coutMensuel:2, theatres:['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'BRI',    nom:'BRI de la préfecture de police', categorie:'INT', type:'Brigade de recherche et d’intervention', effectif:100, cap:{assaut:7,renseignement:5,frappe:0,discretion:6,endurance:6}, delai:0, coutDeploiement:0.5, coutMensuel:0.5, theatres:['METRO'], depart:null, protection:1 }, // À VÉRIFIER (effectif)
+  { id:'AWACS',  nom:'E-3F AWACS',               categorie:'AIR', type:'Détection et contrôle aéroportés', effectif:100, cap:{assaut:0,renseignement:7,frappe:1,discretion:2,endurance:6}, delai:1, coutDeploiement:2, coutMensuel:4, theatres:['EST','LEVANT','LIBYE'], depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'GABRIEL',nom:'C-160 Gabriel',            categorie:'AIR', type:'Renseignement d’origine électromagnétique', effectif:60, cap:{assaut:0,renseignement:8,frappe:0,discretion:4,endurance:6}, delai:1, coutDeploiement:1.5, coutMensuel:2, theatres:EXT, depart:null }, // À VÉRIFIER (effectif, coûts)
+  { id:'HORIZON',nom:'Frégate Horizon',          categorie:'MER', type:'Frégate de défense aérienne', effectif:190, cap:{assaut:0,renseignement:6,frappe:3,discretion:4,endurance:7}, delai:1, coutDeploiement:2, coutMensuel:4, theatres:MARITIMES, depart:null } // À VÉRIFIER (équipage, coûts)
+];
+
+// ---------------------------------------------------------------------
+// SERVICES DE RENSEIGNEMENT
+// ---------------------------------------------------------------------
+const SERVICES = [
+  { id:'DGSE',  nom:'DGSE',  libelle:'Direction générale de la sécurité extérieure', domaine:'Extérieur',
+    capteurs:{HUMINT:5,SIGINT:4,IMINT:1}, efficacite:{HUMINT:1.2,SIGINT:1.0,IMINT:0.8}, theatres:EXT,
+    affectationInitiale:{ SAHEL:{HUMINT:2,SIGINT:1}, LEVANT:{HUMINT:2,SIGINT:2} } },
+  { id:'DGSI',  nom:'DGSI',  libelle:'Direction générale de la sécurité intérieure', domaine:'Intérieur',
+    capteurs:{HUMINT:5,SIGINT:3,IMINT:0}, efficacite:{HUMINT:1.2,SIGINT:1.0,IMINT:0.6}, theatres:['METRO'],
+    affectationInitiale:{ METRO:{HUMINT:3,SIGINT:1} } },
+  { id:'DRM',   nom:'DRM',   libelle:'Direction du renseignement militaire', domaine:'Militaire',
+    capteurs:{HUMINT:1,SIGINT:2,IMINT:4}, efficacite:{HUMINT:0.8,SIGINT:1.0,IMINT:1.2}, theatres:EXT,
+    affectationInitiale:{ SAHEL:{IMINT:2}, LEVANT:{IMINT:1} } },
+  { id:'ANSSI', nom:'ANSSI', libelle:'Agence nationale de la sécurité des systèmes d’information', domaine:'Cyberdéfense',
+    capteurs:{HUMINT:0,SIGINT:4,IMINT:0}, efficacite:{HUMINT:0,SIGINT:0.5,IMINT:0}, theatres:['METRO','EST'],
+    affectationInitiale:{ METRO:{SIGINT:2} } }
+];
+
+// ---------------------------------------------------------------------
+// ALLIÉS : acteurs avec une relation (0-100) et des appuis par théâtre.
+// appui.effets : rens, pression, frappesZoom, recosZoom, opBonus, delai (pendant duree mois),
+//                partenaire (immédiat). base : probabilité d'accord avant relation et crédibilité.
+// interets : théâtres où un engagement français améliore la relation.
+// ---------------------------------------------------------------------
+const ALLIES = [
+  { id:'USA', nom:'États-Unis', relation:60, interets:['LEVANT','EST','SAHEL'],
+    description:'Premier partenaire militaire. Moyens de surveillance, de transport stratégique et de frappe sans équivalent, mais une attention fluctuante.',
+    appuis:[
+      { id:'ISR',       nom:'Drones et avions de surveillance',       theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE'], duree:4, capital:2, relation:3, base:0.8,  effets:{ rens:15, recosZoom:1 } }, // À VÉRIFIER (moyens réellement engagés selon le théâtre)
+      { id:'FRAPPES',   nom:'Frappes de la coalition',                theatres:['LEVANT','LIBYE'],                          duree:4, capital:3, relation:4, base:0.65, effets:{ pression:10, frappesZoom:2, opBonus:0.05 } },
+      { id:'TRANSPORT', nom:'Transport stratégique (C-17)',           theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE','EST'], duree:4, capital:1, relation:2, base:0.85, effets:{ delai:-1 } },
+      { id:'RAVITO',    nom:'Ravitaillement en vol (KC-135)',         theatres:['SAHEL','LEVANT','LIBYE'],                  duree:4, capital:1, relation:2, base:0.8,  effets:{ pression:4, opBonus:0.05 } },
+      { id:'REASSUR',   nom:'Présence renforcée de l’US Army',        theatres:['EST'],                                     duree:5, capital:2, relation:3, base:0.6,  effets:{ pression:12 } },
+      { id:'NAVAL',     nom:'Patrouilles de l’US Navy',               theatres:['INDOPAC','CORNE'],                         duree:4, capital:1, relation:2, base:0.7,  effets:{ pression:8, rens:5 } }
+    ] },
+  { id:'UK', nom:'Royaume-Uni', relation:65, interets:['LEVANT','EST'],
+    description:'Partenaire militaire le plus proche en Europe (traités de Lancaster House).',
+    appuis:[
+      { id:'FRAPPES',   nom:'Frappes de la RAF',                      theatres:['LEVANT'],          duree:4, capital:2, relation:3, base:0.7,  effets:{ pression:6, frappesZoom:1 } },
+      { id:'ISR',       nom:'Renseignement partagé',                  theatres:['LEVANT','LIBYE'],  duree:4, capital:1, relation:2, base:0.75, effets:{ rens:8 } },
+      { id:'HELICOS',   nom:'Hélicoptères lourds Chinook',            theatres:['SAHEL'],           duree:5, capital:2, relation:3, base:0.5,  effets:{ pression:4, delai:-1 } } // À VÉRIFIER (déploiement britannique au Sahel à partir de 2018)
+    ] },
+  { id:'DEU', nom:'Allemagne', relation:65, interets:['SAHEL','EST'],
+    description:'Partenaire européen central, engagé dans la formation au Mali et sur le flanc est.',
+    appuis:[
+      { id:'FORMATION', nom:'Formateurs (mission européenne au Mali)', theatres:['SAHEL'], duree:1, capital:1, relation:2, base:0.75, effets:{ partenaire:6 } },
+      { id:'REASSUR',   nom:'Contribution à la présence avancée',      theatres:['EST'],   duree:5, capital:1, relation:2, base:0.7,  effets:{ pression:6 } }
+    ] },
+  { id:'ITA', nom:'Italie', relation:60, interets:['LIBYE'],
+    description:'Partenaire de premier plan en Méditerranée centrale et en Libye.',
+    appuis:[ { id:'NAVAL', nom:'Opération navale en Méditerranée', theatres:['LIBYE'], duree:4, capital:1, relation:2, base:0.75, effets:{ pression:6, rens:6 } } ] },
+  { id:'JPN', nom:'Japon', relation:55, interets:['CORNE','INDOPAC'],
+    description:'Présent à Djibouti pour la lutte contre la piraterie.',
+    appuis:[ { id:'ISR', nom:'Patrouille maritime P-3C', theatres:['CORNE'], duree:4, capital:1, relation:2, base:0.7, effets:{ rens:8, pression:4 } } ] },
+  { id:'AUS', nom:'Australie', relation:55, interets:['INDOPAC'],
+    description:'Partenaire stratégique dans le Pacifique Sud.',
+    appuis:[ { id:'NAVAL', nom:'Patrouilles conjointes', theatres:['INDOPAC'], duree:4, capital:1, relation:2, base:0.7, effets:{ pression:6, rens:6 } } ] },
+  { id:'NGA', nom:'Nigeria', relation:50, interets:['GUINEE','SAHEL'],
+    description:'Puissance riveraine du golfe de Guinée.',
+    appuis:[ { id:'NAVAL', nom:'Patrouilles de la marine nigériane', theatres:['GUINEE'], duree:4, capital:1, relation:2, base:0.6, effets:{ pression:6 } } ] }
+];
+
+// ---------------------------------------------------------------------
+// MENACES : types et règles d'évolution paramétrées
+// sensibilite : poids des capacités des unités déployées dans la pression
+// plancher : niveau minimal (menace qu'on peut contenir mais pas éradiquer)
+// ---------------------------------------------------------------------
+const MENACES = [
+  { id:'TERRO', nom:'Réseau terroriste', criseTitre:'Attaque imminente sur le territoire', plancher:15, theatresDepart:['METRO'], forceDepart:[30,45], croissance:2.0,
+    sensibilite:{assaut:0.25, renseignement:0.6}, pressionServices:{DGSI:0.8}, servicesCles:{DGSI:3},
+    alimentePar:{DAECH:0.025, DJIHAD:0.008}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:55, attaque:{menaceInt:14, opinion:-6, capital:-4}, apresAttaque:-12,
+    poidsInterieur:0.6, impactInterieur:0, crise:true, secondaires:[] },
+  { id:'DJIHAD', nom:'Groupe armé djihadiste', criseTitre:'Offensive d’un groupe armé', theatresDepart:['SAHEL'], forceDepart:[40,60], croissance:2.2,
+    sensibilite:{assaut:0.35, frappe:0.3, renseignement:0.25, endurance:0.15}, pressionServices:{}, servicesCles:{DGSE:2},
+    alimentePar:{}, seuilExpansion:60, expansion:['GUINEE','LIBYE'], probExpansion:0.12,
+    seuilAttaque:50, attaque:{credibilite:-3, opinion:-2}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0.08, crise:true, secondaires:[{theatre:'LIBYE', p:0.5, force:[15,30]}] },
+  { id:'DAECH', nom:'Daech', criseTitre:'Offensive de Daech', theatresDepart:['LEVANT'], forceDepart:[55,75], croissance:2.6,
+    sensibilite:{frappe:0.4, assaut:0.3, renseignement:0.2}, pressionServices:{}, servicesCles:{DGSE:2, DRM:1},
+    alimentePar:{}, seuilExpansion:55, expansion:['LIBYE'], probExpansion:0.1,
+    seuilAttaque:50, attaque:{credibilite:-3, opinion:-2, menaceInt:3}, apresAttaque:-4,
+    poidsInterieur:0, impactInterieur:0.16, crise:true, secondaires:[{theatre:'LIBYE', p:0.35, force:[10,25]}] },
+  { id:'PIRATERIE', nom:'Piraterie maritime', criseTitre:'Navire détourné et équipage retenu', theatresDepart:['GUINEE','CORNE'], forceDepart:[20,45], croissance:1.4,
+    sensibilite:{renseignement:0.3, frappe:0.25, assaut:0.35, endurance:0.1}, pressionServices:{}, servicesCles:{DRM:1},
+    alimentePar:{}, seuilExpansion:50, expansion:['GUINEE','CORNE','INDOPAC'], probExpansion:0.08,
+    seuilAttaque:40, attaque:{credibilite:-2, budget:-5}, apresAttaque:-3,
+    poidsInterieur:0, impactInterieur:0, crise:true, secondaires:[] },
+  { id:'ETAT_EST', nom:'Pression d’une puissance étatique', criseTitre:'Crise militaire à la frontière d’un allié', theatresDepart:['EST'], forceDepart:[30,50], croissance:1.3,
+    sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.2}, pressionServices:{ANSSI:0.4}, servicesCles:{DRM:1, ANSSI:1},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:60, attaque:{credibilite:-5, opinion:-1}, apresAttaque:-6,
+    poidsInterieur:0, impactInterieur:0.03, crise:true, secondaires:[] },
+  { id:'CYBER', nom:'Campagne de cyberattaques', criseTitre:'Cyberattaque contre des infrastructures vitales', plancher:10, theatresDepart:['METRO'], forceDepart:[20,40], croissance:1.8,
+    sensibilite:{}, pressionServices:{ANSSI:1.2}, servicesCles:{ANSSI:12},
+    alimentePar:{ETAT_EST:0.02}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:45, attaque:{menaceInt:4, opinion:-3, budget:-8}, apresAttaque:-8,
+    poidsInterieur:0.2, impactInterieur:0, crise:false, secondaires:[] },
+  { id:'INDOPAC_P', nom:'Pression maritime étatique', criseTitre:'Incident naval grave', theatresDepart:['INDOPAC'], forceDepart:[20,35], croissance:1.0,
+    sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.15}, pressionServices:{}, servicesCles:{DRM:1},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:60, attaque:{credibilite:-4}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] }
+];
+
+// ---------------------------------------------------------------------
+// OPÉRATIONS STRATÉGIQUES
+// ---------------------------------------------------------------------
+const OPERATIONS = [
+  { id:'FRAPPE', nom:'Frappe', capacite:'frappe', categories:['AIR','MER','TERRE'], minCapacite:5, serviceRequis:null,
+    cibles:['DJIHAD','DAECH','PIRATERIE'], theatresInterdits:['METRO','EST','INDOPAC'], degats:14, cout:6, capital:0,
+    risquePertes:0.03, risqueCollat:0.28, pression:8, effetSucces:{}, description:'Frappe planifiée (aviation, aéronavale, hélicoptères d’attaque ou artillerie) sur des objectifs identifiés.' },
+  { id:'RAID', nom:'Raid de forces spéciales', capacite:'assaut', categories:['FS','INT'], minCapacite:5, serviceRequis:null,
+    cibles:['TERRO','DJIHAD','DAECH','PIRATERIE'], theatresInterdits:[], degats:18, cout:3, capital:1,
+    risquePertes:0.18, risqueCollat:0.12, pression:8, effetSucces:{}, description:'Action ciblée contre un dispositif adverse (interpellation en métropole).' },
+  { id:'FORMATION', nom:'Formation d’une armée partenaire', capacite:'endurance', categories:['TERRE','FS'], minCapacite:5, serviceRequis:null,
+    cibles:null, theatresInterdits:['METRO'], degats:0, cout:4, capital:0,
+    risquePertes:0.03, risqueCollat:0, pression:3, effetSucces:{partenaire:8}, description:'Accompagnement et formation de forces locales (effet durable).' },
+  { id:'PROTECTION', nom:'Protection du territoire', capacite:'assaut', categories:['INT'], minCapacite:1, serviceRequis:null,
+    cibles:null, theatresInterdits:EXT, degats:0, cout:5, capital:0,
+    risquePertes:0.02, risqueCollat:0.04, pression:6, effetSucces:{menaceInt:-8, opinion:1}, description:'Renforcement de la protection des sites sensibles et des rassemblements.' },
+  { id:'CYBERDEF', nom:'Contre-mesure cyber', capacite:'renseignement', categories:[], minCapacite:0, serviceRequis:'ANSSI',
+    cibles:['CYBER','ETAT_EST'], theatresInterdits:[], degats:14, cout:2, capital:0,
+    risquePertes:0, risqueCollat:0.06, pression:4, effetSucces:{}, description:'Neutralisation d’infrastructures d’attaque et durcissement des systèmes.' },
+  { id:'REASSURANCE', nom:'Posture de réassurance', capacite:'endurance', categories:['AIR','MER','TERRE'], minCapacite:4, serviceRequis:null,
+    cibles:['ETAT_EST','INDOPAC_P','PIRATERIE'], theatresInterdits:['METRO'], degats:9, cout:5, capital:0,
+    risquePertes:0.01, risqueCollat:0.08, pression:6, effetSucces:{credibilite:1}, description:'Présence visible, exercices et patrouilles avec les partenaires.' }
+];
+
+// ---------------------------------------------------------------------
+// DOCTRINES (choix initial)
+// ---------------------------------------------------------------------
+const DOCTRINES = [
+  { id:'RENS', nom:'Primauté du renseignement',
+    texte:'Priorité aux services. Capteurs supplémentaires et meilleure lecture des menaces, mais des moyens d’action plus comptés.',
+    bonus:'+1 capteur HUMINT DGSE et DGSI, renseignement +8 partout', malus:'Enveloppe OPEX -10 M€/mois, succès des opérations -5 %',
+    mods:{ rensBonus:8, capteursBonus:{DGSE:{HUMINT:1}, DGSI:{HUMINT:1}}, opBonus:-0.05, enveloppe:-10, delaiMod:0, coutMult:1, protectionMult:1, croissanceExtMult:1, capitalMensuel:0, voteBonus:0, opinion:0, credibilite:0 } },
+  { id:'PROJ', nom:'Intervention avancée',
+    texte:'Agir loin pour protéger ici. Projection rapide et opérations plus efficaces, au prix de la tolérance politique.',
+    bonus:'Succès des opérations +10 %, projection plus rapide d’un tour (minimum 0)', malus:'Coûts mensuels +15 %, votes de l’article 35 plus difficiles, opinion initiale -5',
+    mods:{ rensBonus:0, capteursBonus:{}, opBonus:0.10, enveloppe:0, delaiMod:-1, coutMult:1.15, protectionMult:1, croissanceExtMult:1, capitalMensuel:0, voteBonus:-0.1, opinion:-5, credibilite:5 } },
+  { id:'SANCT', nom:'Sanctuarisation du territoire',
+    texte:'La sécurité des Français d’abord. Protection intérieure renforcée, engagement extérieur au minimum.',
+    bonus:'Effet de la protection intérieure +40 %, capital politique +1/mois', malus:'Menaces extérieures +15 % de croissance, crédibilité initiale -10',
+    mods:{ rensBonus:0, capteursBonus:{}, opBonus:0, enveloppe:0, delaiMod:0, coutMult:1, protectionMult:1.4, croissanceExtMult:1.15, capitalMensuel:1, voteBonus:0.05, opinion:3, credibilite:-10 } }
+];
+
+const DIFFICULTES = {
+  facile:    { nom:'Facile',    croissanceMult:0.8,  enveloppe:75, budgetInitial:120, capital:70, opinion:60, menaceInt:30, credibilite:65, forceMult:0.9 },
+  normal:    { nom:'Normal',    croissanceMult:1.0,  enveloppe:62, budgetInitial:80, capital:60, opinion:55, menaceInt:35, credibilite:60, forceMult:1.0 },
+  difficile: { nom:'Difficile', croissanceMult:1.25, enveloppe:52,  budgetInitial:50,  capital:50, opinion:50, menaceInt:42, credibilite:55, forceMult:1.12 }
+};
+
+// ---------------------------------------------------------------------
+// ÉVÉNEMENTS
+// cond : tourMin, tourMax, menace:{type,forceMin,theatre}, opinionMax, opinionMin, menaceIntMin,
+//        surcoutMin, deploiementExterieur, theatreDeploye, rensMin:{theatre,val}, chaine
+// effets : opinion, capital, credibilite, menaceInt, budget, enveloppe, menace:[{type,delta,theatre}],
+//          rens:[{theatre,delta}], partenaire:[{theatre,delta}], fatigue:[{unite|categorie,delta}],
+//          indispo:{unite,tours}, crise:theatre, pression:[{theatre,delta}], allie:{theatre,tours},
+//          relation:[{allie,delta}], appui:{allie,appui,theatre,tours},
+// cond (suite) : relationMin:{allie,val}, relationMax:{allie,val}
+//          alea:{p,succes,echec}
+// choix.requiert : {categorie} (une unité de cette catégorie disponible ou déployée)
+// choix.suite / suiteDelai / suiteP : événement enchaîné, délai en mois, probabilité (1 par défaut)
+// ---------------------------------------------------------------------
+const EVENEMENTS = [
+  { id:'OTAGES_SAHEL', titre:'Ressortissants enlevés au Sahel', poids:6, max:2,
+    cond:{ tourMin:1, menace:{type:'DJIHAD', forceMin:35} },
+    texte:'Deux ressortissants français ont été enlevés dans le nord du Niger. Une revendication circule. Les services estiment savoir dans quelle zone ils sont détenus.',
+    choix:[
+      { texte:'Préparer une opération de libération', requiert:{categorie:'FS'}, effets:{ fatigue:[{categorie:'FS', delta:10}], alea:{ p:0.55, succes:{opinion:8, credibilite:4, menace:[{type:'DJIHAD', delta:-4}]}, echec:{opinion:-10, capital:-5} } } },
+      { texte:'Ouvrir un canal de négociation discret', effets:{ capital:-3, opinion:2, menace:[{type:'DJIHAD', delta:5}] }, suite:'OTAGES_FUITE', suiteDelai:2 },
+      { texte:'Refuser toute négociation et attendre', effets:{ opinion:-4, credibilite:2 } }
+    ] },
+  { id:'OTAGES_FUITE', titre:'La presse évoque une négociation', poids:0, max:1, cond:{ chaine:true },
+    texte:'Un hebdomadaire affirme qu’une rançon aurait été envisagée pour les ressortissants détenus au Sahel.',
+    choix:[
+      { texte:'Assumer une démarche humanitaire', effets:{ opinion:-2, capital:-2, credibilite:-2 } },
+      { texte:'Démentir formellement', effets:{ alea:{ p:0.5, succes:{}, echec:{ opinion:-8, credibilite:-3 } } } }
+    ] },
+  { id:'MALI_RENFORT', titre:'Bamako demande un renfort', poids:5, max:2,
+    cond:{ tourMin:2, menace:{type:'DJIHAD', forceMin:45, theatre:'SAHEL'} },
+    texte:'Les autorités maliennes demandent un appui supplémentaire après une série d’attaques contre leurs postes.',
+    choix:[
+      { texte:'Renforcer l’appui aérien et le conseil', effets:{ budget:-12, credibilite:4, pression:[{theatre:'SAHEL', delta:8}] } },
+      { texte:'Proposer un programme de formation', effets:{ budget:-5, credibilite:1, partenaire:[{theatre:'SAHEL', delta:6}] } },
+      { texte:'Décliner poliment', effets:{ credibilite:-4 } }
+    ] },
+  { id:'FUITE_NOTE', titre:'Fuite d’une note classifiée', poids:4, max:2, cond:{ tourMin:3 },
+    texte:'Une note de synthèse classifiée sur les moyens de surveillance a été publiée en ligne.',
+    choix:[
+      { texte:'Lancer une enquête interne et suspendre la diffusion', effets:{ capital:-2, rens:[{theatre:'METRO', delta:-4}] } },
+      { texte:'Minimiser publiquement', effets:{ opinion:-3 } },
+      { texte:'Engager des poursuites contre la publication', effets:{ opinion:-5, credibilite:-2, capital:1 } }
+    ] },
+  { id:'BAVURE', titre:'Victimes civiles alléguées', poids:4, max:3, cond:{ deploiementExterieur:true, tourMin:2 },
+    texte:'Une ONG affirme qu’une opération française a causé des victimes civiles. Les éléments disponibles sont contradictoires.',
+    choix:[
+      { texte:'Ouvrir une enquête et communiquer', effets:{ opinion:-2, credibilite:2, capital:-2 } },
+      { texte:'Contester les allégations', effets:{ alea:{ p:0.55, succes:{opinion:1}, echec:{opinion:-7, credibilite:-5} } } },
+      { texte:'Suspendre temporairement les frappes', effets:{ credibilite:1, pression:[{theatre:'LEVANT', delta:-6}, {theatre:'SAHEL', delta:-6}] } }
+    ] },
+  { id:'COUP_ETAT', titre:'Coup d’État chez un partenaire', poids:3, max:1, cond:{ tourMin:6 },
+    texte:'Des militaires ont pris le pouvoir dans un pays partenaire du Sahel. La coopération de défense est remise en question.',
+    choix:[
+      { texte:'Condamner et suspendre la coopération', effets:{ credibilite:2, partenaire:[{theatre:'SAHEL', delta:-12}], menace:[{type:'DJIHAD', delta:6}] } },
+      { texte:'Maintenir une coopération pragmatique', effets:{ credibilite:-3, opinion:-2 } },
+      { texte:'Soutenir une médiation régionale', effets:{ capital:-3, alea:{ p:0.5, succes:{credibilite:4}, echec:{partenaire:[{theatre:'SAHEL', delta:-6}]} } } }
+    ] },
+  { id:'PANNE_A400M', titre:'Défaut technique sur la flotte A400M', poids:3, max:1, cond:{ tourMin:2 },
+    texte:'Un défaut moteur impose l’immobilisation temporaire d’une partie de la flotte de transport.',
+    choix:[
+      { texte:'Affréter des gros porteurs civils', effets:{ budget:-15, indispo:{unite:'A400M', tours:2} } },
+      { texte:'Réduire le rythme logistique des opérations', effets:{ indispo:{unite:'A400M', tours:2}, fatigue:[{categorie:'TERRE', delta:12}, {categorie:'FS', delta:8}] } }
+    ] },
+  { id:'CYBER_HOPITAL', titre:'Rançongiciel dans un centre hospitalier', poids:5, max:2,
+    cond:{ menace:{type:'CYBER', forceMin:30} },
+    texte:'Un centre hospitalier régional fonctionne en mode dégradé après le chiffrement de ses serveurs.',
+    choix:[
+      { texte:'Projeter une équipe de l’ANSSI', effets:{ capital:-1, menace:[{type:'CYBER', delta:-8}], opinion:1 } },
+      { texte:'Laisser l’établissement gérer avec son prestataire', effets:{ opinion:-4, menaceInt:3 } },
+      { texte:'Communication publique et plan national de durcissement', effets:{ budget:-6, menace:[{type:'CYBER', delta:-5}], opinion:2 } }
+    ] },
+  { id:'ARBITRAGE', titre:'Arbitrage budgétaire', poids:4, max:3, cond:{ tourMin:4 },
+    texte:'Le ministère chargé du budget demande un gel de crédits sur la défense et la sécurité.',
+    choix:[
+      { texte:'Accepter le gel', effets:{ enveloppe:-10, capital:5 } },
+      { texte:'Défendre les crédits en conseil de défense', effets:{ capital:-6, enveloppe:5 } },
+      { texte:'Redéployer des crédits internes', effets:{ budget:-10, capital:1 } }
+    ] },
+  { id:'OTAN_EST', titre:'Demande de l’OTAN', poids:5, max:2,
+    cond:{ menace:{type:'ETAT_EST', forceMin:35} },
+    texte:'L’Alliance demande une contribution aux mesures de réassurance sur le flanc oriental.',
+    choix:[
+      { texte:'Contribuer avec un détachement', effets:{ budget:-10, credibilite:5, menace:[{type:'ETAT_EST', delta:-5}], relation:[{allie:'USA', delta:3}, {allie:'DEU', delta:2}] } },
+      { texte:'Contribution symbolique', effets:{ credibilite:1 } },
+      { texte:'Refuser, priorité au Sahel', effets:{ credibilite:-6, relation:[{allie:'USA', delta:-4}] } }
+    ] },
+  { id:'ATTENTAT_DEJOUE', titre:'Projet d’attentat déjoué', poids:5, max:3,
+    cond:{ menace:{type:'TERRO', forceMin:25}, rensMin:{theatre:'METRO', val:40} },
+    texte:'Une cellule préparant une action violente a été interpellée à la suite d’une surveillance de plusieurs mois.',
+    choix:[
+      { texte:'Communiquer sur le succès des services', effets:{ opinion:4, capital:2, menace:[{type:'TERRO', delta:-6}] } },
+      { texte:'Rester discret pour exploiter les suites', effets:{ menace:[{type:'TERRO', delta:-10}], rens:[{theatre:'METRO', delta:5}] } }
+    ] },
+  { id:'ATTENTAT', titre:'Attaque terroriste en métropole', poids:4, max:3,
+    cond:{ menace:{type:'TERRO', forceMin:55} },
+    texte:'Une attaque armée a fait de nombreuses victimes dans une grande ville. Les auteurs sont neutralisés ou en fuite.',
+    choix:[
+      { texte:'Déclarer l’état d’urgence', effets:{ menaceInt:-6, opinion:3, capital:-2, menace:[{type:'TERRO', delta:-8}] }, suite:'ETAT_URGENCE', suiteDelai:3 },
+      { texte:'Réponse judiciaire et policière ordinaire', effets:{ opinion:-6, menaceInt:5 } },
+      { texte:'Renforcer massivement la présence militaire', effets:{ budget:-15, menaceInt:-5, opinion:2 } }
+    ] },
+  { id:'ETAT_URGENCE', titre:'Prorogation de l’état d’urgence', poids:0, max:3, cond:{ chaine:true },
+    texte:'Le Parlement doit se prononcer sur la prorogation de l’état d’urgence.',
+    choix:[
+      { texte:'Demander la prorogation', effets:{ capital:-3, menaceInt:-4, opinion:1 }, suite:'ETAT_URGENCE', suiteDelai:6 },
+      { texte:'Laisser l’état d’urgence s’éteindre', effets:{ capital:2, opinion:-1 } }
+    ] },
+  { id:'NAUFRAGES', titre:'Naufrages en Méditerranée centrale', poids:4, max:2, cond:{ tourMin:3 },
+    texte:'Une série de naufrages au large de la Libye conduit l’Union européenne à demander des moyens navals.',
+    choix:[
+      { texte:'Engager une frégate', effets:{ fatigue:[{unite:'FREMM', delta:15}], credibilite:3, opinion:1, rens:[{theatre:'LIBYE', delta:5}], relation:[{allie:'ITA', delta:4}] } },
+      { texte:'Contribution financière', effets:{ budget:-5, credibilite:1 } },
+      { texte:'Ne pas participer', effets:{ credibilite:-3 } }
+    ] },
+  { id:'LIBYE_CHAOS', titre:'Dégradation sécuritaire en Libye', poids:4, max:2,
+    cond:{ menace:{type:'DAECH', forceMin:20, theatre:'LIBYE'} },
+    texte:'Des groupes affiliés à Daech prennent le contrôle d’une ville côtière libyenne.',
+    choix:[
+      { texte:'Actions clandestines ciblées', effets:{ alea:{ p:0.6, succes:{menace:[{type:'DAECH', theatre:'LIBYE', delta:-10}]}, echec:{credibilite:-4, opinion:-2} } } },
+      { texte:'Appui en renseignement aux alliés', effets:{ rens:[{theatre:'LIBYE', delta:10}], allie:{theatre:'LIBYE', tours:2} } },
+      { texte:'Ne pas s’engager', effets:{ menace:[{type:'DAECH', theatre:'LIBYE', delta:5}] } }
+    ] },
+  { id:'PETROLIER', titre:'Pétrolier détourné', poids:4, max:2,
+    cond:{ menace:{type:'PIRATERIE', forceMin:30} },
+    texte:'Un pétrolier avec des marins européens à bord a été détourné. L’armateur demande assistance.',
+    choix:[
+      { texte:'Ouvrir une crise et étudier une intervention', effets:{ crise:'PIRATERIE' } },
+      { texte:'S’en remettre à la marine riveraine', effets:{ credibilite:-1, menace:[{type:'PIRATERIE', delta:3}] } },
+      { texte:'Faciliter une négociation privée', effets:{ capital:-1, menace:[{type:'PIRATERIE', delta:5}] } }
+    ] },
+  { id:'DJIBOUTI_BAIL', titre:'Renégociation à Djibouti', poids:3, max:1, cond:{ tourMin:8 },
+    texte:'Djibouti renégocie les conditions de la présence militaire française alors que d’autres puissances s’installent.',
+    choix:[
+      { texte:'Accepter une contribution plus élevée', effets:{ budget:-10, credibilite:2 } },
+      { texte:'Réduire l’empreinte', effets:{ budget:8, rens:[{theatre:'CORNE', delta:-10}], credibilite:-2 } }
+    ] },
+  { id:'DESINFO', titre:'Campagne de désinformation', poids:4, max:2,
+    cond:{ menace:{type:'ETAT_EST', forceMin:40} },
+    texte:'Une campagne coordonnée de faux comptes cible le débat public sur les opérations extérieures.',
+    choix:[
+      { texte:'Attribution publique', effets:{ capital:-2, credibilite:2, menace:[{type:'ETAT_EST', delta:3}] }, suite:'SANCTIONS', suiteDelai:2, suiteP:0.7 },
+      { texte:'Riposte technique discrète', effets:{ menace:[{type:'CYBER', delta:-4}], opinion:-1 } },
+      { texte:'Ignorer', effets:{ opinion:-3 } }
+    ] },
+  { id:'INTERCEPTION', titre:'Bombardiers à proximité de l’espace aérien', poids:3, max:2,
+    cond:{ menace:{type:'ETAT_EST', forceMin:30} },
+    texte:'Des bombardiers à long rayon d’action longent l’espace aérien national sans plan de vol.',
+    choix:[
+      { texte:'Interception et escorte', effets:{ fatigue:[{unite:'RAFALE', delta:5}], credibilite:1 } },
+      { texte:'Protestation diplomatique', effets:{ credibilite:-1 } }
+    ] },
+  { id:'COUR_COMPTES', titre:'La Cour des comptes et les OPEX', poids:5, max:2, cond:{ surcoutMin:80 },
+    texte:'Un rapport public souligne la sous-budgétisation chronique des opérations extérieures.',
+    choix:[
+      { texte:'Annoncer une hausse de la provision OPEX', effets:{ enveloppe:10, capital:-4 } },
+      { texte:'Contester les chiffres', effets:{ opinion:-2, capital:-1 } }
+    ] },
+  { id:'SOLDATS_TUES', titre:'Soldats tués en opération', poids:3, max:3, cond:{ deploiementExterieur:true, tourMin:2 },
+    texte:'Des militaires français ont été tués lors d’une embuscade. Leurs noms ne sont pas encore communiqués.',
+    choix:[
+      { texte:'Hommage national et maintien de l’engagement', effets:{ opinion:-1, capital:1, credibilite:1 } },
+      { texte:'Annoncer une revue de la posture', effets:{ opinion:1, credibilite:-3, pression:[{theatre:'SAHEL', delta:-5}] } }
+    ] },
+  { id:'LOI_RENS', titre:'Projet de loi sur le renseignement', poids:4, max:1, cond:{ tourMin:3, tourMax:20 },
+    texte:'Le gouvernement peut présenter un texte encadrant les techniques de renseignement.',
+    choix:[
+      { texte:'Présenter le texte en procédure accélérée', effets:{ capital:-5, rens:[{theatre:'METRO', delta:12}], opinion:-1 }, suite:'CENSURE_CC', suiteDelai:3, suiteP:0.6 },
+      { texte:'Reporter', effets:{ } }
+    ] },
+  { id:'LPM', titre:'Actualisation de la programmation militaire', poids:4, max:1, cond:{ tourMin:5 },
+    texte:'L’actualisation de la loi de programmation militaire est à l’ordre du jour.',
+    choix:[
+      { texte:'Obtenir une hausse des crédits', effets:{ capital:-6, enveloppe:15 } },
+      { texte:'Stabiliser la trajectoire', effets:{ capital:2 } }
+    ] },
+  { id:'RETOURS', titre:'Retour de combattants du Levant', poids:4, max:2,
+    cond:{ menace:{type:'DAECH', forceMin:45} },
+    texte:'Plusieurs dizaines de ressortissants partis au Levant cherchent à rentrer en France.',
+    choix:[
+      { texte:'Judiciarisation systématique', effets:{ budget:-3, menace:[{type:'TERRO', delta:-4}], capital:-1 } },
+      { texte:'Surveillance renforcée', effets:{ rens:[{theatre:'METRO', delta:6}], menace:[{type:'TERRO', delta:2}] } },
+      { texte:'Traitement au cas par cas', effets:{ menace:[{type:'TERRO', delta:7}] } }
+    ] },
+  { id:'PESHMERGAS', titre:'Demande d’armement des forces kurdes', poids:4, max:1,
+    cond:{ menace:{type:'DAECH', forceMin:40, theatre:'LEVANT'} },
+    texte:'Les autorités régionales kurdes demandent des armes et des formateurs.',
+    choix:[
+      { texte:'Livrer des armes et des formateurs', effets:{ partenaire:[{theatre:'LEVANT', delta:8}], credibilite:2, relation:[{allie:'USA', delta:2}] }, suite:'ARMES_DETOURNEES', suiteDelai:4, suiteP:0.35 },
+      { texte:'Conseil uniquement', effets:{ partenaire:[{theatre:'LEVANT', delta:3}] } },
+      { texte:'Refuser', effets:{ credibilite:-3 } }
+    ] },
+  { id:'EPIDEMIE', titre:'Épidémie dans un pays partenaire', poids:2, max:1, cond:{ tourMin:1, tourMax:12 },
+    texte:'Une épidémie de fièvre hémorragique touche un pays d’Afrique de l’Ouest partenaire.',
+    choix:[
+      { texte:'Déployer un centre de traitement militaire', effets:{ budget:-8, credibilite:3, opinion:1 } },
+      { texte:'Aide financière uniquement', effets:{ budget:-3, credibilite:1 } }
+    ] },
+  { id:'NAVIGATION', titre:'Incident en mer de Chine méridionale', poids:3, max:2,
+    cond:{ menace:{type:'INDOPAC_P', forceMin:30} },
+    texte:'Un bâtiment étranger a effectué une manœuvre dangereuse à proximité d’un navire allié.',
+    choix:[
+      { texte:'Organiser un transit au titre de la liberté de navigation', effets:{ fatigue:[{unite:'FREMM', delta:10}], credibilite:3, menace:[{type:'INDOPAC_P', delta:-4}] } },
+      { texte:'Déclaration commune avec les partenaires', effets:{ credibilite:1 } }
+    ] },
+  { id:'SOURCE', titre:'Source humaine compromise', poids:3, max:2, cond:{ tourMin:3 },
+    texte:'Une source de la DGSE au Levant aurait été identifiée par l’adversaire.',
+    choix:[
+      { texte:'Exfiltrer la source', effets:{ budget:-3, rens:[{theatre:'LEVANT', delta:-5}] } },
+      { texte:'Suspendre le contact', effets:{ rens:[{theatre:'LEVANT', delta:-12}], credibilite:-1 } }
+    ] },
+  { id:'SATELLITE', titre:'Défaillance d’un satellite d’observation', poids:2, max:1, cond:{ tourMin:4 },
+    texte:'Un satellite d’observation connaît une défaillance. La couverture image est réduite.',
+    choix:[
+      { texte:'Acheter des images commerciales', effets:{ budget:-6 } },
+      { texte:'Accepter la dégradation', effets:{ rens:[{theatre:'LEVANT', delta:-6}, {theatre:'SAHEL', delta:-6}, {theatre:'LIBYE', delta:-6}] } }
+    ] },
+  { id:'HELICOS', titre:'Disponibilité des hélicoptères', poids:3, max:2, cond:{ deploiementExterieur:true, tourMin:4 },
+    texte:'Le taux de disponibilité des hélicoptères en opération chute sous l’effet de l’usure en milieu désertique.',
+    choix:[
+      { texte:'Contrat de soutien d’urgence', effets:{ budget:-8 } },
+      { texte:'Réduire les vols', effets:{ fatigue:[{unite:'RHFS4', delta:20}], pression:[{theatre:'SAHEL', delta:-4}] } }
+    ] },
+  { id:'ALLIE_SYRIE', titre:'Washington demande d’élargir les frappes', poids:3, max:1,
+    cond:{ tourMin:6, menace:{type:'DAECH', forceMin:45} },
+    texte:'Les États-Unis demandent l’extension des frappes françaises à la Syrie.',
+    choix:[
+      { texte:'Accepter', effets:{ credibilite:4, opinion:-2, budget:-10, pression:[{theatre:'LEVANT', delta:8}], relation:[{allie:'USA', delta:6}] } },
+      { texte:'Limiter à l’Irak', effets:{ credibilite:-1, relation:[{allie:'USA', delta:-1}] } },
+      { texte:'Refuser', effets:{ credibilite:-4, capital:1, relation:[{allie:'USA', delta:-6}] } }
+    ] },
+  { id:'POLICE_EPUISEE', titre:'Forces de sécurité à bout de souffle', poids:4, max:2,
+    cond:{ menaceIntMin:60 },
+    texte:'Les syndicats de police et les états-majors alertent sur l’épuisement des effectifs mobilisés.',
+    choix:[
+      { texte:'Primes et rappel de réservistes', effets:{ budget:-10, opinion:2 } },
+      { texte:'Alléger certaines missions de garde statique', effets:{ menaceInt:4, fatigue:[{categorie:'INT', delta:-15}] } }
+    ] },
+  { id:'ACCORD_PAIX', titre:'Processus de paix au Mali', poids:3, max:1, cond:{ tourMin:3, tourMax:10 },
+    texte:'Un accord de paix entre le gouvernement malien et des groupes armés du Nord est en discussion.',
+    choix:[
+      { texte:'Soutenir activement l’accord', effets:{ capital:-2, partenaire:[{theatre:'SAHEL', delta:6}], menace:[{type:'DJIHAD', delta:-3}] } },
+      { texte:'Rester en retrait', effets:{ credibilite:-2 } }
+    ] },
+  { id:'EVACUATION', titre:'Ressortissants menacés dans la Corne', poids:3, max:1, cond:{ tourMin:2 },
+    texte:'La situation se dégrade dans un pays riverain de la mer Rouge. Plusieurs centaines de ressortissants demandent à partir.',
+    choix:[
+      { texte:'Opération d’évacuation depuis Djibouti', effets:{ budget:-6, opinion:4, credibilite:2, fatigue:[{categorie:'MER', delta:8}] } },
+      { texte:'S’appuyer sur les vols affrétés par les alliés', effets:{ credibilite:-1, opinion:-1 } }
+    ] },
+  { id:'EXERCICE', titre:'Exercice national de gestion de crise', poids:2, max:2, cond:{ tourMin:2 },
+    texte:'Un exercice majeur peut être organisé avec les préfectures, les hôpitaux et les forces d’intervention.',
+    choix:[
+      { texte:'Organiser l’exercice', effets:{ budget:-3, menaceInt:-3, fatigue:[{categorie:'INT', delta:5}] } },
+      { texte:'Reporter', effets:{ } }
+    ] },
+  { id:'SANCTIONS', titre:'Sanctions européennes', poids:0, max:1, cond:{ chaine:true },
+    texte:'À la suite de l’attribution publique, les partenaires européens examinent des sanctions ciblées.',
+    choix:[
+      { texte:'Porter les sanctions au Conseil européen', effets:{ capital:-2, credibilite:4, budget:-4, menace:[{type:'ETAT_EST', delta:-4}] } },
+      { texte:'S’en tenir à la déclaration', effets:{ credibilite:-1 } }
+    ] },
+  { id:'CENSURE_CC', titre:'Décision du Conseil constitutionnel', poids:0, max:1, cond:{ chaine:true },
+    texte:'Saisi sur la loi relative au renseignement, le Conseil constitutionnel censure plusieurs dispositions.',
+    choix:[
+      { texte:'Prendre acte et réécrire les dispositions', effets:{ capital:-1, rens:[{theatre:'METRO', delta:-3}] } },
+      { texte:'Présenter un nouveau texte encadré', effets:{ capital:-4, opinion:-1 } }
+    ] },
+  { id:'ARMES_DETOURNEES', titre:'Armes livrées saisies par l’adversaire', poids:0, max:1, cond:{ chaine:true },
+    texte:'Des armes livrées aux forces kurdes auraient été saisies par Daech lors de combats. La presse s’interroge sur le contrôle des livraisons.',
+    choix:[
+      { texte:'Renforcer le contrôle des livraisons', effets:{ budget:-3, partenaire:[{theatre:'LEVANT', delta:-2}] } },
+      { texte:'Suspendre les livraisons', effets:{ partenaire:[{theatre:'LEVANT', delta:-6}], credibilite:-2, opinion:1 } }
+    ] },
+  { id:'ELECTION_US', titre:'Nouvelle administration américaine', poids:6, max:1, cond:{ tourMin:22, tourMax:26 },
+    texte:'Une nouvelle administration s’installe à Washington. Ses priorités en matière d’alliances restent incertaines.',
+    choix:[
+      { texte:'Réaffirmer immédiatement le partenariat', effets:{ capital:-1, relation:[{allie:'USA', delta:6}] } },
+      { texte:'Plaider pour l’autonomie stratégique européenne', effets:{ credibilite:2, relation:[{allie:'USA', delta:-6}, {allie:'DEU', delta:4}] } },
+      { texte:'Attendre les premières décisions', effets:{ relation:[{allie:'USA', delta:-2}] } }
+    ] },
+  { id:'US_PARTAGE', titre:'Proposition américaine de partage de renseignement', poids:4, max:1, cond:{ tourMin:4, relationMin:{allie:'USA', val:55} },
+    texte:'Washington propose d’élargir le partage de renseignement sur les théâtres africains et au Levant.',
+    choix:[
+      { texte:'Accepter l’accord', effets:{ opinion:-1, rens:[{theatre:'SAHEL', delta:10}, {theatre:'LEVANT', delta:10}], relation:[{allie:'USA', delta:3}] } },
+      { texte:'Limiter l’accord au Levant', effets:{ rens:[{theatre:'LEVANT', delta:6}] } },
+      { texte:'Décliner pour préserver l’autonomie d’appréciation', effets:{ credibilite:1, relation:[{allie:'USA', delta:-4}] } }
+    ] },
+  { id:'US_CONGRES', titre:'Le Congrès américain et le soutien au Sahel', poids:3, max:1, cond:{ tourMin:6, theatreDeploye:'SAHEL' },
+    texte:'Le financement du soutien logistique américain aux opérations françaises au Sahel est discuté au Congrès.',
+    choix:[
+      { texte:'Mobiliser l’ambassade et les relais parlementaires', effets:{ capital:-2, appui:{allie:'USA', appui:'TRANSPORT', theatre:'SAHEL', tours:4}, relation:[{allie:'USA', delta:1}] } },
+      { texte:'Ne pas intervenir', effets:{ relation:[{allie:'USA', delta:-1}] } }
+    ] },
+  { id:'ECOUTES', titre:'Révélations sur des écoutes', poids:3, max:1, cond:{ tourMin:5 },
+    texte:'Des documents publiés indiquent qu’un service de renseignement allié aurait écouté de hauts responsables français.',
+    choix:[
+      { texte:'Convoquer l’ambassadeur et protester', effets:{ opinion:3, relation:[{allie:'USA', delta:-5}] } },
+      { texte:'Régler l’affaire par les canaux discrets', effets:{ opinion:-2, relation:[{allie:'USA', delta:2}] } }
+    ] },
+  { id:'US_RETRAIT', titre:'Washington réduit ses moyens en Afrique', poids:3, max:1, cond:{ tourMin:24, relationMax:{allie:'USA', val:55} },
+    texte:'Le Pentagone annonce une réduction de ses moyens de surveillance en Afrique au profit d’autres priorités.',
+    choix:[
+      { texte:'Compenser par des moyens nationaux', effets:{ budget:-10, rens:[{theatre:'SAHEL', delta:-4}] } },
+      { texte:'Négocier un maintien partiel', effets:{ capital:-3, relation:[{allie:'USA', delta:3}] } },
+      { texte:'Accepter la réduction', effets:{ rens:[{theatre:'SAHEL', delta:-12}] } }
+    ] },
+  { id:'CRISE_SAHEL', titre:'Offensive djihadiste au Sahel', poids:3, max:2,
+    cond:{ menace:{type:'DJIHAD', forceMin:55, theatre:'SAHEL'} },
+    texte:'Des colonnes armées convergent vers plusieurs localités du Nord. Les partenaires locaux demandent un appui immédiat.',
+    choix:[
+      { texte:'Ouvrir la cellule de crise', effets:{ crise:'SAHEL' } },
+      { texte:'Laisser les forces locales tenir', effets:{ credibilite:-3, menace:[{type:'DJIHAD', delta:5}] } }
+    ] }
+];
+
+// ---------------------------------------------------------------------
+// CARTES RÉGIONALES (zoom)
+// lieux : controle allie | ennemi | neutre ; force : fourchette initiale si ennemi
+// objectifs : tenir {lieu}, controler {lieu}, evacuer {lieu, nombre}, attrition {valeur en %}
+// ---------------------------------------------------------------------
+const CARTES_REGIONALES = {
+  IRAK_NORD: {
+    id:'IRAK_NORD', nom:'Irak du Nord', theatre:'LEVANT', largeur:700, hauteur:560, depart:'ERBIL',
+    forceLocale:{ nom:'Peshmergas et forces irakiennes', force:45 }, reserveEnnemie:[30,50],
+    lieux:[
+      { id:'DOHOUK',   nom:'Dohouk',    x:330, y:50,  type:'ville', controle:'allie',  defense:30, force:null,    civils:2 },
+      { id:'SINJAR',   nom:'Sinjar',    x:80,  y:150, type:'ville', controle:'ennemi', defense:0,  force:[20,35], civils:2 },
+      { id:'TALAFAR',  nom:'Tal Afar',  x:200, y:160, type:'ville', controle:'ennemi', defense:0,  force:[25,40], civils:2 },
+      { id:'MOSSOUL',  nom:'Mossoul',   x:320, y:180, type:'ville', controle:'ennemi', defense:0,  force:[50,70], civils:3 },
+      { id:'ERBIL',    nom:'Erbil',     x:490, y:160, type:'base',  controle:'allie',  defense:50, force:null,    civils:2 },
+      { id:'MAKHMOUR', nom:'Makhmour',  x:440, y:270, type:'base',  controle:'allie',  defense:20, force:null,    civils:1 },
+      { id:'QAYYARAH', nom:'Qayyarah',  x:310, y:290, type:'zone',  controle:'ennemi', defense:0,  force:[25,40], civils:1 },
+      { id:'HAWIJA',   nom:'Hawija',    x:470, y:360, type:'zone',  controle:'ennemi', defense:0,  force:[20,35], civils:2 },
+      { id:'KIRKOUK',  nom:'Kirkouk',   x:590, y:320, type:'ville', controle:'allie',  defense:35, force:null,    civils:2 },
+      { id:'BAIJI',    nom:'Baiji',     x:350, y:400, type:'zone',  controle:'ennemi', defense:0,  force:[20,35], civils:1 },
+      { id:'TIKRIT',   nom:'Tikrit',    x:390, y:470, type:'ville', controle:'ennemi', defense:0,  force:[15,30], civils:2 },
+      { id:'BAGDAD',   nom:'Bagdad',    x:500, y:530, type:'ville', controle:'allie',  defense:60, force:null,    civils:3 }
+    ],
+    liens:[['SINJAR','TALAFAR'],['SINJAR','DOHOUK'],['TALAFAR','MOSSOUL'],['DOHOUK','MOSSOUL'],['DOHOUK','ERBIL'],['MOSSOUL','ERBIL'],
+           ['MOSSOUL','QAYYARAH'],['ERBIL','MAKHMOUR'],['ERBIL','KIRKOUK'],['MAKHMOUR','QAYYARAH'],['MAKHMOUR','HAWIJA'],['KIRKOUK','HAWIJA'],
+           ['QAYYARAH','BAIJI'],['HAWIJA','BAIJI'],['BAIJI','TIKRIT'],['TIKRIT','BAGDAD'],['KIRKOUK','BAGDAD']],
+    scenarios:[
+      { id:'FRONT_KURDE', titre:'Offensive contre le front kurde',
+        texte:'Daech concentre des forces autour de Hawija et Qayyarah et menace Makhmour et Kirkouk.',
+        objectifs:[{type:'tenir', lieu:'MAKHMOUR'}, {type:'tenir', lieu:'KIRKOUK'}, {type:'attrition', valeur:30}],
+        modifs:{ HAWIJA:{force:15}, QAYYARAH:{force:10} } },
+      { id:'SINJAR_SIEGE', titre:'Populations encerclées à Sinjar',
+        texte:'Des milliers de civils sont pris au piège dans les environs de Sinjar. Une partie peut être évacuée si l’étau se desserre.',
+        objectifs:[{type:'evacuer', lieu:'SINJAR', nombre:2}, {type:'attrition', valeur:20}],
+        modifs:{ SINJAR:{ressortissants:2} } },
+      { id:'OTAGES_TALAFAR', titre:'Ressortissants retenus près de Tal Afar',
+        texte:'Deux humanitaires européens seraient détenus dans le secteur de Tal Afar.',
+        objectifs:[{type:'evacuer', lieu:'TALAFAR', nombre:1}, {type:'tenir', lieu:'DOHOUK'}],
+        modifs:{ TALAFAR:{ressortissants:1} } }
+    ]
+  },
+  SAHEL: {
+    id:'SAHEL', nom:'Sahel (Mali-Niger)', theatre:'SAHEL', largeur:760, hauteur:540, depart:'GAO',
+    forceLocale:{ nom:'Forces maliennes et partenaires', force:35 }, reserveEnnemie:[25,40],
+    lieux:[
+      { id:'TESSALIT',  nom:'Tessalit',             x:520, y:50,  type:'base',  controle:'allie',  defense:25, force:null,    civils:0 },
+      { id:'TINZA',     nom:'Tin Zaouatine',        x:690, y:60,  type:'zone',  controle:'ennemi', defense:0,  force:[15,25], civils:0 },
+      { id:'KIDAL',     nom:'Kidal',                x:560, y:170, type:'ville', controle:'neutre', defense:10, force:null,    civils:2 },
+      { id:'IFOGHAS',   nom:'Adrar des Ifoghas',    x:680, y:180, type:'zone',  controle:'ennemi', defense:0,  force:[25,40], civils:0 },
+      { id:'TOMBOUCTOU',nom:'Tombouctou',           x:220, y:200, type:'ville', controle:'allie',  defense:20, force:null,    civils:2 },
+      { id:'GAO',       nom:'Gao',                  x:450, y:280, type:'base',  controle:'allie',  defense:45, force:null,    civils:2 },
+      { id:'GOURMA',    nom:'Gourma',               x:300, y:320, type:'zone',  controle:'ennemi', defense:0,  force:[20,30], civils:1 },
+      { id:'WAGADOU',   nom:'Forêt du Wagadou',     x:80,  y:310, type:'zone',  controle:'ennemi', defense:0,  force:[20,30], civils:1 },
+      { id:'ANSONGO',   nom:'Ansongo',              x:480, y:370, type:'ville', controle:'neutre', defense:10, force:null,    civils:2 },
+      { id:'MENAKA',    nom:'Ménaka',               x:640, y:380, type:'ville', controle:'ennemi', defense:0,  force:[20,35], civils:2 },
+      { id:'MOPTI',     nom:'Mopti',                x:150, y:430, type:'ville', controle:'allie',  defense:25, force:null,    civils:3 },
+      { id:'NIAMEY',    nom:'Niamey',               x:520, y:500, type:'base',  controle:'allie',  defense:60, force:null,    civils:3 }
+    ],
+    liens:[['TESSALIT','KIDAL'],['TESSALIT','TINZA'],['KIDAL','IFOGHAS'],['IFOGHAS','TINZA'],['KIDAL','GAO'],['TOMBOUCTOU','GOURMA'],
+           ['TOMBOUCTOU','WAGADOU'],['TOMBOUCTOU','GAO'],['WAGADOU','MOPTI'],['MOPTI','GOURMA'],['GOURMA','GAO'],['GAO','ANSONGO'],
+           ['ANSONGO','MENAKA'],['ANSONGO','NIAMEY'],['MENAKA','NIAMEY']],
+    scenarios:[
+      { id:'TOMBOUCTOU_MENACEE', titre:'Tombouctou menacée',
+        texte:'Des katibas venues du Wagadou et du Gourma convergent vers Tombouctou.',
+        objectifs:[{type:'tenir', lieu:'TOMBOUCTOU'}, {type:'controler', lieu:'GOURMA'}],
+        modifs:{ WAGADOU:{force:12}, GOURMA:{force:8} } },
+      { id:'IFOGHAS_SANCTUAIRE', titre:'Sanctuaire de l’Adrar des Ifoghas',
+        texte:'Le renseignement signale la reconstitution d’une base logistique dans l’Adrar des Ifoghas.',
+        objectifs:[{type:'controler', lieu:'IFOGHAS'}, {type:'attrition', valeur:30}],
+        modifs:{ IFOGHAS:{force:10} } },
+      { id:'OTAGES_MENAKA', titre:'Otages dans la région de Ménaka',
+        texte:'Un ressortissant enlevé serait détenu dans les environs de Ménaka.',
+        objectifs:[{type:'evacuer', lieu:'MENAKA', nombre:1}, {type:'tenir', lieu:'GAO'}],
+        modifs:{ MENAKA:{ressortissants:1} } }
+    ]
+  }
+};
+
+// Paramètres de règles exprimés en données (seuils, coefficients)
+const PARAMS = {
+  actionsBase:2, actionsParCapital:25, actionsMax:6,
+  capitalMensuel:2, opinionRappel:0.05,
+  regenerationTours:2, fatigueRepos:15, fatigueDeploiement:6,
+  dureeAvantVote:4, probaEvenement:0.65, toursCriseLibre:2,
+  margeMin:4, rensFauxRapport:30,
+  plafondProtection:0.5   // part maximale de la menace intérieure que la protection peut absorber
+};
+
+// =====================================================================
+// COUCHE 2 — SIMULATION
+// Fonctions pures : aucune lecture ni écriture du DOM. Chaque fonction
+// publique reçoit un état, le clone et renvoie un nouvel état.
+// =====================================================================
+
+function indexer(liste) { const o = {}; for (const x of liste) o[x.id] = x; return o; }
+const TH = indexer(THEATRES), UN = indexer(UNITES), SV = indexer(SERVICES),
+      MT = indexer(MENACES), OP = indexer(OPERATIONS), DOC = indexer(DOCTRINES), EV = indexer(EVENEMENTS), AL = indexer(ALLIES);
+
+function cloner(s) { return JSON.parse(JSON.stringify(s)); }
+function borner(v, a, b) { return v < a ? a : (v > b ? b : v); }
+function arrondi(v) { return Math.round(v * 10) / 10; }
+
+// Clé canonique d'une action (comparaison indépendante de l'ordre des champs)
+function cleAction(a) {
+  const k = Object.keys(a).sort();
+  return k.map(x => x + '=' + JSON.stringify(a[x])).join('&');
+}
+
+// ---------- Générateur pseudo-aléatoire mulberry32 (état dans s.rngState) ----------
+function graineVersEntier(g) {
+  const t = String(g).trim();
+  if (/^\d+$/.test(t)) return Number(BigInt(t) % 4294967296n) >>> 0;
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function alea(s) {
+  s.rngState = (s.rngState + 0x6D2B79F5) >>> 0;
+  let t = s.rngState;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function aleaEntre(s, a, b) { return a + alea(s) * (b - a); }
+function aleaInt(s, a, b) { return Math.floor(aleaEntre(s, a, b + 1 - 1e-9)); }
+function choisir(s, l) { return l[Math.floor(alea(s) * l.length)]; }
+function choisirPondere(s, items, poids) {
+  const tot = items.reduce((a, x) => a + poids(x), 0);
+  if (tot <= 0) return null;
+  let r = alea(s) * tot;
+  for (const x of items) { r -= poids(x); if (r <= 0) return x; }
+  return items[items.length - 1];
+}
+
+// ---------- Accesseurs ----------
+function dateDuTour(t) { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
+const MODS_NEUTRES = { rensBonus:0, capteursBonus:{}, opBonus:0, enveloppe:0, delaiMod:0, coutMult:1, protectionMult:1, croissanceExtMult:1, capitalMensuel:0, voteBonus:0, opinion:0, credibilite:0 };
+function mods(s) { return s.doctrine ? DOC[s.doctrine].mods : MODS_NEUTRES; }
+function unitesDans(s, theatre, etats) {
+  const e = etats || ['deployee'];
+  return UNITES.filter(u => s.unites[u.id].theatre === theatre && e.includes(s.unites[u.id].etat));
+}
+function nbCapteurs(s, service, theatre) {
+  const a = s.services[service].affectations[theatre];
+  if (!a) return 0;
+  return TYPES_CAPTEURS.reduce((x, t) => x + (a[t] || 0), 0);
+}
+function capteursLibres(s, service, type) {
+  const sv = s.services[service];
+  let pris = 0;
+  for (const t in sv.affectations) pris += sv.affectations[t][type] || 0;
+  return sv.capteurs[type] - pris;
+}
+function menacesDans(s, theatre) { return s.menaces.filter(m => m.theatre === theatre); }
+function menaceParId(s, id) { return s.menaces.find(m => m.id === id) || null; }
+function actionsParTour(s) {
+  return borner(PARAMS.actionsBase + Math.floor(s.ressources.capital / PARAMS.actionsParCapital), 1, PARAMS.actionsMax);
+}
+function enIndisponibilite(u, tour) {
+  return (u.indisponibilites || []).some(p => tour >= p.debut && tour <= p.fin);
+}
+function coutMult(s) { return mods(s).coutMult; }
+function probaVote(s) {
+  const R = s.ressources;
+  return borner(0.25 + R.opinion / 100 * 0.45 + R.capital / 100 * 0.35 + mods(s).voteBonus, 0.05, 0.97);
+}
+function coutsMensuels(s) {
+  let c = 0;
+  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += u.coutMensuel * coutMult(s); }
+  return arrondi(c);
+}
+function fiabilite(r) { return r >= 75 ? 'A' : r >= 55 ? 'B' : r >= 35 ? 'C' : r >= 20 ? 'D' : 'E'; }
+function journaliser(s, texte, genre) {
+  s.journal.unshift({ tour: s.tour, texte, genre: genre || 'info' });
+  if (s.journal.length > 150) s.journal.length = 150;
+}
+function decider(s, texte) { s.decisions.push({ tour: s.tour, texte }); }
+
+function appuiDef(allie, appui) { return AL[allie].appuis.find(a => a.id === appui); }
+const BONUS_PERIODIQUES = ['rens', 'pression', 'frappesZoom', 'recosZoom', 'opBonus', 'delai'];
+function bonusTheatre(s, t) {
+  const th = s.theatres[t], b = { rens: 0, pression: 0, frappesZoom: 0, recosZoom: 0, opBonus: 0, delai: 0 };
+  if (th.allie > 0) { b.rens += 10; b.pression += 6; b.frappesZoom += 1; b.opBonus += 0.05; }
+  for (const a of th.appuis) { const ef = appuiDef(a.allie, a.appui).effets; for (const k of BONUS_PERIODIQUES) if (ef[k]) b[k] += ef[k]; }
+  b.delai = Math.max(-1, b.delai);
+  return b;
+}
+function delaiProjection(s, uniteId, theatre) {
+  return Math.max(0, UN[uniteId].delai + mods(s).delaiMod + bonusTheatre(s, theatre).delai);
+}
+
+// ---------- Renseignement ----------
+function calculerRens(s) {
+  const md = mods(s);
+  for (const T of THEATRES) {
+    const th = s.theatres[T.id];
+    let r = T.rensBase + md.rensBonus + th.rensBonus + th.rensPermanent;
+    for (const sv of SERVICES) {
+      const a = s.services[sv.id].affectations[T.id];
+      if (!a) continue;
+      for (const ty of TYPES_CAPTEURS) r += (a[ty] || 0) * POIDS_CAPTEUR[ty] * sv.efficacite[ty];
+    }
+    for (const u of unitesDans(s, T.id)) r += u.cap.renseignement * 1.5 * (1 - s.unites[u.id].fatigue / 300);
+    r += bonusTheatre(s, T.id).rens;
+    th.rens = Math.round(borner(r, 0, 95));
+  }
+}
+function rensMenace(s, m) {
+  const T = MT[m.type];
+  let r = s.theatres[m.theatre].rens;
+  for (const sv in T.servicesCles) r += T.servicesCles[sv] * nbCapteurs(s, sv, m.theatre);
+  return Math.round(borner(r, 0, 98));
+}
+function serviceSource(s, theatre) {
+  let best = null, n = 0;
+  for (const sv of SERVICES) { const c = nbCapteurs(s, sv.id, theatre); if (c > n) { n = c; best = sv.id; } }
+  if (best) return best;
+  return TH[theatre].exterieur ? 'DRM' : 'DGSI';
+}
+function estimerMenaces(s) {
+  s.rapports = [];
+  for (const m of s.menaces) {
+    const r = rensMenace(s, m);
+    if (!m.detectee) {
+      const p = r / 110 + m.force / 250;
+      if (alea(s) < p) m.detectee = true; else continue;
+    }
+    const marge = Math.max(PARAMS.margeMin, Math.round((100 - r) * 0.45));
+    let bruit = (alea(s) + alea(s) - 1) * marge;
+    m.rapportFaux = false;
+    if (r < PARAMS.rensFauxRapport && alea(s) < 0.3) {
+      bruit += (alea(s) < 0.5 ? -1 : 1) * aleaEntre(s, 15, 30);
+      m.rapportFaux = true;
+    }
+    const prec = m.estimation;
+    m.estimation = Math.round(borner(m.force + bruit, 0, 100));
+    m.marge = marge;
+    const tend = prec === null ? 'première évaluation' : (m.estimation - prec > 4 ? 'en hausse' : (prec - m.estimation > 4 ? 'en baisse' : 'stable'));
+    s.rapports.push({ theatre: m.theatre, service: serviceSource(s, m.theatre), fiabilite: fiabilite(r),
+      texte: MT[m.type].nom + ' : niveau estimé ' + m.estimation + ' (± ' + marge + '), ' + tend + '.' });
+  }
+  for (const T of THEATRES) {
+    const th = s.theatres[T.id];
+    if (th.rens < PARAMS.rensFauxRapport && alea(s) < 0.15) {
+      s.rapports.push({ theatre: T.id, service: serviceSource(s, T.id), fiabilite: 'E',
+        texte: 'Signalement non recoupé d’une activité suspecte. Source unique, non confirmée.' });
+    }
+    if (th.crise) s.rapports.push({ theatre: T.id, service: serviceSource(s, T.id), fiabilite: fiabilite(th.rens), texte: 'Crise en cours : ' + th.crise.titre + '.' });
+  }
+}
+
+// ---------- Création de partie ----------
+function nouvellePartie(graine, difficulte) {
+  const d = DIFFICULTES[difficulte] ? difficulte : 'normal';
+  const D = DIFFICULTES[d];
+  const s = {
+    version: 1, graine: String(graine), rngState: graineVersEntier(graine), difficulte: d, doctrine: null,
+    tour: 0, phase: 'doctrine',
+    ressources: { budget: D.budgetInitial, enveloppe: D.enveloppe, surcout: 0, capital: D.capital, opinion: D.opinion, menaceInt: D.menaceInt, credibilite: D.credibilite },
+    actionsRestantes: 0, unites: {}, services: {}, theatres: {}, menaces: [], prochainIdMenace: 1,
+    file: [], evenementCourant: null, criseCourante: null, zoom: null, dernierBilan: null, dernierResultat: null,
+    chaines: [], compteurEvenements: {}, journal: [], rapports: [], decisions: [], historique: [],
+    menaceInt100: 0, fin: null,
+    stats: { operations: 0, succes: 0, pertes: 0, collat: 0, crisesInterv: 0, crisesReussies: 0, crisesIgnorees: 0, attaques: 0, dejoues: 0, votes: 0, votesPerdus: 0 }
+  };
+  for (const u of UNITES) s.unites[u.id] = { etat: u.depart ? 'deployee' : 'disponible', theatre: u.depart || null, fatigue: u.depart ? 20 : 0, compteur: 0, indispo: 0 };
+  for (const sv of SERVICES) {
+    s.services[sv.id] = { capteurs: Object.assign({}, sv.capteurs), affectations: {} };
+    for (const t in sv.affectationInitiale) s.services[sv.id].affectations[t] = Object.assign({ HUMINT: 0, SIGINT: 0, IMINT: 0 }, sv.affectationInitiale[t]);
+  }
+  for (const T of THEATRES) {
+    const engage = UNITES.some(u => u.depart === T.id);
+    s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0,
+      toursIntervention: engage ? 12 : 0, voteFait: engage, allie: 0, appuis: [], crise: null };
+  }
+  s.allies = {};
+  for (const A of ALLIES) s.allies[A.id] = { relation: A.relation, cooldown: 0 };
+  for (const T of MENACES) {
+    const th = choisir(s, T.theatresDepart);
+    ajouterMenace(s, T.id, th, aleaEntre(s, T.forceDepart[0], T.forceDepart[1]) * D.forceMult, true);
+    for (const sec of T.secondaires) if (alea(s) < sec.p) ajouterMenace(s, T.id, sec.theatre, aleaEntre(s, sec.force[0], sec.force[1]) * D.forceMult, false);
+  }
+  calculerRens(s);
+  estimerMenaces(s);
+  journaliser(s, 'Prise de fonctions. Graine ' + s.graine + ', difficulté ' + D.nom + '.', 'info');
+  return s;
+}
+function ajouterMenace(s, type, theatre, force, detectee) {
+  const m = { id: 'M' + (s.prochainIdMenace++), type, theatre, force: Math.round(borner(force, 1, 100)), detectee: !!detectee, estimation: null, marge: 50, rapportFaux: false };
+  s.menaces.push(m);
+  return m;
+}
+
+// ---------- Pression exercée sur une menace ----------
+function pressionMenace(s, m) {
+  const T = MT[m.type], th = s.theatres[m.theatre];
+  let p = 0;
+  for (const u of unitesDans(s, m.theatre)) {
+    const f = 1 - s.unites[u.id].fatigue / 200;
+    for (const c in T.sensibilite) p += u.cap[c] * T.sensibilite[c] * f;
+  }
+  p += (T.sensibilite.renseignement || 0) * th.rens / 10;
+  for (const sv in T.pressionServices) p += nbCapteurs(s, sv, m.theatre) * T.pressionServices[sv];
+  p += th.pressionOps + th.pressionBonus + th.partenaire * 0.25 + bonusTheatre(s, m.theatre).pression;
+  return Math.max(0, p);
+}
+
+// ---------- Évaluation d'une opération (aperçu, sur la base des estimations) ----------
+function participantsOperation(s, op, theatre) {
+  return unitesDans(s, theatre).filter(u => (op.categories.length === 0 || op.categories.includes(u.categorie)) && u.cap[op.capacite] >= op.minCapacite);
+}
+function evaluerOperation(s, opId, theatre, cible, reel) {
+  const op = OP[opId], md = mods(s), th = s.theatres[theatre];
+  const parts = participantsOperation(s, op, theatre);
+  let puissance = parts.reduce((a, u) => a + u.cap[op.capacite] * (1 - s.unites[u.id].fatigue / 200), 0);
+  if (op.serviceRequis) puissance += nbCapteurs(s, op.serviceRequis, theatre) * 3;
+  const m = cible ? menaceParId(s, cible) : null;
+  const rens = m ? rensMenace(s, m) : th.rens;
+  const force = m ? (reel ? m.force : (m.estimation === null ? 50 : m.estimation)) : 30;
+  const pS = borner(0.2 + Math.min(puissance, 30) * 0.025 + rens * 0.004 - force * 0.005 + md.opBonus + bonusTheatre(s, theatre).opBonus, 0.05, 0.95);
+  const discr = parts.length ? parts.reduce((a, u) => a + u.cap.discretion, 0) / parts.length : 5;
+  const pP = borner(op.risquePertes * (1.4 - discr / 10) * (0.5 + force / 100), 0, 0.9);
+  const pC = borner(op.risqueCollat * (1.3 - rens / 100), 0, 0.9);
+  return { pSucces: pS, risquePertes: pP, risqueCollat: pC, cout: arrondi(op.cout * md.coutMult), capital: op.capital, participants: parts.map(u => u.id), puissance: arrondi(puissance) };
+}
+
+// ---------- Moyens mobilisables pour une crise ----------
+function moyensCrise(s, theatre) {
+  const T = TH[theatre];
+  if (T.carteRegionale) {
+    const fs = unitesDans(s, theatre).filter(u => u.categorie === 'FS');
+    const fsDispo = UNITES.filter(u => u.categorie === 'FS' && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
+    const frappe = unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && u.categorie !== 'FS');
+    return { zoom: true, fs: fs.map(u => u.id), fsDispo: fsDispo.map(u => u.id), frappe: frappe.map(u => u.id), possible: fs.length + fsDispo.length > 0 };
+  }
+  const sur = unitesDans(s, theatre);
+  const dispo = UNITES.filter(u => s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour) && (u.cap.assaut >= 5 || u.cap.frappe >= 5));
+  return { zoom: false, sur: sur.map(u => u.id), dispo: dispo.map(u => u.id), possible: sur.length + dispo.length > 0 };
+}
+
+function evaluerCriseAbstraite(s, theatre, reel) {
+  const moy = moyensCrise(s, theatre), th = s.theatres[theatre];
+  let ids = (moy.sur || []).slice(), urgence = null;
+  if (!ids.length && moy.dispo && moy.dispo.length) { urgence = moy.dispo[0]; ids = [urgence]; }
+  const m = menaceDeCrise(s, theatre);
+  const force = m ? (reel ? m.force : (m.estimation === null ? 50 : m.estimation)) : 30;
+  const power = ids.reduce((x, id) => x + Math.max(UN[id].cap.assaut, UN[id].cap.frappe) * (1 - s.unites[id].fatigue / 200), 0);
+  return { pSucces: borner(0.3 + power * 0.03 + th.rens * 0.003 - force * 0.004 + mods(s).opBonus, 0.1, 0.9), risquePertes: 0.15, unites: ids, urgence };
+}
+
+// ---------- Actions possibles ----------
+function actionsPossibles(s) {
+  const L = [];
+  if (s.fin) return L;
+  if (s.phase === 'doctrine') { for (const d of DOCTRINES) L.push({ type: 'DOCTRINE', id: d.id }); return L; }
+  if (s.phase === 'evenement') {
+    const E = EV[s.evenementCourant];
+    E.choix.forEach((c, i) => { if (choixPermis(s, c)) L.push({ type: 'CHOIX', index: i }); });
+    return L;
+  }
+  if (s.phase === 'crise') {
+    if (moyensCrise(s, s.criseCourante).possible) L.push({ type: 'CRISE', intervenir: true });
+    L.push({ type: 'CRISE', intervenir: false });
+    return L;
+  }
+  if (s.phase === 'zoom') return actionsZoom(s);
+  if (s.phase !== 'jeu') return L;
+
+  const R = s.ressources;
+  for (const sv of SERVICES) for (const t of sv.theatres) for (const ty of TYPES_CAPTEURS) {
+    if (s.services[sv.id].capteurs[ty] <= 0) continue;
+    if (capteursLibres(s, sv.id, ty) > 0) L.push({ type: 'CAPTEUR', service: sv.id, theatre: t, capteur: ty, delta: 1 });
+    const a = s.services[sv.id].affectations[t];
+    if (a && a[ty] > 0) L.push({ type: 'CAPTEUR', service: sv.id, theatre: t, capteur: ty, delta: -1 });
+  }
+  if (s.actionsRestantes <= 0) return L;
+  for (const u of UNITES) {
+    const e = s.unites[u.id];
+    if (e.etat === 'disponible' && !enIndisponibilite(u, s.tour)) for (const t of u.theatres) L.push({ type: 'DEPLOYER', unite: u.id, theatre: t });
+    if (e.etat === 'deployee' || e.etat === 'projection') L.push({ type: 'RAPATRIER', unite: u.id });
+  }
+  for (const op of OPERATIONS) {
+    if (R.capital <= op.capital) continue;
+    for (const T of THEATRES) {
+      if (op.theatresInterdits.includes(T.id)) continue;
+      if (op.serviceRequis && nbCapteurs(s, op.serviceRequis, T.id) === 0) continue;
+      if (!op.serviceRequis && participantsOperation(s, op, T.id).length === 0) continue;
+      if (op.cibles === null) L.push({ type: 'OPERATION', op: op.id, theatre: T.id, cible: null });
+      else for (const m of menacesDans(s, T.id)) if (m.detectee && op.cibles.includes(m.type)) L.push({ type: 'OPERATION', op: op.id, theatre: T.id, cible: m.id });
+    }
+  }
+  if (R.capital > 8) L.push({ type: 'BUDGET', sens: 'hausse' });
+  if (R.enveloppe > 20) L.push({ type: 'BUDGET', sens: 'baisse' });
+  for (const A of ALLIES) {
+    if (s.allies[A.id].cooldown > 0) continue;
+    for (const ap of A.appuis) {
+      if (R.capital <= ap.capital) continue;
+      for (const t of ap.theatres) if (!s.theatres[t].appuis.some(x => x.allie === A.id && x.appui === ap.id)) L.push({ type: 'ALLIE', allie: A.id, appui: ap.id, theatre: t });
+    }
+  }
+  return L;
+}
+function choixPermis(s, c) {
+  if (!c.requiert) return true;
+  if (c.requiert.categorie) return UNITES.some(u => u.categorie === c.requiert.categorie && ['disponible', 'deployee'].includes(s.unites[u.id].etat));
+  return true;
+}
+
+// ---------- Application d'une action ----------
+function appliquerAction(s, a) {
+  const k = cleAction(a);
+  if (!actionsPossibles(s).some(p => cleAction(p) === k)) throw new Error('Action non autorisée dans l’état courant : ' + k);
+  const n = cloner(s);
+  n.dernierResultat = null;
+  switch (a.type) {
+    case 'DOCTRINE': actDoctrine(n, a); break;
+    case 'CAPTEUR': actCapteur(n, a); break;
+    case 'DEPLOYER': actDeployer(n, a); break;
+    case 'RAPATRIER': actRapatrier(n, a); break;
+    case 'OPERATION': actOperation(n, a); break;
+    case 'BUDGET': actBudget(n, a); break;
+    case 'ALLIE': actAllie(n, a); break;
+    case 'CHOIX': actChoix(n, a); break;
+    case 'CRISE': actCrise(n, a); break;
+    default: actZoom(n, a);
+  }
+  const f = evaluerFin(n);
+  if (f.fini && f.type === 'defaite') terminer(n, f);
+  return n;
+}
+
+function actDoctrine(s, a) {
+  const D = DOC[a.id], md = D.mods;
+  s.doctrine = a.id;
+  s.ressources.enveloppe += md.enveloppe;
+  s.ressources.opinion = borner(s.ressources.opinion + md.opinion, 0, 100);
+  s.ressources.credibilite = borner(s.ressources.credibilite + md.credibilite, 0, 100);
+  for (const sv in md.capteursBonus) for (const ty in md.capteursBonus[sv]) s.services[sv].capteurs[ty] += md.capteursBonus[sv][ty];
+  s.phase = 'jeu';
+  s.actionsRestantes = actionsParTour(s);
+  calculerRens(s);
+  decider(s, 'Doctrine retenue : ' + D.nom + '.');
+  journaliser(s, 'Doctrine retenue : ' + D.nom + '.', 'decision');
+}
+function actCapteur(s, a) {
+  const aff = s.services[a.service].affectations;
+  if (!aff[a.theatre]) aff[a.theatre] = { HUMINT: 0, SIGINT: 0, IMINT: 0 };
+  aff[a.theatre][a.capteur] += a.delta;
+  calculerRens(s);
+  if (a.delta > 0) decider(s, a.service + ' : capteur ' + a.capteur + ' affecté à ' + TH[a.theatre].nom + '.');
+}
+function actDeployer(s, a) {
+  const u = UN[a.unite], e = s.unites[a.unite];
+  const delai = delaiProjection(s, a.unite, a.theatre);
+  e.theatre = a.theatre;
+  e.etat = delai === 0 ? 'deployee' : 'projection';
+  e.compteur = delai;
+  s.ressources.budget -= u.coutDeploiement * coutMult(s);
+  s.actionsRestantes--;
+  calculerRens(s);
+  decider(s, 'Déploiement : ' + u.nom + ' vers ' + TH[a.theatre].nom + (delai ? ' (arrivée sous ' + delai + ' mois)' : '') + '.');
+  journaliser(s, u.nom + ' engagé vers ' + TH[a.theatre].nom + '.', 'decision');
+}
+function rapatrier(s, id, motif) {
+  const u = UN[id], e = s.unites[id];
+  e.etat = 'regeneration';
+  e.compteur = u.categorie === 'INT' ? 1 : PARAMS.regenerationTours;
+  e.theatre = null;
+  journaliser(s, u.nom + ' rapatrié' + (motif ? ' (' + motif + ')' : '') + '.', motif ? 'alerte' : 'decision');
+}
+function actRapatrier(s, a) {
+  const th = s.unites[a.unite].theatre;
+  rapatrier(s, a.unite, null);
+  s.actionsRestantes--;
+  calculerRens(s);
+  decider(s, 'Rapatriement : ' + UN[a.unite].nom + ' depuis ' + TH[th].nom + '.');
+}
+function actOperation(s, a) {
+  const op = OP[a.op], ev = evaluerOperation(s, a.op, a.theatre, a.cible, true);
+  const th = s.theatres[a.theatre], R = s.ressources;
+  R.budget -= ev.cout;
+  R.capital -= op.capital;
+  s.actionsRestantes--;
+  s.stats.operations++;
+  th.pressionOps += op.pression;
+  for (const id of ev.participants) s.unites[id].fatigue = borner(s.unites[id].fatigue + 5, 0, 100);
+  const m = a.cible ? menaceParId(s, a.cible) : null;
+  const res = [];
+  const succes = alea(s) < ev.pSucces;
+  if (succes) {
+    s.stats.succes++;
+    if (m) { const d = Math.round(op.degats * (0.6 + alea(s) * 0.8)); m.force = Math.max(0, m.force - d); }
+    appliquerEffets(s, transformerEffetOp(op.effetSucces, a.theatre), res);
+    res.unshift('Succès.');
+  } else {
+    if (m) m.force = Math.max(0, m.force - Math.round(op.degats * 0.2));
+    R.opinion = borner(R.opinion - 1, 0, 100);
+    res.unshift('Échec : objectifs non atteints.');
+  }
+  if (alea(s) < ev.risquePertes) {
+    s.stats.pertes++;
+    R.opinion = borner(R.opinion - 3, 0, 100);
+    for (const id of ev.participants) s.unites[id].fatigue = borner(s.unites[id].fatigue + 15, 0, 100);
+    res.push('Pertes dans nos rangs.');
+  }
+  if (alea(s) < ev.risqueCollat) {
+    s.stats.collat++;
+    R.credibilite = borner(R.credibilite - 4, 0, 100);
+    R.opinion = borner(R.opinion - 2, 0, 100);
+    res.push('Dommages collatéraux signalés.');
+    if ((s.compteurEvenements.BAVURE || 0) < EV.BAVURE.max) s.chaines.push({ id: 'BAVURE', tour: s.tour + 1 });
+  }
+  const txt = op.nom + ' — ' + TH[a.theatre].nom + (m ? ' (' + MT[m.type].nom + ')' : '') + ' : ' + res.join(' ');
+  s.dernierResultat = { titre: op.nom, texte: txt };
+  decider(s, txt);
+  journaliser(s, txt, succes ? 'succes' : 'alerte');
+  nettoyerMenaces(s);
+}
+function transformerEffetOp(e, theatre) {
+  const r = {};
+  for (const k in e) {
+    if (k === 'partenaire') r.partenaire = [{ theatre, delta: e.partenaire }];
+    else r[k] = e[k];
+  }
+  return r;
+}
+function actBudget(s, a) {
+  const R = s.ressources;
+  if (a.sens === 'hausse') { R.capital -= 8; R.enveloppe += 10; decider(s, 'Rallonge budgétaire obtenue : enveloppe portée à ' + R.enveloppe + ' M€/mois.'); }
+  else { R.enveloppe -= 10; R.capital = borner(R.capital + 4, 0, 100); decider(s, 'Économies consenties : enveloppe ramenée à ' + R.enveloppe + ' M€/mois.'); }
+  s.actionsRestantes--;
+  journaliser(s, 'Arbitrage budgétaire : enveloppe ' + R.enveloppe + ' M€/mois.', 'decision');
+}
+function evaluerAppui(s, allieId, appuiId, theatre) {
+  const A = AL[allieId], ap = appuiDef(allieId, appuiId), rel = s.allies[allieId].relation;
+  const interet = A.interets.includes(theatre) ? 0.1 : 0;
+  const p = borner(ap.base * (0.35 + rel / 100 * 0.65) * (0.75 + s.ressources.credibilite / 100 * 0.25) + interet, 0.05, 0.95);
+  return { pSucces: p, capital: ap.capital, relation: ap.relation, duree: ap.duree };
+}
+function activerAppui(s, allieId, appuiId, theatre, tours) {
+  const ap = appuiDef(allieId, appuiId), th = s.theatres[theatre];
+  if (ap.effets.partenaire) th.partenaire = borner(th.partenaire + ap.effets.partenaire, 0, 60);
+  if (BONUS_PERIODIQUES.some(k => ap.effets[k])) {
+    const ex = th.appuis.find(x => x.allie === allieId && x.appui === appuiId);
+    if (ex) ex.tours = Math.max(ex.tours, tours); else th.appuis.push({ allie: allieId, appui: appuiId, tours });
+  }
+}
+function actAllie(s, a) {
+  const A = AL[a.allie], ap = appuiDef(a.allie, a.appui), R = s.ressources, rel = s.allies[a.allie];
+  const ev = evaluerAppui(s, a.allie, a.appui, a.theatre);
+  R.capital -= ap.capital;
+  s.actionsRestantes--;
+  rel.cooldown = 2;
+  let txt;
+  if (alea(s) < ev.pSucces) {
+    activerAppui(s, a.allie, a.appui, a.theatre, ap.duree);
+    rel.relation = borner(rel.relation - ap.relation, 0, 100);
+    txt = A.nom + ' accorde : ' + ap.nom + ' (' + TH[a.theatre].nom + (ap.duree > 1 ? ', ' + ap.duree + ' mois' : '') + ').';
+  } else {
+    rel.relation = borner(rel.relation - 1, 0, 100);
+    R.credibilite = borner(R.credibilite - 1, 0, 100);
+    txt = A.nom + ' décline la demande : ' + ap.nom + ' (' + TH[a.theatre].nom + ').';
+  }
+  s.dernierResultat = { titre: 'Demande d’appui — ' + A.nom, texte: txt };
+  decider(s, txt);
+  journaliser(s, txt, 'decision');
+  calculerRens(s);
+}
+
+// ---------- Événements ----------
+function conditionsRemplies(s, E) {
+  const c = E.cond || {};
+  if (c.chaine) return false;
+  if ((s.compteurEvenements[E.id] || 0) >= (E.max || 1)) return false;
+  if (c.tourMin !== undefined && s.tour < c.tourMin) return false;
+  if (c.tourMax !== undefined && s.tour > c.tourMax) return false;
+  const R = s.ressources;
+  if (c.opinionMax !== undefined && R.opinion > c.opinionMax) return false;
+  if (c.opinionMin !== undefined && R.opinion < c.opinionMin) return false;
+  if (c.menaceIntMin !== undefined && R.menaceInt < c.menaceIntMin) return false;
+  if (c.surcoutMin !== undefined && R.surcout < c.surcoutMin) return false;
+  if (c.menace && !s.menaces.some(m => m.type === c.menace.type && m.force >= c.menace.forceMin && (!c.menace.theatre || m.theatre === c.menace.theatre))) return false;
+  if (c.deploiementExterieur && !UNITES.some(u => s.unites[u.id].etat === 'deployee' && TH[s.unites[u.id].theatre].exterieur)) return false;
+  if (c.theatreDeploye && unitesDans(s, c.theatreDeploye).length === 0) return false;
+  if (c.rensMin && s.theatres[c.rensMin.theatre].rens < c.rensMin.val) return false;
+  if (c.relationMin && s.allies[c.relationMin.allie].relation < c.relationMin.val) return false;
+  if (c.relationMax && s.allies[c.relationMax.allie].relation > c.relationMax.val) return false;
+  return true;
+}
+function appliquerEffets(s, e, res) {
+  const R = s.ressources;
+  const lib = { opinion: 'Opinion', capital: 'Capital politique', credibilite: 'Crédibilité', menaceInt: 'Menace intérieure', budget: 'Budget (M€)', enveloppe: 'Enveloppe mensuelle (M€)' };
+  for (const k of ['opinion', 'capital', 'credibilite', 'menaceInt']) if (e[k]) { R[k] = borner(R[k] + e[k], 0, 100); res.push(lib[k] + ' ' + (e[k] > 0 ? '+' : '') + e[k]); }
+  if (e.budget) { R.budget += e.budget; res.push(lib.budget + ' ' + (e.budget > 0 ? '+' : '') + e.budget); }
+  if (e.enveloppe) { R.enveloppe = Math.max(20, R.enveloppe + e.enveloppe); res.push(lib.enveloppe + ' ' + (e.enveloppe > 0 ? '+' : '') + e.enveloppe); }
+  for (const x of (e.menace || [])) {
+    const cands = s.menaces.filter(m => m.type === x.type && (!x.theatre || m.theatre === x.theatre)).sort((a, b) => b.force - a.force);
+    if (cands.length) cands[0].force = borner(cands[0].force + x.delta, 0, 100);
+  }
+  for (const x of (e.rens || [])) { if (x.delta >= 10 && x.theatre && s.theatres[x.theatre]) s.theatres[x.theatre].rensPermanent += Math.round(x.delta / 2); if (s.theatres[x.theatre]) s.theatres[x.theatre].rensBonus += x.delta; res.push('Renseignement ' + TH[x.theatre].nom + ' ' + (x.delta > 0 ? '+' : '') + x.delta); }
+  for (const x of (e.partenaire || [])) { if (s.theatres[x.theatre]) { s.theatres[x.theatre].partenaire = borner(s.theatres[x.theatre].partenaire + x.delta, 0, 60); res.push('Capacité partenaire ' + TH[x.theatre].nom + ' ' + (x.delta > 0 ? '+' : '') + x.delta); } }
+  for (const x of (e.pression || [])) if (s.theatres[x.theatre]) s.theatres[x.theatre].pressionBonus += x.delta;
+  for (const x of (e.fatigue || [])) for (const u of UNITES) if ((x.unite && u.id === x.unite) || (x.categorie && u.categorie === x.categorie)) s.unites[u.id].fatigue = borner(s.unites[u.id].fatigue + x.delta, 0, 100);
+  if (e.indispo) {
+    const st = s.unites[e.indispo.unite];
+    if (st.etat === 'deployee' || st.etat === 'projection') rapatrier(s, e.indispo.unite, 'immobilisation technique');
+    st.etat = 'indisponible'; st.theatre = null; st.indispo = e.indispo.tours;
+    res.push(UN[e.indispo.unite].nom + ' indisponible ' + e.indispo.tours + ' mois');
+  }
+  if (e.allie && s.theatres[e.allie.theatre]) { s.theatres[e.allie.theatre].allie = Math.max(s.theatres[e.allie.theatre].allie, e.allie.tours); res.push('Appui allié sur ' + TH[e.allie.theatre].nom); }
+  for (const x of (e.relation || [])) if (s.allies[x.allie]) { s.allies[x.allie].relation = borner(s.allies[x.allie].relation + x.delta, 0, 100); res.push('Relation ' + AL[x.allie].nom + ' ' + (x.delta > 0 ? '+' : '') + x.delta); }
+  if (e.appui && s.allies[e.appui.allie]) { activerAppui(s, e.appui.allie, e.appui.appui, e.appui.theatre, e.appui.tours); res.push(appuiDef(e.appui.allie, e.appui.appui).nom + ' (' + TH[e.appui.theatre].nom + ')'); }
+  if (e.crise) {
+    let theatre = TH[e.crise] ? e.crise : null, menace = null;
+    if (theatre) menace = menacesDans(s, theatre).sort((a, b) => b.force - a.force)[0] || null;
+    else { menace = s.menaces.filter(m => m.type === e.crise).sort((a, b) => b.force - a.force)[0] || null; theatre = menace ? menace.theatre : null; }
+    if (theatre && menace) creerCrise(s, theatre, menace.id);
+  }
+  if (e.alea) {
+    const ok = alea(s) < e.alea.p;
+    res.push(ok ? 'Issue favorable.' : 'Issue défavorable.');
+    appliquerEffets(s, ok ? e.alea.succes : e.alea.echec, res);
+  }
+  nettoyerMenaces(s);
+  return res;
+}
+function actChoix(s, a) {
+  const E = EV[s.evenementCourant], c = E.choix[a.index];
+  const res = appliquerEffets(s, c.effets, []);
+  if (c.suite && (c.suiteP === undefined || alea(s) < c.suiteP)) s.chaines.push({ id: c.suite, tour: s.tour + (c.suiteDelai || 1) });
+  const txt = E.titre + ' : ' + c.texte + '.' + (res.length ? ' (' + res.join(', ') + ')' : '');
+  decider(s, txt);
+  journaliser(s, txt, 'decision');
+  s.dernierResultat = { titre: E.titre, texte: c.texte + (res.length ? ' — ' + res.join(', ') : '') };
+  s.evenementCourant = null;
+  calculerRens(s);
+  avancerFile(s);
+}
+
+// ---------- Crises ----------
+function creerCrise(s, theatre, menaceId) {
+  const th = s.theatres[theatre];
+  if (th.crise) return false;
+  const T = TH[theatre], m = menaceParId(s, menaceId);
+  let titre = MT[m.type].criseTitre + ' — ' + T.nom;
+  let texte = 'La situation se dégrade brutalement sur le théâtre ' + T.nom + ' (' + MT[m.type].nom + '). Une décision d’engagement est attendue.';
+  let scenario = null;
+  if (T.carteRegionale) {
+    const sc = choisir(s, CARTES_REGIONALES[T.carteRegionale].scenarios);
+    scenario = sc.id; titre = sc.titre; texte = sc.texte;
+  }
+  th.crise = { titre, texte, menaceId, scenario, statut: 'ouverte', toursLibres: 0 };
+  s.file.push({ kind: 'crise', theatre });
+  journaliser(s, 'Crise : ' + titre + '.', 'crise');
+  return true;
+}
+function menaceDeCrise(s, theatre) {
+  const c = s.theatres[theatre].crise;
+  let m = c ? menaceParId(s, c.menaceId) : null;
+  if (!m) m = menacesDans(s, theatre).sort((a, b) => b.force - a.force)[0] || null;
+  return m;
+}
+function actCrise(s, a) {
+  const theatre = s.criseCourante, th = s.theatres[theatre], R = s.ressources, T = TH[theatre];
+  if (!a.intervenir) {
+    s.stats.crisesIgnorees++;
+    R.opinion = borner(R.opinion - 3, 0, 100);
+    R.credibilite = borner(R.credibilite - 4, 0, 100);
+    const m = menaceDeCrise(s, theatre);
+    if (m) m.force = borner(m.force + 8, 0, 100);
+    th.crise.statut = 'libre';
+    th.crise.toursLibres = PARAMS.toursCriseLibre;
+    const txt = 'Pas d’intervention : ' + th.crise.titre + '. La crise suit son cours (opinion -3, crédibilité -4).';
+    decider(s, txt); journaliser(s, txt, 'alerte');
+    s.dernierResultat = { titre: th.crise.titre, texte: txt };
+    s.criseCourante = null;
+    avancerFile(s);
+    return;
+  }
+  s.stats.crisesInterv++;
+  const moy = moyensCrise(s, theatre);
+  if (moy.zoom) { ouvrirZoom(s, theatre, moy); return; }
+  // Résolution abstraite (théâtre sans carte régionale)
+  const evc = evaluerCriseAbstraite(s, theatre, true), ids = evc.unites, p = evc.pSucces;
+  if (evc.urgence) {
+    const u = UN[evc.urgence];
+    s.unites[u.id].etat = 'deployee'; s.unites[u.id].theatre = theatre;
+    s.ressources.budget -= u.coutDeploiement * coutMult(s);
+    journaliser(s, u.nom + ' projeté en urgence vers ' + T.nom + '.', 'decision');
+  }
+  const m = menaceDeCrise(s, theatre);
+  const res = [];
+  if (alea(s) < p) {
+    s.stats.crisesReussies++;
+    if (m) m.force = Math.max(0, m.force - 15);
+    appliquerEffets(s, { opinion: 4, credibilite: 4, capital: 2 }, res);
+    res.unshift('Crise maîtrisée.');
+  } else {
+    if (m) m.force = borner(m.force + 3, 0, 100);
+    appliquerEffets(s, { opinion: -4, credibilite: -3 }, res);
+    res.unshift('Intervention sans résultat décisif.');
+  }
+  if (alea(s) < evc.risquePertes) { s.stats.pertes++; R.opinion = borner(R.opinion - 3, 0, 100); res.push('Pertes dans nos rangs.'); }
+  for (const id of ids) s.unites[id].fatigue = borner(s.unites[id].fatigue + 12, 0, 100);
+  const txt = 'Intervention — ' + th.crise.titre + ' : ' + res.join(' ');
+  decider(s, txt); journaliser(s, txt, 'crise');
+  s.dernierResultat = { titre: th.crise.titre, texte: res.join(' ') };
+  th.crise = null;
+  s.criseCourante = null;
+  nettoyerMenaces(s);
+  calculerRens(s);
+  avancerFile(s);
+}
+
+// ---------- Zoom régional : moteur générique piloté par CARTES_REGIONALES ----------
+function voisinsLieu(C, id) {
+  const r = [];
+  for (const [a, b] of C.liens) { if (a === id) r.push(b); else if (b === id) r.push(a); }
+  return r;
+}
+function ouvrirZoom(s, theatre, moy) {
+  const T = TH[theatre], th = s.theatres[theatre], C = CARTES_REGIONALES[T.carteRegionale];
+  const sc = C.scenarios.find(x => x.id === th.crise.scenario) || C.scenarios[0];
+  let fsIds = moy.fs.slice();
+  if (fsIds.length === 0) {
+    const u = UN[moy.fsDispo[0]];
+    s.unites[u.id].etat = 'deployee'; s.unites[u.id].theatre = theatre;
+    s.ressources.budget -= u.coutDeploiement * coutMult(s);
+    fsIds = [u.id];
+    journaliser(s, u.nom + ' projeté en urgence vers ' + T.nom + '.', 'decision');
+    calculerRens(s);
+  }
+  const rens = th.rens;
+  const lieux = {};
+  let total = 0;
+  for (const L of C.lieux) {
+    const md = (sc.modifs && sc.modifs[L.id]) || {};
+    const f = L.controle === 'ennemi' ? Math.round(aleaEntre(s, L.force[0], L.force[1]) + (md.force || 0)) : 0;
+    total += f;
+    lieux[L.id] = { controle: L.controle, force: f, civils: L.civils, defense: L.defense, ressortissants: md.ressortissants || 0,
+      revele: L.controle !== 'ennemi' || alea(s) < rens / 100, estimee: null, marge: Math.max(5, Math.round((100 - rens) / 3)), dispersion: 0, frappe: false };
+  }
+  const reserve = Math.round(aleaEntre(s, C.reserveEnnemie[0], C.reserveEnnemie[1]));
+  const frappesMax = unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && u.categorie !== 'FS').length + bonusTheatre(s, theatre).frappesZoom;
+  const recosMax = 1 + unitesDans(s, theatre).filter(u => u.cap.renseignement >= 8).length + bonusTheatre(s, theatre).recosZoom;
+  s.zoom = {
+    carte: C.id, theatre, scenario: sc.id, titre: sc.titre, semaine: 1, maxSemaines: 6, lieux,
+    unites: fsIds.map(id => ({ id, lieu: C.depart, blesse: false, aAgi: false })),
+    frappesMax, frappes: frappesMax, recosMax, recos: recosMax, appui: 1,
+    forceLocale: Math.round(C.forceLocale.force + th.partenaire * 0.5), reserve,
+    forceInitiale: total + reserve, rens, evacuesParLieu: {},
+    stats: { pertes: 0, collat: 0, neutralises: 0, evacues: 0 }, journal: []
+  };
+  majEstimationsZoom(s);
+  s.zoom.journal.unshift('Semaine 1 — Activation de la cellule de crise : ' + sc.titre + '.');
+  s.phase = 'zoom';
+  decider(s, 'Intervention décidée : ' + sc.titre + ' (' + C.nom + ').');
+  journaliser(s, 'Intervention décidée : ' + sc.titre + '.', 'crise');
+}
+function majEstimationsZoom(s) {
+  const z = s.zoom;
+  for (const id in z.lieux) {
+    const L = z.lieux[id];
+    if (L.controle === 'ennemi' && L.revele) L.estimee = Math.round(borner(L.force + (alea(s) * 2 - 1) * L.marge, 0, 150));
+    else if (L.controle !== 'ennemi') L.estimee = 0;
+    else L.estimee = null;
+  }
+}
+function actionsZoom(s) {
+  const z = s.zoom, C = CARTES_REGIONALES[z.carte], L = [];
+  for (const u of z.unites) {
+    if (u.aAgi) continue;
+    for (const v of voisinsLieu(C, u.lieu)) if (z.lieux[v].controle !== 'ennemi') L.push({ type: 'Z_DEPLACER', unite: u.id, vers: v });
+    if (!u.blesse) for (const v of [u.lieu].concat(voisinsLieu(C, u.lieu))) if (z.lieux[v].controle === 'ennemi' && z.lieux[v].force > 0) L.push({ type: 'Z_RAID', unite: u.id, lieu: v });
+    const ici = z.lieux[u.lieu];
+    if (ici.ressortissants > 0 && (ici.controle !== 'ennemi' || ici.force <= 10)) L.push({ type: 'Z_EVACUER', unite: u.id, lieu: u.lieu });
+  }
+  for (const id in z.lieux) {
+    const l = z.lieux[id];
+    if (l.controle !== 'ennemi') {
+      if (l.controle === 'neutre' && z.appui > 0 && z.forceLocale > 10 && voisinsLieu(C, id).some(v => z.lieux[v].controle === 'allie')) L.push({ type: 'Z_APPUI', lieu: id });
+      continue;
+    }
+    if (z.recos > 0) L.push({ type: 'Z_RECO', lieu: id });
+    if (z.frappes > 0 && l.force > 0) L.push({ type: 'Z_FRAPPE', lieu: id });
+    if (z.appui > 0 && z.forceLocale > 10 && voisinsLieu(C, id).some(v => z.lieux[v].controle === 'allie')) L.push({ type: 'Z_APPUI', lieu: id });
+  }
+  L.push({ type: 'Z_SEMAINE' });
+  L.push({ type: 'Z_RETRAIT' });
+  return L;
+}
+function evaluerActionZoom(s, a, reel) {
+  const z = s.zoom, C = CARTES_REGIONALES[z.carte], l = z.lieux[a.lieu];
+  const forceVue = () => reel ? l.force : (l.revele && l.estimee !== null ? l.estimee : 30);
+  if (a.type === 'Z_RAID') {
+    const unit = z.unites.find(u => u.id === a.unite), U = UN[unit.id];
+    const pow = U.cap.assaut * 4 + U.cap.discretion * 2 + (l.revele ? 10 : -5) - s.unites[unit.id].fatigue / 10;
+    const p = borner(0.35 + (pow - forceVue()) / 80, 0.1, 0.9);
+    return { pSucces: p, risquePertes: (1 - p) * 0.35, risqueCollat: l.civils * 0.04 };
+  }
+  if (a.type === 'Z_APPUI') {
+    const fs = z.unites.filter(u => !u.blesse && (u.lieu === a.lieu || voisinsLieu(C, a.lieu).includes(u.lieu))).length;
+    const att = z.forceLocale + fs * 8 + (l.revele ? 5 : 0);
+    const def = l.controle === 'ennemi' ? forceVue() * 1.2 : 0;
+    return { pSucces: borner(0.5 + (att - def) / 80, 0.05, 0.95), risquePertes: 0, risqueCollat: 0, att, def };
+  }
+  if (a.type === 'Z_FRAPPE') {
+    const f = 1 - l.dispersion * 0.3;
+    return { pSucces: 1, degatsMin: Math.round((l.revele ? 10 : 4) * f), degatsMax: Math.round((l.revele ? 25 : 12) * f), risquePertes: 0,
+      risqueCollat: borner(l.civils * 0.08 * (l.revele ? 0.6 : 1.3) + l.dispersion * 0.1, 0, 0.9) };
+  }
+  return null;
+}
+function nomLieu(z, id) { return CARTES_REGIONALES[z.carte].lieux.find(l => l.id === id).nom; }
+function actZoom(s, a) {
+  const z = s.zoom, C = CARTES_REGIONALES[z.carte];
+  const J = t => z.journal.unshift('Semaine ' + z.semaine + ' — ' + t);
+  const l = a.lieu ? z.lieux[a.lieu] : null;
+  const unit = a.unite ? z.unites.find(u => u.id === a.unite) : null;
+  switch (a.type) {
+    case 'Z_DEPLACER':
+      unit.lieu = a.vers; unit.aAgi = true;
+      J(UN[unit.id].nom + ' se porte sur ' + nomLieu(z, a.vers) + '.');
+      break;
+    case 'Z_RECO': {
+      z.recos--;
+      l.revele = true; l.marge = 5; l.dispersion = Math.max(0, l.dispersion - 1);
+      l.estimee = Math.round(borner(l.force + (alea(s) * 2 - 1) * 5, 0, 150));
+      for (const v of voisinsLieu(C, a.lieu)) z.lieux[v].marge = Math.max(5, Math.round(z.lieux[v].marge * 0.7));
+      J('Reconnaissance sur ' + nomLieu(z, a.lieu) + ' : effectifs adverses estimés à ' + l.estimee + '.');
+      break;
+    }
+    case 'Z_FRAPPE': {
+      z.frappes--;
+      l.frappe = true;
+      const evf = evaluerActionZoom(s, a, true);
+      const d = Math.min(l.force, Math.round(evf.degatsMin + alea(s) * (evf.degatsMax - evf.degatsMin)));
+      l.force -= d; z.stats.neutralises += d;
+      const pc = evf.risqueCollat;
+      let t = 'Frappe aérienne sur ' + nomLieu(z, a.lieu) + (l.revele ? '' : ' (objectif mal identifié)') + '.';
+      if (alea(s) < pc) { z.stats.collat++; t += ' Victimes civiles signalées.'; }
+      J(t);
+      break;
+    }
+    case 'Z_RAID': {
+      unit.aAgi = true;
+      const U = UN[unit.id];
+      const p = evaluerActionZoom(s, a, true).pSucces;
+      let t;
+      if (alea(s) < p) {
+        let d = Math.round((12 + alea(s) * 18) * (1 - l.dispersion * 0.3));
+        d = Math.min(d, l.force);
+        l.force -= d; z.stats.neutralises += d; l.revele = true; l.marge = Math.min(l.marge, 8);
+        t = 'Raid de ' + U.nom + ' sur ' + nomLieu(z, a.lieu) + ' : réussi.';
+        if (l.force <= 0) { l.controle = 'neutre'; l.force = 0; t += ' La position adverse est démantelée.'; }
+      } else {
+        t = 'Raid de ' + U.nom + ' sur ' + nomLieu(z, a.lieu) + ' : repoussé.';
+        if (alea(s) < 0.35) { unit.blesse = true; z.stats.pertes++; t += ' Blessés graves, le détachement est diminué.'; }
+      }
+      if (alea(s) < evaluerActionZoom(s, a, true).risqueCollat) { z.stats.collat++; t += ' Civils touchés lors de l’assaut.'; }
+      J(t);
+      break;
+    }
+    case 'Z_APPUI': {
+      z.appui--;
+      const eva = evaluerActionZoom(s, a, true), def = eva.def, p = eva.pSucces;
+      if (alea(s) < p) {
+        z.stats.neutralises += l.force;
+        z.forceLocale = Math.max(0, Math.round(z.forceLocale - def * 0.2));
+        l.force = 0; l.controle = 'allie'; l.revele = true; l.dispersion = 0;
+        J(C.forceLocale.nom + ' prennent le contrôle de ' + nomLieu(z, a.lieu) + '.');
+      } else {
+        z.forceLocale = Math.max(0, z.forceLocale - 8);
+        l.force = Math.max(0, l.force - 5);
+        J('L’offensive de ' + C.forceLocale.nom + ' sur ' + nomLieu(z, a.lieu) + ' échoue.');
+      }
+      break;
+    }
+    case 'Z_EVACUER':
+      unit.aAgi = true;
+      z.stats.evacues += l.ressortissants;
+      z.evacuesParLieu[a.lieu] = (z.evacuesParLieu[a.lieu] || 0) + l.ressortissants;
+      J(l.ressortissants + ' groupe(s) évacué(s) depuis ' + nomLieu(z, a.lieu) + '.');
+      l.ressortissants = 0;
+      break;
+    case 'Z_SEMAINE':
+      reactionAdverse(s);
+      z.semaine++;
+      if (z.semaine > z.maxSemaines) { terminerZoom(s, false); return; }
+      break;
+    case 'Z_RETRAIT':
+      terminerZoom(s, true);
+      return;
+  }
+}
+function reactionAdverse(s) {
+  const z = s.zoom, C = CARTES_REGIONALES[z.carte];
+  const J = t => z.journal.unshift('Semaine ' + z.semaine + ' — ' + t);
+  const ids = C.lieux.map(l => l.id);
+  // Renforts
+  if (z.reserve > 0) {
+    const ennemis = ids.filter(id => z.lieux[id].controle === 'ennemi');
+    if (ennemis.length) {
+      const cible = choisir(s, ennemis);
+      const r = Math.min(z.reserve, aleaInt(s, 5, 12));
+      z.reserve -= r; z.lieux[cible].force += r;
+      if (z.lieux[cible].revele) J('Renforts adverses signalés vers ' + nomLieu(z, cible) + '.');
+    }
+  }
+  // Repli et dispersion
+  for (const id of ids) {
+    const l = z.lieux[id];
+    if (l.controle !== 'ennemi') continue;
+    if (l.force <= 0) { l.controle = 'neutre'; l.force = 0; continue; }
+    const vEnn = voisinsLieu(C, id).filter(v => z.lieux[v].controle === 'ennemi');
+    if (l.force < 10 && vEnn.length && alea(s) < 0.6) {
+      const dest = vEnn.sort((a, b) => z.lieux[b].force - z.lieux[a].force)[0];
+      z.lieux[dest].force += l.force; l.force = 0; l.controle = 'neutre';
+      J('L’adversaire abandonne ' + nomLieu(z, id) + ' et se replie vers ' + nomLieu(z, dest) + '.');
+    } else if (l.frappe && l.civils >= 2 && alea(s) < 0.5) {
+      l.dispersion = Math.min(2, l.dispersion + 1); l.revele = false;
+      J('À ' + nomLieu(z, id) + ', l’adversaire se disperse parmi la population.');
+    }
+  }
+  // Contre-attaque (au plus une par semaine)
+  const attaquants = ids.filter(id => z.lieux[id].controle === 'ennemi' && z.lieux[id].force >= 25)
+    .filter(id => voisinsLieu(C, id).some(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart))
+    .sort((a, b) => z.lieux[b].force - z.lieux[a].force);
+  if (attaquants.length && alea(s) < 0.6) {
+    const src = attaquants[0], A = z.lieux[src];
+    const cibles = voisinsLieu(C, src).filter(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart);
+    const defVal = v => z.lieux[v].defense + (z.lieux[v].controle === 'allie' ? z.forceLocale * 0.3 : 0) + z.unites.filter(u => u.lieu === v && !u.blesse).length * 10;
+    const tgt = cibles.sort((a, b) => defVal(a) - defVal(b))[0];
+    const M = z.lieux[tgt];
+    const p = borner(0.5 + (A.force * 0.8 - defVal(tgt)) / 80, 0.05, 0.9);
+    if (alea(s) < p) {
+      M.controle = 'ennemi'; M.force = Math.round(A.force * 0.5); M.revele = true; M.marge = 10;
+      A.force = Math.round(A.force * 0.5);
+      z.forceLocale = Math.max(0, z.forceLocale - 5);
+      for (const u of z.unites.filter(u => u.lieu === tgt)) {
+        u.lieu = C.depart;
+        if (alea(s) < 0.3) { u.blesse = true; z.stats.pertes++; }
+      }
+      J('Contre-attaque adverse depuis ' + nomLieu(z, src) + ' : ' + nomLieu(z, tgt) + ' tombe.');
+    } else {
+      A.force = Math.max(0, A.force - 6);
+      J('Contre-attaque adverse sur ' + nomLieu(z, tgt) + ' repoussée.');
+    }
+  }
+  // Détection passive
+  for (const id of ids) {
+    const l = z.lieux[id];
+    if (l.controle === 'ennemi' && !l.revele && alea(s) < z.rens / 200) { l.revele = true; J('Position adverse identifiée à ' + nomLieu(z, id) + '.'); }
+    l.frappe = false;
+    if (l.marge < Math.round((100 - z.rens) / 3)) l.marge = Math.min(Math.round((100 - z.rens) / 3), l.marge + 3);
+  }
+  for (const u of z.unites) u.aAgi = false;
+  z.frappes = z.frappesMax; z.recos = z.recosMax; z.appui = 1;
+  majEstimationsZoom(s);
+}
+function objectifsZoom(s) {
+  const z = s.zoom, C = CARTES_REGIONALES[z.carte], sc = C.scenarios.find(x => x.id === z.scenario);
+  return sc.objectifs.map(o => {
+    if (o.type === 'tenir') return { texte: 'Tenir ' + nomLieu(z, o.lieu), atteint: z.lieux[o.lieu].controle !== 'ennemi' };
+    if (o.type === 'controler') return { texte: 'Reprendre ' + nomLieu(z, o.lieu), atteint: z.lieux[o.lieu].controle === 'allie' };
+    if (o.type === 'evacuer') return { texte: 'Évacuer ' + o.nombre + ' groupe(s) depuis ' + nomLieu(z, o.lieu), atteint: (z.evacuesParLieu[o.lieu] || 0) >= o.nombre };
+    return { texte: 'Neutraliser ' + o.valeur + ' % du potentiel adverse', atteint: z.stats.neutralises >= z.forceInitiale * o.valeur / 100 };
+  });
+}
+function terminerZoom(s, anticipe) {
+  const z = s.zoom, th = s.theatres[z.theatre], R = s.ressources;
+  const obj = objectifsZoom(s);
+  const r = obj.filter(o => o.atteint).length / obj.length;
+  const m = menaceDeCrise(s, z.theatre);
+  const baisse = Math.round(8 + 20 * r + z.stats.neutralises / 10);
+  if (m) m.force = Math.max(0, m.force - baisse);
+  const res = [];
+  appliquerEffets(s, {
+    opinion: Math.round(9 * r - 3 - z.stats.pertes * 3 - z.stats.collat * 2),
+    credibilite: Math.round(10 * r - 4 - z.stats.collat * 2),
+    capital: r >= 0.5 ? 3 : -3
+  }, res);
+  for (const u of z.unites) s.unites[u.id].fatigue = borner(s.unites[u.id].fatigue + 15 + (u.blesse ? 10 : 0), 0, 100);
+  s.stats.pertes += z.stats.pertes; s.stats.collat += z.stats.collat;
+  if (r >= 0.5) s.stats.crisesReussies++;
+  s.dernierBilan = { titre: z.titre, theatre: z.theatre, semaines: Math.min(z.semaine, z.maxSemaines), anticipe, objectifs: obj, taux: r,
+    stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res };
+  const txt = 'Bilan — ' + z.titre + ' : ' + obj.filter(o => o.atteint).length + '/' + obj.length + ' objectifs, ' + z.stats.pertes + ' perte(s), ' + z.stats.collat + ' incident(s) collatéral(aux).';
+  decider(s, txt); journaliser(s, txt, r >= 0.5 ? 'succes' : 'alerte');
+  th.crise = null;
+  s.zoom = null;
+  s.criseCourante = null;
+  nettoyerMenaces(s);
+  calculerRens(s);
+  avancerFile(s);
+}
+
+// ---------- File des événements et crises ----------
+function avancerFile(s) {
+  if (s.fin) { s.phase = 'fin'; return; }
+  while (s.file.length) {
+    const it = s.file.shift();
+    if (it.kind === 'evenement') {
+      s.compteurEvenements[it.id] = (s.compteurEvenements[it.id] || 0) + 1;
+      s.evenementCourant = it.id; s.phase = 'evenement';
+      journaliser(s, 'Événement : ' + EV[it.id].titre + '.', 'evenement');
+      return;
+    }
+    if (it.kind === 'crise' && s.theatres[it.theatre].crise && s.theatres[it.theatre].crise.statut === 'ouverte') {
+      s.criseCourante = it.theatre; s.phase = 'crise';
+      return;
+    }
+  }
+  s.phase = 'jeu';
+}
+function nettoyerMenaces(s) {
+  const restantes = [];
+  for (const m of s.menaces) {
+    const pl = MT[m.type].plancher || 0;
+    if (pl && m.force < pl && MT[m.type].theatresDepart.includes(m.theatre)) m.force = pl;
+    if (m.force <= 0) { if (m.detectee) journaliser(s, MT[m.type].nom + ' (' + TH[m.theatre].nom + ') : plus aucun signalement, réseau considéré comme démantelé.', 'succes'); }
+    else restantes.push(m);
+  }
+  s.menaces = restantes;
+}
+
+// ---------- Fin de tour ----------
+function finDeTour(s) {
+  if (s.phase !== 'jeu' || s.fin) return s;
+  const n = cloner(s);
+  const R = n.ressources, md = mods(n), D = DIFFICULTES[n.difficulte];
+  n.dernierResultat = null; n.dernierBilan = null;
+
+  // 1. Budget
+  let depenses = 0;
+  for (const u of UNITES) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += u.coutMensuel * md.coutMult; }
+  R.budget = arrondi(R.budget + R.enveloppe - depenses);
+  if (R.budget < 0) {
+    R.surcout = arrondi(R.surcout - R.budget);
+    const pen = 1 + Math.floor(-R.budget / 20);
+    R.capital = borner(R.capital - pen, 0, 100);
+    journaliser(n, 'Dépassement de l’enveloppe : ' + arrondi(-R.budget) + ' M€ de surcoût OPEX (capital -' + pen + ').', 'alerte');
+    R.budget = 0;
+  }
+
+  // 2. Unités
+  for (const u of UNITES) {
+    const e = n.unites[u.id];
+    if (enIndisponibilite(u, n.tour + 1)) {
+      if (e.etat === 'deployee' || e.etat === 'projection') rapatrier(n, u.id, 'arrêt technique programmé');
+      e.etat = 'indisponible'; e.theatre = null; continue;
+    }
+    if (e.etat === 'indisponible') {
+      if (e.indispo > 0) e.indispo--;
+      if (e.indispo <= 0) { e.etat = 'disponible'; journaliser(n, u.nom + ' de nouveau disponible.', 'info'); }
+      continue;
+    }
+    if (e.etat === 'projection') { e.compteur--; if (e.compteur <= 0) { e.etat = 'deployee'; journaliser(n, u.nom + ' opérationnel sur le théâtre ' + TH[e.theatre].nom + '.', 'info'); } continue; }
+    if (e.etat === 'deployee') {
+      e.fatigue = borner(e.fatigue + PARAMS.fatigueDeploiement * (10 - u.cap.endurance) / 5 + 1, 0, 100);
+      if (e.fatigue >= 100) rapatrier(n, u.id, 'usure, relève impérative');
+      continue;
+    }
+    if (e.etat === 'regeneration') { e.fatigue = borner(e.fatigue - 20, 0, 100); e.compteur--; if (e.compteur <= 0) e.etat = 'disponible'; continue; }
+    if (e.etat === 'disponible') e.fatigue = borner(e.fatigue - PARAMS.fatigueRepos, 0, 100);
+  }
+
+  // 3. Article 35 de la Constitution
+  for (const T of THEATRES) {
+    if (!T.exterieur || T.basePermanente) continue;
+    const th = n.theatres[T.id];
+    if (unitesDans(n, T.id, ['deployee', 'projection']).length) {
+      th.toursIntervention++;
+      if (th.toursIntervention > PARAMS.dureeAvantVote && !th.voteFait) {
+        const p = probaVote(n);
+        n.stats.votes++;
+        if (alea(n) < p) {
+          th.voteFait = true; R.capital = borner(R.capital + 3, 0, 100);
+          const t = 'Article 35 : le Parlement autorise la prolongation de l’intervention (' + T.nom + ').';
+          journaliser(n, t, 'succes'); decider(n, t);
+        } else {
+          n.stats.votesPerdus++;
+          for (const u of unitesDans(n, T.id, ['deployee', 'projection'])) rapatrier(n, u.id, 'vote négatif du Parlement');
+          R.capital = borner(R.capital - 10, 0, 100); R.credibilite = borner(R.credibilite - 5, 0, 100);
+          th.toursIntervention = 0;
+          const t = 'Article 35 : le Parlement refuse la prolongation (' + T.nom + '). Retrait des forces.';
+          journaliser(n, t, 'alerte'); decider(n, t);
+        }
+      }
+    } else { th.toursIntervention = 0; th.voteFait = false; }
+  }
+
+  // 4. Évolution des menaces
+  const forcesParType = {};
+  for (const m of n.menaces) forcesParType[m.type] = (forcesParType[m.type] || 0) + m.force;
+  calculerRens(n);
+  const existantes = n.menaces.slice();
+  for (const m of existantes) {
+    const T = MT[m.type], TT = TH[m.theatre];
+    let croiss = T.croissance * D.croissanceMult * (TT.exterieur ? md.croissanceExtMult : 1);
+    for (const t in T.alimentePar) croiss += (forcesParType[t] || 0) * T.alimentePar[t];
+    croiss *= (1 - m.force / 130);
+    const delta = croiss - pressionMenace(n, m) * 0.15 + (alea(n) - 0.5) * 3;
+    m.force = borner(Math.round((m.force + delta) * 10) / 10, 0, 100);
+    // Expansion vers un théâtre voisin
+    if (m.force > T.seuilExpansion && alea(n) < T.probExpansion) {
+      const cibles = T.expansion.filter(t => TT.voisins.includes(t));
+      if (cibles.length) {
+        const dest = choisir(n, cibles);
+        const ex = n.menaces.find(x => x.type === m.type && x.theatre === dest);
+        if (ex) ex.force = borner(ex.force + 5, 0, 100);
+        else ajouterMenace(n, m.type, dest, aleaEntre(n, 12, 20), false);
+        m.force = Math.max(1, m.force - 3);
+      }
+    }
+    // Attaque
+    if (m.force >= T.seuilAttaque && alea(n) < 0.06 + (m.force - T.seuilAttaque) / 120) {
+      const rm = rensMenace(n, m);
+      if (!TT.exterieur && alea(n) < rm / 140) {
+        m.force = Math.max(0, m.force - 8);
+        R.opinion = borner(R.opinion + 2, 0, 100);
+        n.stats.dejoues++;
+        journaliser(n, 'Les services ont déjoué une action violente (' + MT[m.type].nom + ').', 'succes');
+      } else {
+        const k = 0.7 + m.force / 150, eff = {};
+        for (const c in T.attaque) eff[c] = Math.round(T.attaque[c] * k);
+        const res = appliquerEffets(n, eff, []);
+        m.force = borner(m.force + T.apresAttaque, 1, 100);
+        m.detectee = true;
+        n.stats.attaques++;
+        journaliser(n, 'Action adverse : ' + MT[m.type].nom + ' (' + TT.nom + '). ' + res.join(', ') + '.', 'alerte');
+        if (T.crise && alea(n) < 0.45) creerCrise(n, m.theatre, m.id);
+      }
+    }
+  }
+  nettoyerMenaces(n);
+
+  // 5. Menace intérieure
+  let cible = 0, prot = 0;
+  for (const m of n.menaces) cible += (TH[m.theatre].exterieur ? 0 : MT[m.type].poidsInterieur * m.force) + MT[m.type].impactInterieur * m.force;
+  for (const u of UNITES) if (u.protection && n.unites[u.id].etat === 'deployee') prot += u.protection;
+  prot = Math.min(prot * md.protectionMult, cible * PARAMS.plafondProtection);
+  R.menaceInt = borner(Math.round(R.menaceInt + (cible - prot - R.menaceInt) * 0.35), 0, 100);
+  n.menaceInt100 = R.menaceInt >= 100 ? n.menaceInt100 + 1 : 0;
+
+  // 6. Opinion, crédibilité, capital
+  const nbExt = THEATRES.filter(T => T.exterieur && unitesDans(n, T.id).length).length;
+  R.opinion = borner(Math.round((R.opinion + (50 - R.opinion) * PARAMS.opinionRappel - Math.max(0, R.menaceInt - 55) * 0.1 - Math.max(0, nbExt - 3) * 0.5) * 10) / 10, 0, 100);
+  R.credibilite = borner(Math.round((R.credibilite + (50 - R.credibilite) * 0.02 + nbExt * 0.3) * 10) / 10, 0, 100);
+  R.capital = borner(R.capital + PARAMS.capitalMensuel + md.capitalMensuel - (R.opinion < 30 ? 1 : 0), 0, 100);
+
+  // 7. Décroissances et crises livrées à elles-mêmes
+  for (const T of THEATRES) {
+    const th = n.theatres[T.id];
+    th.rensBonus = Math.abs(th.rensBonus) <= 2 ? 0 : th.rensBonus - Math.sign(th.rensBonus) * 2;
+    th.pressionBonus = Math.round(th.pressionBonus * 0.7);
+    th.pressionOps = 0;
+    if (th.allie > 0) th.allie--;
+    for (const a of th.appuis) a.tours--;
+    const finis = th.appuis.filter(a => a.tours <= 0);
+    th.appuis = th.appuis.filter(a => a.tours > 0);
+    for (const a of finis) journaliser(n, 'Fin de l’appui allié : ' + appuiDef(a.allie, a.appui).nom + ' (' + T.nom + ').', 'info');
+    if (th.crise && th.crise.statut === 'libre') {
+      const m = menaceDeCrise(n, T.id);
+      if (m) m.force = borner(m.force + 4, 0, 100);
+      R.credibilite = borner(R.credibilite - 1, 0, 100);
+      th.crise.toursLibres--;
+      if (th.crise.toursLibres <= 0) { journaliser(n, 'Crise close sans intervention française : ' + th.crise.titre + '.', 'info'); th.crise = null; }
+    }
+  }
+
+  // 7 bis. Relations avec les alliés : rappel vers la valeur de référence, engagement sur leurs théâtres d'intérêt
+  for (const A of ALLIES) {
+    const st = n.allies[A.id];
+    const engage = A.interets.filter(t => unitesDans(n, t).length > 0).length;
+    st.relation = borner(Math.round((st.relation + (A.relation - st.relation) * 0.05 + engage * 0.4 + (R.credibilite - 50) * 0.01) * 10) / 10, 0, 100);
+    if (st.cooldown > 0) st.cooldown--;
+  }
+
+  // 8. Historique, passage au mois suivant
+  n.historique.push(instantane(n));
+  n.tour++;
+  calculerRens(n);
+  estimerMenaces(n);
+
+  // 9. Fin de partie ?
+  const f = evaluerFin(n);
+  if (f.fini) { terminer(n, f); return n; }
+
+  // 10. Événements (chaînes puis tirage pondéré)
+  const dues = n.chaines.filter(c => c.tour <= n.tour);
+  n.chaines = n.chaines.filter(c => c.tour > n.tour);
+  for (const c of dues) if ((n.compteurEvenements[c.id] || 0) < (EV[c.id].max || 1)) n.file.push({ kind: 'evenement', id: c.id });
+  if (alea(n) < PARAMS.probaEvenement) {
+    const elig = EVENEMENTS.filter(E => E.poids > 0 && conditionsRemplies(n, E) && !n.file.some(f => f.id === E.id));
+    const E = choisirPondere(n, elig, x => x.poids);
+    if (E) n.file.push({ kind: 'evenement', id: E.id });
+  }
+  n.actionsRestantes = actionsParTour(n);
+  journaliser(n, '— ' + dateDuTour(n.tour) + ' —', 'tour');
+  avancerFile(n);
+  return n;
+}
+function instantane(s) {
+  const ext = s.menaces.filter(m => TH[m.theatre].exterieur);
+  return {
+    tour: s.tour, opinion: s.ressources.opinion, capital: s.ressources.capital, menaceInt: s.ressources.menaceInt,
+    credibilite: s.ressources.credibilite, surcout: s.ressources.surcout,
+    menaceExt: ext.length ? Math.round(ext.reduce((a, m) => a + m.force, 0) / ext.length) : 0,
+    rens: Math.round(THEATRES.reduce((a, T) => a + s.theatres[T.id].rens, 0) / THEATRES.length)
+  };
+}
+
+// ---------- Fin de partie ----------
+function evaluerFin(s) {
+  const R = s.ressources;
+  if (R.opinion < 10) return { fini: true, type: 'defaite', raison: 'Le soutien de l’opinion s’est effondré (sous 10). Le gouvernement est contraint de démissionner.' };
+  if (R.capital <= 0) return { fini: true, type: 'defaite', raison: 'Le capital politique est épuisé. Vous n’avez plus les moyens de gouverner.' };
+  if (s.menaceInt100 >= 3) return { fini: true, type: 'defaite', raison: 'La menace intérieure est restée à son maximum pendant trois mois consécutifs.' };
+  if (s.tour >= NB_TOURS) return { fini: true, type: 'bilan', raison: 'Fin du mandat de la démonstration (décembre 2017).' };
+  return { fini: false };
+}
+function calculerScore(s) {
+  const h = s.historique.length ? s.historique : [instantane(s)];
+  const moy = k => h.reduce((a, x) => a + x[k], 0) / h.length;
+  const ext = s.menaces.filter(m => TH[m.theatre].exterieur);
+  const extFinal = ext.length ? ext.reduce((a, m) => a + m.force, 0) / ext.length : 0;
+  const crises = s.stats.crisesInterv ? s.stats.crisesReussies / s.stats.crisesInterv : 0.5;
+  const domaines = [
+    { nom: 'Sécurité intérieure', valeur: Math.round(100 - moy('menaceInt')), poids: 0.25 },
+    { nom: 'Opérations extérieures', valeur: Math.round(borner(100 - extFinal + (crises - 0.5) * 20, 0, 100)), poids: 0.25 },
+    { nom: 'Renseignement', valeur: Math.round(moy('rens')), poids: 0.15 },
+    { nom: 'Politique intérieure', valeur: Math.round((moy('opinion') + s.ressources.capital) / 2), poids: 0.15 },
+    { nom: 'Crédibilité et alliances', valeur: Math.round(moy('credibilite') * 0.7 + ALLIES.reduce((a, A) => a + s.allies[A.id].relation, 0) / ALLIES.length * 0.3), poids: 0.1 },
+    { nom: 'Maîtrise budgétaire', valeur: Math.round(borner(100 - s.ressources.surcout / 5, 0, 100)), poids: 0.1 }
+  ];
+  let total = Math.round(domaines.reduce((a, d) => a + d.valeur * d.poids, 0));
+  if (s.fin && s.fin.type === 'defaite') total = Math.round(total * 0.5);
+  const mention = total >= 70 ? 'Remarquable' : total >= 55 ? 'Satisfaisant' : total >= 40 ? 'Mitigé' : 'Insuffisant';
+  return { domaines, total, mention };
+}
+function terminer(s, f) {
+  s.fin = { type: f.type, raison: f.raison, tour: s.tour };
+  s.fin.score = calculerScore(s);
+  s.phase = 'fin';
+  s.zoom = null;
+  journaliser(s, (f.type === 'defaite' ? 'Défaite : ' : 'Fin de partie : ') + f.raison, f.type === 'defaite' ? 'alerte' : 'succes');
+}
+
+// ---------- Outils de débogage (purs) ----------
+function forcerEvenement(s, id) {
+  if (!EV[id] || s.fin) return s;
+  const n = cloner(s);
+  n.file.unshift({ kind: 'evenement', id });
+  if (n.phase === 'jeu') avancerFile(n);
+  return n;
+}
+function changerGraine(s, g) {
+  const n = cloner(s);
+  n.graine = String(g);
+  n.rngState = graineVersEntier(g);
+  journaliser(n, 'Graine modifiée : ' + n.graine + '.', 'info');
+  return n;
+}
+
+// ---------- Contrôle de cohérence des données ----------
+// Permet d'ajouter pays, théâtres ou unités dans la couche DONNÉES en étant prévenu des références cassées.
+function verifierDonnees() {
+  const err = [];
+  const ids = (l, nom) => { const v = {}; for (const x of l) { if (v[x.id]) err.push(nom + ' : identifiant en double ' + x.id); v[x.id] = 1; } };
+  ids(THEATRES, 'THEATRES'); ids(UNITES, 'UNITES'); ids(SERVICES, 'SERVICES'); ids(MENACES, 'MENACES'); ids(EVENEMENTS, 'EVENEMENTS'); ids(ALLIES, 'ALLIES');
+  const th = t => TH[t] !== undefined;
+  for (const T of THEATRES) for (const v of T.voisins) { if (!th(v)) err.push('Théâtre ' + T.id + ' : voisin inconnu ' + v); else if (!TH[v].voisins.includes(T.id)) err.push('Théâtre ' + T.id + ' : liaison non réciproque avec ' + v); }
+  for (const T of THEATRES) if (T.carteRegionale && !CARTES_REGIONALES[T.carteRegionale]) err.push('Théâtre ' + T.id + ' : carte régionale inconnue');
+  for (const u of UNITES) { for (const t of u.theatres) if (!th(t)) err.push('Unité ' + u.id + ' : théâtre inconnu ' + t); if (!CATEGORIES[u.categorie]) err.push('Unité ' + u.id + ' : catégorie inconnue'); if (u.depart && !u.theatres.includes(u.depart)) err.push('Unité ' + u.id + ' : théâtre de départ non accessible'); }
+  for (const sv of SERVICES) { for (const t of sv.theatres) if (!th(t)) err.push('Service ' + sv.id + ' : théâtre inconnu ' + t); for (const t in sv.affectationInitiale) if (!sv.theatres.includes(t)) err.push('Service ' + sv.id + ' : affectation hors périmètre ' + t); }
+  for (const m of MENACES) { for (const t of m.theatresDepart.concat(m.expansion)) if (!th(t)) err.push('Menace ' + m.id + ' : théâtre inconnu ' + t); for (const t in m.alimentePar) if (!MT[t]) err.push('Menace ' + m.id + ' : alimentation par type inconnu ' + t); }
+  for (const o of OPERATIONS) for (const c of (o.cibles || [])) if (!MT[c]) err.push('Opération ' + o.id + ' : cible inconnue ' + c);
+  for (const A of ALLIES) for (const ap of A.appuis) for (const t of ap.theatres) if (!th(t)) err.push('Allié ' + A.id + '/' + ap.id + ' : théâtre inconnu ' + t);
+  const verifEffets = (e, ou) => {
+    if (!e) return;
+    for (const x of (e.menace || [])) if (!MT[x.type]) err.push(ou + ' : menace inconnue ' + x.type);
+    for (const k of ['rens', 'partenaire', 'pression']) for (const x of (e[k] || [])) if (!th(x.theatre)) err.push(ou + ' : théâtre inconnu ' + x.theatre);
+    for (const x of (e.fatigue || [])) if ((x.unite && !UN[x.unite]) || (x.categorie && !CATEGORIES[x.categorie])) err.push(ou + ' : unité ou catégorie inconnue');
+    if (e.indispo && !UN[e.indispo.unite]) err.push(ou + ' : unité inconnue ' + e.indispo.unite);
+    for (const x of (e.relation || [])) if (!AL[x.allie]) err.push(ou + ' : allié inconnu ' + x.allie);
+    if (e.appui && (!AL[e.appui.allie] || !appuiDef(e.appui.allie, e.appui.appui))) err.push(ou + ' : appui inconnu');
+    if (e.crise && !th(e.crise) && !MT[e.crise]) err.push(ou + ' : crise sur cible inconnue ' + e.crise);
+    if (e.alea) { verifEffets(e.alea.succes, ou); verifEffets(e.alea.echec, ou); }
+  };
+  for (const E of EVENEMENTS) {
+    if (!E.choix || E.choix.length < 2 || E.choix.length > 3) err.push('Événement ' + E.id + ' : 2 ou 3 choix attendus');
+    if (E.choix.every(c => c.requiert)) err.push('Événement ' + E.id + ' : au moins un choix doit être toujours possible');
+    for (const c of E.choix) { verifEffets(c.effets, 'Événement ' + E.id); if (c.suite && !EV[c.suite]) err.push('Événement ' + E.id + ' : suite inconnue ' + c.suite); }
+    const k = E.cond || {};
+    if (k.menace && !MT[k.menace.type]) err.push('Événement ' + E.id + ' : condition sur menace inconnue');
+    for (const r of [k.relationMin, k.relationMax]) if (r && !AL[r.allie]) err.push('Événement ' + E.id + ' : condition sur allié inconnu');
+  }
+  for (const id in CARTES_REGIONALES) {
+    const C = CARTES_REGIONALES[id], L = {};
+    for (const l of C.lieux) L[l.id] = l;
+    if (!L[C.depart]) err.push('Carte ' + id + ' : lieu de départ inconnu');
+    for (const [a, b] of C.liens) if (!L[a] || !L[b]) err.push('Carte ' + id + ' : lien vers un lieu inconnu ' + a + '-' + b);
+    for (const sc of C.scenarios) for (const o of sc.objectifs) if (o.lieu && !L[o.lieu]) err.push('Carte ' + id + ' : objectif sur lieu inconnu ' + o.lieu);
+    if (C.lieux.length < 8 || C.lieux.length > 12) err.push('Carte ' + id + ' : 8 à 12 lieux attendus');
+  }
+  return err;
+}
+// Complète une sauvegarde issue d'une version antérieure ou d'un jeu de données enrichi (fonction pure)
+function migrerEtat(s0) {
+  const s = cloner(s0);
+  if (!s.allies) s.allies = {};
+  for (const A of ALLIES) if (!s.allies[A.id]) s.allies[A.id] = { relation: A.relation, cooldown: 0 };
+  for (const T of THEATRES) {
+    if (!s.theatres[T.id]) s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0, toursIntervention: 0, voteFait: false, allie: 0, appuis: [], crise: null };
+    if (!s.theatres[T.id].appuis) s.theatres[T.id].appuis = [];
+    delete s.theatres[T.id].allieCooldown;
+  }
+  for (const u of UNITES) if (!s.unites[u.id]) s.unites[u.id] = { etat: 'disponible', theatre: null, fatigue: 0, compteur: 0, indispo: 0 };
+  for (const sv of SERVICES) if (!s.services[sv.id]) s.services[sv.id] = { capteurs: Object.assign({}, sv.capteurs), affectations: {} };
+  for (const j of s.journal) delete j.date;
+  for (const d of s.decisions) delete d.date;
+  calculerRens(s);
+  return s;
+}
+
+// ---------- Simulation automatique de parties (console) ----------
+function verifierInvariants(s, complet) {
+  const err = [];
+  const R = s.ressources;
+  for (const k of ['opinion', 'capital', 'menaceInt', 'credibilite']) if (!(R[k] >= 0 && R[k] <= 100)) err.push(k + ' hors bornes : ' + R[k]);
+  for (const k of ['budget', 'enveloppe', 'surcout']) if (!Number.isFinite(R[k])) err.push(k + ' invalide');
+  for (const m of s.menaces) if (!(m.force > 0 && m.force <= 100)) err.push('force de menace invalide ' + m.id + ' : ' + m.force);
+  for (const u of UNITES) {
+    const e = s.unites[u.id];
+    if (!ETATS_UNITE[e.etat]) err.push('état inconnu ' + u.id);
+    if ((e.etat === 'deployee' || e.etat === 'projection') && !TH[e.theatre]) err.push('unité sans théâtre ' + u.id);
+    if (!(e.fatigue >= 0 && e.fatigue <= 100)) err.push('fatigue invalide ' + u.id);
+  }
+  for (const sv of SERVICES) for (const ty of TYPES_CAPTEURS) if (capteursLibres(s, sv.id, ty) < 0) err.push('capteurs négatifs ' + sv.id);
+  for (const A of ALLIES) if (!(s.allies[A.id].relation >= 0 && s.allies[A.id].relation <= 100)) err.push('relation invalide ' + A.id);
+  for (const T of THEATRES) for (const a of s.theatres[T.id].appuis) if (!(a.tours > 0) || !appuiDef(a.allie, a.appui)) err.push('appui invalide ' + T.id);
+  const j = complet ? JSON.stringify(s) : null;
+  if (complet && JSON.stringify(JSON.parse(j)) !== j) err.push('état non sérialisable');
+  if (!s.fin && actionsPossibles(s).length === 0 && s.phase !== 'jeu') err.push('blocage : aucune action en phase ' + s.phase);
+  return err;
+}
+function simuler(nbParties) {
+  const N = nbParties || 200;
+  const t0 = Date.now();
+  const choix = { rngState: 987654321 };
+  const pick = l => l[Math.floor(alea(choix) * l.length)];
+  const res = { parties: N, erreurs: 0, fins: {}, dureeMoyenne: 0, scoreMoyen: 0, messages: [] };
+  const ed = verifierDonnees();
+  if (ed.length) { res.erreurs += ed.length; res.messages.push('Données : ' + ed.join(' ; ')); }
+  let cumulTours = 0, cumulScore = 0;
+  const diffs = Object.keys(DIFFICULTES);
+  for (let i = 0; i < N; i++) {
+    try {
+      let s = nouvellePartie(1000 + i, diffs[i % diffs.length]);
+      let garde = 0;
+      while (!s.fin && garde++ < 6000) {
+        if (s.phase === 'jeu') {
+          const nb = Math.floor(alea(choix) * 5);
+          for (let k = 0; k < nb && s.phase === 'jeu' && !s.fin; k++) {
+            const L = actionsPossibles(s);
+            const groupes = {};
+            for (const a of L) (groupes[a.type] = groupes[a.type] || []).push(a);
+            const types = Object.keys(groupes);
+            if (!types.length) break;
+            s = appliquerAction(s, pick(groupes[pick(types)]));
+          }
+          if (s.phase === 'jeu' && !s.fin) s = finDeTour(s);
+        } else {
+          const L = actionsPossibles(s);
+          let a = pick(L);
+          if (s.phase === 'zoom' && a.type === 'Z_RETRAIT' && alea(choix) < 0.9) a = { type: 'Z_SEMAINE' };
+          s = appliquerAction(s, a);
+        }
+        const inv = verifierInvariants(s, s.phase === 'jeu' || !!s.fin);
+        if (inv.length) { res.erreurs += inv.length; if (res.messages.length < 20) res.messages.push('Partie ' + i + ' : ' + inv.join(' ; ')); break; }
+      }
+      if (!s.fin) { res.erreurs++; if (res.messages.length < 20) res.messages.push('Partie ' + i + ' : non terminée'); continue; }
+      const cle = s.fin.type === 'bilan' ? 'bilan (tour 36)' : 'défaite : ' + (s.ressources.opinion < 10 ? 'opinion' : s.ressources.capital <= 0 ? 'capital' : 'menace intérieure');
+      res.fins[cle] = (res.fins[cle] || 0) + 1;
+      cumulTours += s.tour; cumulScore += s.fin.score.total;
+    } catch (e) {
+      res.erreurs++;
+      if (res.messages.length < 20) res.messages.push('Partie ' + i + ' : ' + e.message);
+    }
+  }
+  const finies = Object.values(res.fins).reduce((x, y) => x + y, 0);
+  res.dureeMoyenne = arrondi(cumulTours / Math.max(1, finies));
+  res.scoreMoyen = arrondi(cumulScore / Math.max(1, finies));
+  res.tempsMs = Date.now() - t0;
+  console.log('Simulation de ' + N + ' parties — erreurs : ' + res.erreurs + ', durée moyenne : ' + res.dureeMoyenne + ' tours, score moyen : ' + res.scoreMoyen + ', ' + res.tempsMs + ' ms');
+  console.table(res.fins);
+  if (res.messages.length) console.log(res.messages.join('\n'));
+  return res;
+}
+
+// =====================================================================
+// COUCHE 3 — INTERFACE
+// Lit `state`, affiche, envoie des actions. Ne modifie jamais `state` :
+// la variable est seulement remplacée par le retour des fonctions pures.
+// =====================================================================
+
+let state = null;
+const ui = { selection: null, apercu: null, bilan: null, debug: false, aide: false, refMois: null, zoomLieu: null, zoomUnite: null, toastTimer: null, graineAccueil: String(Date.now() % 1000000), difficulteAccueil: 'normal' };
+
+const $ = id => document.getElementById(id);
+function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function attrAction(a) { return ' data-act="' + esc(JSON.stringify(a)) + '"'; }
+function tip(t) { return ' data-tip="' + esc(t) + '"'; }
+function pct(p) { return Math.round(p * 100) + ' %'; }
+function possibles() { return state ? actionsPossibles(state) : []; }
+function estPossible(P, a) { const k = cleAction(a); return P.some(p => cleAction(p) === k); }
+function couleurNiveau(v, inverse) {
+  if (v === null || v === undefined) return '#5b6a73';
+  const x = inverse ? 100 - v : v;
+  return x >= 60 ? '#d9534f' : x >= 35 ? '#e0a030' : '#4caf7a';
+}
+function classeVal(v, inverse) { const x = inverse ? 100 - v : v; return x >= 60 ? 'alerte' : x >= 35 ? 'moyen' : 'bon'; }
+
+// ---------- Envoi d'actions ----------
+function jouer(a) {
+  const avant = state;
+  try { state = appliquerAction(state, a); }
+  catch (e) { afficherToast('Action refusée : ' + e.message); return; }
+  if (avant.zoom && !state.zoom && state.dernierBilan) ui.bilan = state.dernierBilan;
+  if (state.dernierResultat && state.dernierResultat !== avant.dernierResultat) afficherToast(state.dernierResultat.titre + ' — ' + state.dernierResultat.texte);
+  if (!state.zoom) { ui.zoomLieu = null; ui.zoomUnite = null; }
+  ui.apercu = null;
+  rendre();
+}
+function terminerTour() {
+  if (!state || state.phase !== 'jeu') return;
+  const avant = state;
+  state = finDeTour(state);
+  ui.refMois = Object.assign({}, avant.ressources);
+  rendre();
+}
+function afficherToast(t) {
+  const el = $('toast');
+  el.textContent = t; el.style.display = 'block';
+  clearTimeout(ui.toastTimer);
+  ui.toastTimer = setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+// ---------- Libellés ----------
+function libelleAction(a) {
+  switch (a.type) {
+    case 'DEPLOYER': return 'Engager ' + UN[a.unite].nom + ' → ' + TH[a.theatre].court;
+    case 'RAPATRIER': return 'Rapatrier ' + UN[a.unite].nom;
+    case 'OPERATION': { const m = a.cible ? menaceParId(state, a.cible) : null; return OP[a.op].nom + (m ? ' → ' + MT[m.type].nom : ''); }
+    case 'BUDGET': return a.sens === 'hausse' ? 'Demander une rallonge (+10 M€/mois, capital -8)' : 'Réduire l’enveloppe (-10 M€/mois, capital +4)';
+    case 'ALLIE': return AL[a.allie].nom + ' : ' + appuiDef(a.allie, a.appui).nom + ' → ' + TH[a.theatre].court;
+    default: return a.type;
+  }
+}
+
+// ---------- Rendu général ----------
+function rendre() {
+  if (!state) { rendreAccueil(); return; }
+  rendreBandeau(); rendreGauche(); rendreCarte(); rendreDroite(); rendreBas(); rendreModal(); rendreZoom(); rendreDebug();
+}
+
+function rendreBandeau() {
+  const R = state.ressources;
+  const couts = coutsMensuels(state);
+  const ref = ui.refMois;
+  const dl = (k, inverse) => {
+    if (!ref) return '';
+    const d = Math.round(R[k] - ref[k]);
+    if (!d) return '';
+    return '<span class="delta ' + ((d > 0) !== !!inverse ? 'p' : 'n') + '">' + (d > 0 ? '+' : '') + d + '</span>';
+  };
+  const prevu = R.budget + R.enveloppe - couts;
+  const ind = (lib, val, cls, t, delta) => '<div class="ind"' + tip(t + (delta ? '\nLe petit chiffre indique l’évolution depuis le début du mois précédent.' : '')) + '><span class="lib">' + lib + '</span><span class="val ' + (cls || '') + '">' + val + (delta || '') + '</span></div>';
+  $('bandeau').innerHTML =
+    '<span class="titre">CELLULE DE CRISE</span>' +
+    ind('Date', dateDuTour(Math.min(state.tour, NB_TOURS - 1)), '', 'Un tour représente un mois. La démonstration couvre janvier 2015 à décembre 2017.') +
+    ind('Tour', Math.min(state.tour + 1, NB_TOURS) + '/' + NB_TOURS, '', 'Tour courant sur 36.') +
+    ind('Solde', R.budget.toFixed(1) + ' M€', R.budget < 20 ? 'alerte' : '', 'Crédits disponibles. Chaque mois : + enveloppe, − coût mensuel des unités engagées.\nUn solde négatif en fin de mois devient du surcoût OPEX et coûte du capital politique.') +
+    ind('Enveloppe', R.enveloppe + ' M€/m', '', 'Enveloppe mensuelle affectée aux opérations. Modifiable par l’arbitrage budgétaire.') +
+    ind('Coûts/mois', couts.toFixed(1) + ' M€', couts > R.enveloppe ? 'alerte' : '', 'Somme des coûts mensuels des unités déployées ou en projection (doctrine incluse).') +
+    ind('Fin de mois', prevu.toFixed(1) + ' M€', prevu < 0 ? 'alerte' : '', 'Solde prévu à la clôture du mois : solde + enveloppe − coûts mensuels.' + (prevu < 0 ? '\nLe dépassement deviendra du surcoût OPEX (capital -' + (1 + Math.floor(-prevu / 20)) + ').' : '')) +
+    ind('Surcoût OPEX', R.surcout.toFixed(0) + ' M€', R.surcout > 100 ? 'alerte' : '', 'Dépassements cumulés de l’enveloppe. Pèse sur le score de maîtrise budgétaire.') +
+    ind('Capital pol.', Math.round(R.capital), classeVal(R.capital, true), 'Capital politique (0-100). Détermine le nombre d’actions par mois (' + PARAMS.actionsBase + ' + 1 par tranche de ' + PARAMS.actionsParCapital + ').\nDéfaite s’il tombe à 0.', dl('capital')) +
+    ind('Opinion', Math.round(R.opinion), classeVal(R.opinion, true), 'Soutien de l’opinion (0-100). Influence les votes de l’article 35.\nDéfaite sous 10.', dl('opinion')) +
+    ind('Menace int.', Math.round(R.menaceInt) + (state.menaceInt100 ? ' (' + state.menaceInt100 + '/3)' : ''), classeVal(R.menaceInt), 'Menace intérieure (0-100). Alimentée par les réseaux en métropole, les cyberattaques et les menaces extérieures fortes.\nRéduite par la protection du territoire et les unités d’intervention.\nDéfaite si elle reste à 100 pendant 3 mois.', dl('menaceInt', true)) +
+    ind('Crédibilité', Math.round(R.credibilite), classeVal(R.credibilite, true), 'Crédibilité internationale (0-100). Conditionne les réponses des alliés.', dl('credibilite')) +
+    ind('Actions', state.actionsRestantes + '/' + actionsParTour(state), state.actionsRestantes === 0 ? 'alerte' : '', 'Actions restantes ce mois-ci (déploiement, rapatriement, opération, budget, appui allié).\nL’affectation des capteurs ne consomme pas d’action.') +
+    ind('Doctrine', state.doctrine ? DOC[state.doctrine].nom : '—', '', state.doctrine ? DOC[state.doctrine].bonus + '\n' + DOC[state.doctrine].malus : 'Non choisie') +
+    '<div class="boutons">' +
+    '<button class="primaire" id="btnFin"' + (state.phase === 'jeu' ? '' : ' disabled') + tip('Clôturer le mois : coûts, évolution des menaces, renseignement, événements.') + '>Fin du tour</button>' +
+    '<button id="btnExport"' + tip('Télécharger l’état complet de la partie en JSON.') + '>Exporter</button>' +
+    '<button id="btnImport"' + tip('Charger une sauvegarde JSON.') + '>Importer</button>' +
+    '<button id="btnAide"' + tip('Rappel des règles.') + '>Aide</button>' +
+    '<button id="btnDebug"' + tip('Afficher ou masquer le panneau de débogage.') + '>Débogage</button>' +
+    '<button id="btnNouvelle"' + tip('Revenir à l’écran de lancement.') + '>Nouvelle partie</button></div>';
+}
+
+function rendreGauche() {
+  const sel = ui.selection || {};
+  let h = '<h2>Services de renseignement</h2>';
+  for (const sv of SERVICES) {
+    const st = state.services[sv.id];
+    const caps = TYPES_CAPTEURS.filter(t => st.capteurs[t] > 0).map(t => t + ' ' + (st.capteurs[t] - capteursLibres(state, sv.id, t)) + '/' + st.capteurs[t]).join('  ');
+    h += '<div class="service' + (sel.kind === 'service' && sel.id === sv.id ? ' sel' : '') + '" data-sel="service:' + sv.id + '"' +
+      tip(sv.libelle + ' — ' + sv.domaine + '\nCapteurs affectés / total.\nThéâtres : ' + sv.theatres.map(t => TH[t].court).join(', ')) + '>' +
+      '<b>' + sv.nom + '</b> <span class="pale">' + sv.domaine + '</span><br><span class="cyan">' + caps + '</span></div>';
+  }
+  h += '<h2 style="margin-top:10px">Alliés</h2>';
+  for (const A of ALLIES) {
+    const st = state.allies[A.id];
+    const actifs = THEATRES.reduce((n, T) => n + state.theatres[T.id].appuis.filter(x => x.allie === A.id).length, 0);
+    h += '<div class="service' + (sel.kind === 'allie' && sel.id === A.id ? ' sel' : '') + '" data-sel="allie:' + A.id + '"' +
+      tip(A.nom + ' — ' + A.description + '\nRelation : ' + Math.round(st.relation) + '/100 (référence ' + A.relation + ')\nThéâtres d’intérêt : ' + A.interets.map(t => TH[t].court).join(', ') + '\nUne présence française sur ces théâtres améliore la relation ; chaque appui accordé la consomme.') + '>' +
+      '<div class="ligne"><span class="g"><b>' + esc(A.nom) + '</b></span><span class="pale">' + (actifs ? actifs + ' appui(s) · ' : '') + (st.cooldown ? 'délai ' + st.cooldown + ' m · ' : '') + Math.round(st.relation) + '</span></div>' +
+      '<div class="barre"><div style="width:' + st.relation + '%;background:' + couleurNiveau(st.relation, true) + '"></div></div></div>';
+  }
+  h += '<h2 style="margin-top:10px">Forces</h2>';
+  for (const cat in CATEGORIES) {
+    h += '<h3>' + CATEGORIES[cat] + '</h3>';
+    for (const u of UNITES.filter(x => x.categorie === cat)) {
+      const e = state.unites[u.id];
+      const lieu = e.theatre ? TH[e.theatre].court : '';
+      const det = e.etat === 'projection' ? ' (' + e.compteur + ' m)' : e.etat === 'regeneration' ? ' (' + e.compteur + ' m)' : e.etat === 'indisponible' && e.indispo ? ' (' + e.indispo + ' m)' : '';
+      h += '<div class="unite' + (sel.kind === 'unite' && sel.id === u.id ? ' sel' : '') + '" data-sel="unite:' + u.id + '"' +
+        tip(u.nom + ' — ' + u.type + '\nEffectif : ' + u.effectif + '\nAssaut ' + u.cap.assaut + ' · Rens. ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance + '\nDélai de projection : ' + u.delai + ' mois · Déploiement ' + u.coutDeploiement + ' M€ · ' + u.coutMensuel + ' M€/mois\nFatigue : ' + Math.round(e.fatigue)) + '>' +
+        '<div class="ligne"><span class="g">' + esc(u.nom) + '</span><span class="pale">' + lieu + '</span><span class="etat ' + e.etat + '">' + ETATS_UNITE[e.etat] + det + '</span></div>' +
+        '<div class="barre"><div style="width:' + e.fatigue + '%;background:' + couleurNiveau(e.fatigue) + '"></div></div></div>';
+    }
+  }
+  $('gauche').innerHTML = h;
+}
+
+function niveauAffiche(t) {
+  const ms = state.menaces.filter(m => m.theatre === t && m.detectee);
+  if (!ms.length) return null;
+  return ms.reduce((a, m) => m.estimation > a.estimation ? m : a);
+}
+function rendreCarte() {
+  let h = '<defs><pattern id="quad" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#13202a" stroke-width="1"/></pattern></defs>';
+  h += '<rect x="0" y="0" width="1040" height="580" fill="url(#quad)"/>';
+  h += '<text x="16" y="24" fill="#3f5563" font-size="13">CARTE STRATÉGIQUE — SCHÉMA DES THÉÂTRES</text>';
+  const vus = {};
+  for (const T of THEATRES) for (const v of T.voisins) {
+    const k = [T.id, v].sort().join('-');
+    if (vus[k] || !TH[v]) continue; vus[k] = 1;
+    h += '<line x1="' + T.x + '" y1="' + T.y + '" x2="' + TH[v].x + '" y2="' + TH[v].y + '" stroke="#2a3a45" stroke-width="2" stroke-dasharray="6 4"/>';
+  }
+  for (const T of THEATRES) {
+    const th = state.theatres[T.id];
+    const m = niveauAffiche(T.id);
+    const dep = UNITES.filter(u => state.unites[u.id].theatre === T.id && state.unites[u.id].etat === 'deployee').length;
+    const proj = UNITES.filter(u => state.unites[u.id].theatre === T.id && state.unites[u.id].etat === 'projection').length;
+    const sel = ui.selection && ui.selection.kind === 'theatre' && ui.selection.id === T.id;
+    const col = couleurNiveau(m ? m.estimation : null);
+    const nbM = state.menaces.filter(x => x.theatre === T.id && x.detectee).length;
+    const t = T.nom + '\nMenace estimée : ' + (m ? m.estimation + ' ± ' + m.marge + ' (' + MT[m.type].nom + ')' : 'aucune détectée') +
+      '\nMenaces identifiées : ' + nbM + '\nRenseignement : ' + th.rens + ' (fiabilité ' + fiabilite(th.rens) + ')' +
+      '\nForces déployées : ' + dep + (proj ? ' (+' + proj + ' en route)' : '') + '\nCapacité partenaire : ' + th.partenaire +
+      (th.allie ? '\nAppui allié : ' + th.allie + ' mois' : '') + th.appuis.map(a => '\n' + AL[a.allie].nom + ' : ' + appuiDef(a.allie, a.appui).nom + ' (' + a.tours + ' m)').join('') + (th.crise ? '\nCRISE : ' + th.crise.titre : '') +
+      (T.exterieur && !T.basePermanente && th.toursIntervention ? '\nIntervention : ' + th.toursIntervention + ' mois' + (th.voteFait ? ' (autorisée par le Parlement)' : '') : '');
+    h += '<g class="clic" data-sel="theatre:' + T.id + '"' + tip(t) + '>';
+    if (th.crise) h += '<circle cx="' + T.x + '" cy="' + T.y + '" r="54" fill="none" stroke="#d9534f" stroke-width="3" class="clignote"/>';
+    h += '<circle cx="' + T.x + '" cy="' + T.y + '" r="44" fill="#0e161b" stroke="' + (sel ? '#ffffff' : col) + '" stroke-width="' + (sel ? 3 : 2) + '"/>';
+    h += '<circle cx="' + T.x + '" cy="' + T.y + '" r="40" fill="none" stroke="' + col + '" stroke-width="5" stroke-dasharray="' + (m ? (m.estimation / 100 * 251).toFixed(0) : 0) + ' 251" transform="rotate(-90 ' + T.x + ' ' + T.y + ')" opacity=".8"/>';
+    h += '<text x="' + T.x + '" y="' + (T.y - 52) + '" text-anchor="middle" fill="#e6edf0" font-size="13" font-weight="bold">' + esc(T.court) + '</text>';
+    h += '<text x="' + T.x + '" y="' + (T.y - 14) + '" text-anchor="middle" fill="' + col + '" font-size="12">M ' + (m ? m.estimation + '±' + m.marge : '?') + '</text>';
+    h += '<text x="' + T.x + '" y="' + (T.y + 3) + '" text-anchor="middle" fill="#c6d2d8" font-size="12">F ' + dep + (proj ? '+' + proj : '') + '</text>';
+    h += '<text x="' + T.x + '" y="' + (T.y + 20) + '" text-anchor="middle" fill="#5bc0de" font-size="12">R ' + th.rens + '</text>';
+    const compo = Object.keys(CATEGORIES).map(c => [c, UNITES.filter(u => u.categorie === c && state.unites[u.id].theatre === T.id && state.unites[u.id].etat === 'deployee').length]).filter(x => x[1]).map(x => x[0].slice(0, 3) + x[1]).join(' ');
+    if (compo) h += '<text x="' + T.x + '" y="' + (T.y + 34) + '" text-anchor="middle" fill="#8aa0ab" font-size="9">' + compo + '</text>';
+    if (th.crise) h += '<text x="' + T.x + '" y="' + (T.y + 68) + '" text-anchor="middle" fill="#d9534f" font-size="11" font-weight="bold">CRISE</text>';
+    else if (th.allie || th.appuis.length) h += '<text x="' + T.x + '" y="' + (T.y + 62) + '" text-anchor="middle" fill="#a58bd6" font-size="10">APPUI ALLIÉ</text>';
+    h += '</g>';
+  }
+  h += '<text x="16" y="560" fill="#5b6a73" font-size="11">M : menace estimée (± marge) · F : unités déployées (+ en route) · R : niveau de renseignement · Cliquer un théâtre pour agir.</text>';
+  $('carte').innerHTML = h;
+}
+
+function rendreDroite() {
+  let h = '<h2>Rapports de renseignement — ' + esc(dateDuTour(Math.min(state.tour, NB_TOURS - 1))) + '</h2>';
+  if (!state.rapports.length) h += '<div class="pale">Aucun rapport.</div>';
+  const tri = state.rapports.slice().sort((a, b) => a.fiabilite.localeCompare(b.fiabilite));
+  for (const r of tri) {
+    h += '<div class="rapport"' + tip('Fiabilité A (très sûre) à E (douteuse). Plus le renseignement est faible, plus l’estimation est large et plus le rapport peut être faux.') + '><div class="ent">' + r.service + ' · ' + TH[r.theatre].court + ' · fiabilité ' + r.fiabilite + '</div>' + esc(r.texte) + '</div>';
+  }
+  h += '<h2 style="margin-top:10px">Journal</h2><div class="journal">';
+  for (const j of state.journal.slice(0, 120)) h += '<div class="' + j.genre + '">' + (j.genre === 'tour' ? '' : '<span class="pale">[' + MOIS[j.tour % 12].slice(0, 4) + '] </span>') + esc(j.texte) + '</div>';
+  h += '</div>';
+  $('droite').innerHTML = h;
+}
+
+// ---------- Bas : actions pour l'élément sélectionné ----------
+function rendreBas() {
+  const P = possibles();
+  let principal = '';
+  const sel = ui.selection;
+  if (state.phase !== 'jeu') principal = '<div class="bloc"><h2>Décision en attente</h2><p class="pale">Une décision doit être prise avant de poursuivre (fenêtre au centre de l’écran).</p></div>';
+  else if (!sel) principal = panneauSituation();
+  else if (sel.kind === 'theatre') principal = panneauTheatre(sel.id, P);
+  else if (sel.kind === 'unite') principal = panneauUnite(sel.id, P);
+  else if (sel.kind === 'service') principal = panneauService(sel.id, P);
+  else if (sel.kind === 'allie') principal = panneauAllie(sel.id, P);
+  let gouv = '<div class="bloc"><h2>Gouvernement</h2>';
+  for (const s of ['hausse', 'baisse']) { const a = { type: 'BUDGET', sens: s }; gouv += '<div class="ligne"><button' + attrAction(a) + (estPossible(P, a) ? '' : ' disabled') + '>' + libelleAction(a) + '</button></div>'; }
+  gouv += '<p class="pale">Actions restantes : ' + state.actionsRestantes + '. Opérations menées : ' + state.stats.operations + ' (' + state.stats.succes + ' succès).</p></div>';
+  $('bas').innerHTML = principal + gouv;
+}
+function blocCapteurs(svId, theatre, P) {
+  const st = state.services[svId];
+  const a = st.affectations[theatre] || {};
+  let h = '<div class="grille-capteurs"><span' + tip(SV[svId].libelle) + '><b>' + svId + '</b></span>';
+  for (const ty of TYPES_CAPTEURS) {
+    if (st.capteurs[ty] <= 0) { h += '<span class="pale">—</span>'; continue; }
+    const plus = { type: 'CAPTEUR', service: svId, theatre, capteur: ty, delta: 1 }, moins = { type: 'CAPTEUR', service: svId, theatre, capteur: ty, delta: -1 };
+    h += '<span class="cap"' + tip(ty + ' : ' + (a[ty] || 0) + ' affecté(s) ici, ' + capteursLibres(state, svId, ty) + ' libre(s). Poids ' + POIDS_CAPTEUR[ty] + ' × efficacité ' + SV[svId].efficacite[ty]) + '>' + ty.slice(0, 3) +
+      ' <button class="mini"' + attrAction(moins) + (estPossible(P, moins) ? '' : ' disabled') + '>-</button>' + (a[ty] || 0) +
+      '<button class="mini"' + attrAction(plus) + (estPossible(P, plus) ? '' : ' disabled') + '>+</button><span class="pale">(' + capteursLibres(state, svId, ty) + ')</span></span>';
+  }
+  return h + '</div>';
+}
+function panneauTheatre(t, P) {
+  const T = TH[t], th = state.theatres[t];
+  let h = '<div class="bloc"><h2>' + esc(T.nom) + '</h2>';
+  h += '<div class="pale">Renseignement ' + th.rens + ' (fiabilité ' + fiabilite(th.rens) + ') · Partenaire ' + th.partenaire + (th.allie ? ' · Appui allié ' + th.allie + ' m' : '') +
+    (T.exterieur && !T.basePermanente ? ' · Intervention : ' + th.toursIntervention + ' mois' + (th.voteFait ? ', autorisée' : (th.toursIntervention ? ', vote au-delà de ' + PARAMS.dureeAvantVote + ' mois' : '')) : (T.exterieur ? ' · Forces prépositionnées (pas de vote)' : '')) + '</div>';
+  h += '<h3>Menaces identifiées</h3>';
+  const ms = state.menaces.filter(m => m.theatre === t && m.detectee);
+  if (!ms.length) h += '<div class="pale">Aucune menace identifiée (le brouillard peut masquer une activité).</div>';
+  for (const m of ms) {
+    const pr = pressionMenace(state, m), q = pr >= 25 ? ['forte', 'vert'] : pr >= 12 ? ['moyenne', 'ambre'] : ['faible', 'rouge'];
+    h += '<div class="ligne"><span class="g">' + MT[m.type].nom + '</span><span class="' + q[1] + '"' + tip('Pression exercée par vos forces, capteurs, partenaires et alliés sur cette menace. Une menace sous faible pression continue de croître.') + '>pression ' + q[0] + '</span><span style="color:' + couleurNiveau(m.estimation) + '">' + m.estimation + ' ± ' + m.marge + '</span></div>';
+  }
+  if (T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0) h += '<div class="ambre" style="margin-top:4px">Article 35 : vote dans ' + Math.max(1, PARAMS.dureeAvantVote + 1 - th.toursIntervention) + ' mois, adoption estimée ' + pct(probaVote(state)) + '.</div>';
+  h += '<h3>Capteurs</h3>';
+  for (const sv of SERVICES.filter(x => x.theatres.includes(t))) h += blocCapteurs(sv.id, t, P);
+  h += '</div><div class="bloc"><h3>Forces sur le théâtre</h3>';
+  const sur = UNITES.filter(u => state.unites[u.id].theatre === t);
+  if (!sur.length) h += '<div class="pale">Aucune.</div>';
+  for (const u of sur) {
+    const a = { type: 'RAPATRIER', unite: u.id }, e = state.unites[u.id];
+    h += '<div class="ligne"><span class="g">' + esc(u.nom) + ' <span class="etat ' + e.etat + '">' + ETATS_UNITE[e.etat] + '</span> <span class="pale">fatigue ' + Math.round(e.fatigue) + '</span></span><button' + attrAction(a) + (estPossible(P, a) ? '' : ' disabled') + '>Rapatrier</button></div>';
+  }
+  h += '<h3>Engager</h3>';
+  const eng = P.filter(a => a.type === 'DEPLOYER' && a.theatre === t);
+  if (!eng.length) h += '<div class="pale">' + (state.actionsRestantes ? 'Aucune unité disponible pour ce théâtre.' : 'Plus d’action disponible ce mois-ci.') + '</div>';
+  for (const a of eng) { const u = UN[a.unite]; h += '<div class="ligne"><span class="g">' + esc(u.nom) + ' <span class="pale">' + delaiProjection(state, u.id, t) + ' m · ' + (u.coutDeploiement * coutMult(state)).toFixed(1) + ' + ' + (u.coutMensuel * coutMult(state)).toFixed(1) + '/m</span></span><button' + attrAction(a) + '>Engager</button></div>'; }
+  h += '</div><div class="bloc"><h3>Opérations</h3>';
+  const ops = P.filter(a => a.type === 'OPERATION' && a.theatre === t);
+  if (!ops.length) h += '<div class="pale">' + (state.actionsRestantes ? 'Aucune opération possible : il faut des moyens adaptés sur place.' : 'Plus d’action disponible ce mois-ci.') + '</div>';
+  for (const a of ops) h += '<div class="ligne"><span class="g"' + tip(OP[a.op].description) + '>' + esc(libelleAction(a)) + '</span><button data-apercu="' + esc(JSON.stringify(a)) + '">Évaluer</button></div>';
+  const offres = [];
+  for (const A of ALLIES) for (const ap of A.appuis) if (ap.theatres.includes(t)) offres.push([A, ap]);
+  if (offres.length) {
+    h += '<h3>Appuis alliés</h3>';
+    for (const a of th.appuis) h += '<div class="ligne"><span class="g violet">' + esc(AL[a.allie].nom + ' : ' + appuiDef(a.allie, a.appui).nom) + '</span><span class="pale">' + a.tours + ' m</span></div>';
+    for (const [A, ap] of offres) {
+      if (th.appuis.some(x => x.allie === A.id && x.appui === ap.id)) continue;
+      h += ligneAppui(A, ap, t, P, true);
+    }
+  }
+  return h + '</div>';
+}
+function panneauUnite(id, P) {
+  const u = UN[id], e = state.unites[id];
+  let h = '<div class="bloc"><h2>' + esc(u.nom) + '</h2><div>' + esc(u.type) + ' · ' + CATEGORIES[u.categorie] + ' · effectif ' + u.effectif + '</div>';
+  h += '<table class="t" style="margin-top:6px"><tr><th>Assaut</th><th>Rens.</th><th>Frappe</th><th>Discrétion</th><th>Endurance</th></tr><tr><td>' + u.cap.assaut + '</td><td>' + u.cap.renseignement + '</td><td>' + u.cap.frappe + '</td><td>' + u.cap.discretion + '</td><td>' + u.cap.endurance + '</td></tr></table>';
+  h += '<p>État : <span class="etat ' + e.etat + '">' + ETATS_UNITE[e.etat] + '</span>' + (e.theatre ? ' — ' + TH[e.theatre].nom : '') + ' · fatigue ' + Math.round(e.fatigue) + '<br>Délai de projection ' + u.delai + ' mois · déploiement ' + u.coutDeploiement + ' M€ · ' + u.coutMensuel + ' M€/mois';
+  if (u.indisponibilites) h += '<br><span class="ambre">Arrêts techniques programmés : ' + u.indisponibilites.map(p => dateDuTour(p.debut) + ' à ' + dateDuTour(p.fin)).join(' ; ') + '</span>';
+  h += '</p></div><div class="bloc"><h3>Ordres</h3>';
+  const a = { type: 'RAPATRIER', unite: id };
+  if (estPossible(P, a)) h += '<div class="ligne"><button' + attrAction(a) + '>Rapatrier</button></div>';
+  const dep = P.filter(x => x.type === 'DEPLOYER' && x.unite === id);
+  for (const x of dep) h += '<div class="ligne"><span class="g">' + TH[x.theatre].nom + '</span><button' + attrAction(x) + '>Engager</button></div>';
+  if (!dep.length && !estPossible(P, a)) h += '<div class="pale">Aucun ordre possible (état, théâtre ou actions restantes).</div>';
+  return h + '</div>';
+}
+function ligneAppui(A, ap, t, P, avecNom) {
+  const a = { type: 'ALLIE', allie: A.id, appui: ap.id, theatre: t }, ok = estPossible(P, a);
+  const ev = evaluerAppui(state, A.id, ap.id, t);
+  const eff = decrireAppui(ap);
+  return '<div class="ligne"><span class="g"' + tip(ap.nom + '\nEffets : ' + eff + (ap.duree > 1 ? ' pendant ' + ap.duree + ' mois' : '') + '\nCoût : ' + ap.capital + ' de capital, relation -' + ap.relation + ' si accordé\nProbabilité d’accord : ' + pct(ev.pSucces) + ' (relation, crédibilité, intérêt du pays pour le théâtre)') + '>' +
+    esc(avecNom ? A.nom + ' : ' + ap.nom : TH[t].court) + ' <span class="pale">' + pct(ev.pSucces) + '</span></span><button' + attrAction(a) + (ok ? '' : ' disabled') + '>Demander</button></div>';
+}
+function decrireAppui(ap) {
+  const e = ap.effets, r = [];
+  if (e.rens) r.push('renseignement +' + e.rens);
+  if (e.pression) r.push('pression +' + e.pression);
+  if (e.opBonus) r.push('opérations +' + Math.round(e.opBonus * 100) + ' %');
+  if (e.frappesZoom) r.push('frappes en zoom +' + e.frappesZoom);
+  if (e.recosZoom) r.push('reconnaissances en zoom +' + e.recosZoom);
+  if (e.delai) r.push('projection ' + e.delai + ' mois');
+  if (e.partenaire) r.push('capacité partenaire +' + e.partenaire);
+  return r.join(', ');
+}
+function panneauAllie(id, P) {
+  const A = AL[id], st = state.allies[id];
+  let h = '<div class="bloc"><h2>' + esc(A.nom) + '</h2><p>' + esc(A.description) + '</p>';
+  h += '<p>Relation : <b>' + Math.round(st.relation) + '</b>/100 (référence ' + A.relation + ')' + (st.cooldown ? ' · nouvelle demande possible dans ' + st.cooldown + ' mois' : '') + '<br>Théâtres d’intérêt : ' + A.interets.map(t => TH[t].nom).join(', ') + '</p>';
+  h += '<p class="pale">La relation remonte lentement vers sa référence, progresse quand la France est engagée sur les théâtres d’intérêt de ce pays et quand votre crédibilité est élevée. Chaque appui accordé la consomme.</p>';
+  const actifs = [];
+  for (const T of THEATRES) for (const a of state.theatres[T.id].appuis) if (a.allie === id) actifs.push(appuiDef(id, a.appui).nom + ' — ' + T.nom + ' (' + a.tours + ' m)');
+  h += '<h3>Appuis en cours</h3>' + (actifs.length ? actifs.map(x => '<div class="violet">' + esc(x) + '</div>').join('') : '<div class="pale">Aucun.</div>') + '</div>';
+  h += '<div class="bloc"><h3>Appuis disponibles</h3>';
+  for (const ap of A.appuis) {
+    h += '<div style="margin-top:4px"><b>' + esc(ap.nom) + '</b> <span class="pale">' + esc(decrireAppui(ap)) + ' · capital ' + ap.capital + '</span></div>';
+    for (const t of ap.theatres) {
+      if (state.theatres[t].appuis.some(x => x.allie === id && x.appui === ap.id)) h += '<div class="ligne"><span class="g violet">' + TH[t].court + ' : en cours</span></div>';
+      else h += ligneAppui(A, ap, t, P, false);
+    }
+  }
+  return h + '</div>';
+}
+function panneauService(id, P) {
+  const sv = SV[id];
+  let h = '<div class="bloc"><h2>' + sv.nom + ' — ' + esc(sv.libelle) + '</h2><p class="pale">Affectation des capteurs par théâtre. Chaque capteur relève le niveau de renseignement du théâtre (et, pour certains services, la connaissance d’une menace particulière).</p>';
+  for (const t of sv.theatres) h += '<div class="ligne"><span style="width:90px">' + TH[t].court + '</span>' + blocCapteurs(id, t, P) + '<span class="cyan"> R ' + state.theatres[t].rens + '</span></div>';
+  return h + '</div>';
+}
+
+// ---------- Fenêtres modales ----------
+function rendreAccueil() {
+  $('modal-fond').hidden = false;
+  $('zoom').hidden = true;
+  $('bandeau').innerHTML = '<span class="titre">CELLULE DE CRISE</span><span class="pale">France — sécurité intérieure et extérieure, 2015-2017</span>';
+  for (const id of ['gauche', 'droite', 'bas']) $(id).innerHTML = '';
+  $('carte').innerHTML = '';
+  let h = '<div class="entete">Prise de fonctions — janvier 2015</div>';
+  h += '<p>Vous dirigez la politique de sécurité de la France pendant 36 mois. Renseignement, forces spéciales, armées et décisions politiques se jouent sur la carte stratégique ; un zoom régional s’ouvre lorsque vous décidez d’intervenir dans une crise.</p>';
+  h += '<div class="ligne"><span style="width:120px">Graine</span><input id="inGraine" value="' + esc(ui.graineAccueil) + '" style="width:200px"' + tip('Même graine et mêmes décisions donnent la même partie.') + '></div>';
+  h += '<div class="ligne"><span style="width:120px">Difficulté</span><select id="inDiff">' + Object.keys(DIFFICULTES).map(k => '<option value="' + k + '"' + (k === ui.difficulteAccueil ? ' selected' : '') + '>' + DIFFICULTES[k].nom + '</option>').join('') + '</select></div>';
+  h += '<div class="ligne" style="margin-top:12px"><button class="primaire" id="btnLancer">Lancer la partie</button><button id="btnImport2">Importer une sauvegarde</button></div>';
+  h += '<p class="pale">Conditions de défaite : opinion sous 10, capital politique à 0, ou menace intérieure à 100 pendant 3 mois. Sinon, bilan détaillé au 36e tour.</p>';
+  $('modal').innerHTML = h;
+}
+function rendreModal() {
+  const fond = $('modal-fond');
+  let h = '';
+  if (ui.aide) h = modalAide();
+  else if (ui.bilan) h = modalBilanZoom(ui.bilan);
+  else if (ui.apercu) h = modalApercu(ui.apercu);
+  else if (state.phase === 'doctrine') h = modalDoctrine();
+  else if (state.phase === 'evenement') h = modalEvenement();
+  else if (state.phase === 'crise') h = modalCrise();
+  else if (state.phase === 'fin') h = modalFin();
+  fond.hidden = !h;
+  if (h) $('modal').innerHTML = h;
+}
+function modalDoctrine() {
+  let h = '<div class="entete">Choix de la doctrine</div><p>Votre doctrine fixe les priorités de l’appareil de sécurité pour toute la partie.</p><div class="cartes-doctrine">';
+  for (const d of DOCTRINES) h += '<div class="carte-doctrine"' + attrAction({ type: 'DOCTRINE', id: d.id }) + '><b class="ambre">' + esc(d.nom) + '</b><p>' + esc(d.texte) + '</p><p class="vert">+ ' + esc(d.bonus) + '</p><p class="rouge">- ' + esc(d.malus) + '</p></div>';
+  return h + '</div>';
+}
+function modalEvenement() {
+  const E = EV[state.evenementCourant], P = possibles();
+  let h = '<div class="entete">' + esc(E.titre) + '</div><p>' + esc(E.texte) + '</p>';
+  E.choix.forEach((c, i) => {
+    const a = { type: 'CHOIX', index: i }, ok = estPossible(P, a);
+    const d = decrireEffets(c.effets);
+    h += '<button class="choix"' + attrAction(a) + (ok ? '' : ' disabled') + '>' + esc(c.texte) + (ok ? '' : ' — moyens indisponibles') + '<span class="effets">' + esc(d || 'Pas d’effet immédiat') + (c.suite ? ' · des suites sont possibles' : '') + '</span></button>';
+  });
+  return h;
+}
+function modalCrise() {
+  const t = state.criseCourante, th = state.theatres[t], m = menaceDeCrise(state, t), moy = moyensCrise(state, t);
+  let h = '<div class="entete">Crise — ' + esc(TH[t].nom) + '</div><p><b>' + esc(th.crise.titre) + '</b></p><p>' + esc(th.crise.texte) + '</p>';
+  h += '<p class="pale">Évaluation : ' + (m && m.detectee ? MT[m.type].nom + ', niveau estimé ' + m.estimation + ' ± ' + m.marge : 'adversaire mal identifié') + '. Renseignement ' + th.rens + '.</p>';
+  if (moy.zoom) {
+    h += '<p>Moyens : forces spéciales sur place : ' + (moy.fs.length ? moy.fs.map(i => UN[i].nom).join(', ') : 'aucune') +
+      (moy.fs.length ? '' : (moy.fsDispo.length ? ' — projection d’urgence possible : ' + UN[moy.fsDispo[0]].nom : '')) +
+      '<br>Appui aérien sur le théâtre : ' + (moy.frappe.length ? moy.frappe.map(i => UN[i].nom).join(', ') : 'aucun') + '</p>';
+    h += '<p class="pale">Intervenir ouvre la carte régionale (' + CARTES_REGIONALES[TH[t].carteRegionale].nom + ') : 6 semaines au maximum.</p>';
+  } else {
+    h += '<p>Moyens : ' + (moy.sur.length ? moy.sur.map(i => UN[i].nom).join(', ') : (moy.dispo.length ? 'projection d’urgence de ' + UN[moy.dispo[0]].nom : 'aucun')) + '</p><p class="pale">Ce théâtre n’a pas de carte régionale : l’intervention est résolue globalement.</p>';
+    if (moy.possible) { const ev = evaluerCriseAbstraite(state, t, false); h += '<table class="t"><tr><th>Probabilité de succès</th><td>' + pct(ev.pSucces) + '</td></tr><tr><th>Risque de pertes</th><td>' + pct(ev.risquePertes) + '</td></tr><tr><th>En cas de succès</th><td>opinion +4, crédibilité +4, capital +2, menace -15</td></tr><tr><th>En cas d’échec</th><td>opinion -4, crédibilité -3</td></tr></table>'; }
+  }
+  h += '<p><b>Voulez-vous intervenir ?</b></p><div class="ligne">';
+  h += '<button class="primaire"' + attrAction({ type: 'CRISE', intervenir: true }) + (moy.possible ? '' : ' disabled') + '>Oui, intervenir</button>';
+  h += '<button class="danger"' + attrAction({ type: 'CRISE', intervenir: false }) + '>Non (opinion -3, crédibilité -4, la crise évolue librement)</button></div>';
+  if (!moy.possible) h += '<p class="rouge">Aucun moyen adapté disponible pour intervenir.</p>';
+  return h;
+}
+function modalApercu(a) {
+  const ev = evaluerOperation(state, a.op, a.theatre, a.cible, false), op = OP[a.op];
+  const m = a.cible ? menaceParId(state, a.cible) : null;
+  let h = '<div class="entete">' + esc(op.nom) + ' — ' + esc(TH[a.theatre].nom) + '</div><p>' + esc(op.description) + '</p>';
+  if (m) h += '<p>Cible : ' + MT[m.type].nom + ' — niveau estimé ' + m.estimation + ' ± ' + m.marge + '.</p>';
+  h += '<table class="t"><tr><th>Probabilité de succès</th><td>' + pct(ev.pSucces) + '</td></tr><tr><th>Risque de pertes</th><td>' + pct(ev.risquePertes) + '</td></tr><tr><th>Risque de dommages collatéraux</th><td>' + pct(ev.risqueCollat) + '</td></tr>' +
+    '<tr><th>Coût</th><td>' + ev.cout + ' M€' + (ev.capital ? ' et ' + ev.capital + ' de capital politique' : '') + ' — 1 action</td></tr><tr><th>Moyens engagés</th><td>' + (ev.participants.map(i => UN[i].nom).join(', ') || 'capteurs ' + op.serviceRequis) + '</td></tr></table>';
+  h += '<p class="pale">Évaluation fondée sur l’estimation du renseignement : la situation réelle peut différer.</p>';
+  h += '<div class="ligne"><button class="primaire"' + attrAction(a) + '>Confirmer</button><button id="btnAnnulerApercu">Annuler</button></div>';
+  return h;
+}
+function modalBilanZoom(b) {
+  let h = '<div class="entete">Bilan — ' + esc(b.titre) + '</div><p>' + b.semaines + ' semaine(s) d’engagement' + (b.anticipe ? ' (retrait décidé)' : '') + '.</p><table class="t">';
+  for (const o of b.objectifs) h += '<tr><td>' + esc(o.texte) + '</td><td class="' + (o.atteint ? 'vert' : 'rouge') + '">' + (o.atteint ? 'ATTEINT' : 'NON ATTEINT') + '</td></tr>';
+  h += '</table><p>Potentiel adverse neutralisé : ' + b.stats.neutralises + ' · Évacués : ' + b.stats.evacues + ' groupe(s) · Pertes : ' + b.stats.pertes + ' · Incidents collatéraux : ' + b.stats.collat + '</p>';
+  h += '<p>Effets stratégiques : menace réduite de ' + b.baisseMenace + (b.effets.length ? ' · ' + esc(b.effets.join(', ')) : '') + '</p>';
+  return h + '<div class="ligne"><button class="primaire" id="btnFermerBilan">Retour à la carte stratégique</button></div>';
+}
+function modalFin() {
+  const f = state.fin, sc = f.score;
+  let h = '<div class="entete">' + (f.type === 'defaite' ? 'Défaite' : 'Bilan de fin de mandat') + ' — ' + esc(dateDuTour(Math.min(f.tour, NB_TOURS - 1))) + '</div><p>' + esc(f.raison) + '</p>';
+  h += '<table class="t"><tr><th>Domaine</th><th>Note /100</th><th>Poids</th></tr>';
+  for (const d of sc.domaines) h += '<tr><td>' + d.nom + '</td><td>' + d.valeur + '</td><td>' + Math.round(d.poids * 100) + ' %</td></tr>';
+  h += '<tr><td><b>Score global</b></td><td><b>' + sc.total + '</b></td><td><b>' + sc.mention + '</b></td></tr></table>';
+  h += '<h3>Évolution sur la période</h3>' + graphique(state.historique, 720, 170);
+  const st = state.stats;
+  h += '<p class="pale">Opérations : ' + st.operations + ' (' + st.succes + ' succès) · Crises : ' + st.crisesInterv + ' interventions, ' + st.crisesReussies + ' réussies, ' + st.crisesIgnorees + ' ignorées · Attaques subies : ' + st.attaques + ' · Actions déjouées : ' + st.dejoues + ' · Pertes : ' + st.pertes + ' · Collatéraux : ' + st.collat + ' · Votes article 35 : ' + st.votes + ' (' + st.votesPerdus + ' perdus)</p>';
+  h += '<h3>Chronologie des décisions</h3><div style="max-height:260px;overflow-y:auto">';
+  for (const d of state.decisions) h += '<div><span class="ambre">' + esc(dateDuTour(d.tour)) + '</span> — ' + esc(d.texte) + '</div>';
+  h += '</div><div class="ligne" style="margin-top:10px"><button id="btnExport3">Exporter la partie</button><button class="primaire" id="btnNouvelle2">Nouvelle partie</button></div>';
+  return h;
+}
+
+// ---------- Zoom régional ----------
+function rendreZoom() {
+  const el = $('zoom');
+  if (!state.zoom || ui.bilan) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  const z = state.zoom, C = CARTES_REGIONALES[z.carte], P = possibles();
+  const objectifs = objectifsZoom(state);
+  const lieuxObj = C.scenarios.find(x => x.id === z.scenario).objectifs.filter(o => o.lieu).map(o => o.lieu);
+  let h = '<div class="cadre">';
+  h += '<div class="panneau zh" style="display:flex;gap:16px;align-items:center"><b class="ambre">ZOOM RÉGIONAL — ' + esc(C.nom.toUpperCase()) + '</b><span>' + esc(z.titre) + '</span>' +
+    '<span' + tip('1 tour local = 1 semaine, 6 au maximum.') + '>Semaine ' + z.semaine + '/' + z.maxSemaines + '</span>' +
+    '<span' + tip('Frappes disponibles cette semaine : avions, aéronavale, hélicoptères d’attaque et artillerie déployés sur le théâtre, plus les appuis alliés.') + '>Frappes ' + z.frappes + '/' + z.frappesMax + '</span>' +
+    '<span' + tip('Reconnaissances disponibles cette semaine (drones, patrouille maritime, recherche humaine).') + '>Reco ' + z.recos + '/' + z.recosMax + '</span>' +
+    '<span' + tip('Offensive possible des forces locales cette semaine.') + '>Appui local ' + z.appui + '</span>' +
+    '<span' + tip(C.forceLocale.nom) + '>Force locale ' + z.forceLocale + '</span>' +
+    '<span' + tip('Renseignement du théâtre : conditionne la visibilité initiale des positions adverses et la marge d’erreur.') + '>Rens. ' + z.rens + '</span>' +
+    '<span style="margin-left:auto"></span><button class="primaire"' + attrAction({ type: 'Z_SEMAINE' }) + '>Semaine suivante</button><button class="danger"' + attrAction({ type: 'Z_RETRAIT' }) + '>Mettre fin à l’intervention</button></div>';
+  // Colonne gauche : unités
+  h += '<div class="panneau"><h2>Détachements</h2>';
+  for (const u of z.unites) {
+    const sel = ui.zoomUnite === u.id;
+    h += '<div class="unite' + (sel ? ' sel' : '') + '" data-zunite="' + u.id + '"><div class="ligne"><span class="g">' + esc(UN[u.id].nom) + '</span><span class="pale">' + esc(nomLieu(z, u.lieu)) + '</span></div><div class="pale">' + (u.blesse ? '<span class="rouge">diminué</span> · ' : '') + (u.aAgi ? 'a agi cette semaine' : 'prêt') + '</div></div>';
+  }
+  h += '<h2 style="margin-top:10px">Objectifs</h2>';
+  for (const o of objectifs) h += '<div class="ligne"><span class="g">' + esc(o.texte) + '</span><span class="' + (o.atteint ? 'vert' : 'pale') + '">' + (o.atteint ? 'OK' : '...') + '</span></div>';
+  h += '<p class="pale">Pertes ' + z.stats.pertes + ' · Collatéraux ' + z.stats.collat + ' · Neutralisés ' + z.stats.neutralises + ' · Évacués ' + z.stats.evacues + '</p></div>';
+  // Carte régionale
+  let svg = '<svg id="zoomcarte" viewBox="-40 -30 ' + (C.largeur + 80) + ' ' + (C.hauteur + 60) + '" preserveAspectRatio="xMidYMid meet">';
+  svg += '<rect x="-40" y="-30" width="' + (C.largeur + 80) + '" height="' + (C.hauteur + 60) + '" fill="#0b1115"/>';
+  const pos = {}; for (const l of C.lieux) pos[l.id] = l;
+  for (const [a, b] of C.liens) svg += '<line x1="' + pos[a].x + '" y1="' + pos[a].y + '" x2="' + pos[b].x + '" y2="' + pos[b].y + '" stroke="#2a3a45" stroke-width="2"/>';
+  for (const L of C.lieux) {
+    const l = z.lieux[L.id];
+    const fill = l.controle === 'allie' ? '#1f5a40' : l.controle === 'ennemi' ? '#6e2424' : '#3c4349';
+    const sel = ui.zoomLieu === L.id;
+    const st = sel ? '#ffffff' : (lieuxObj.includes(L.id) ? '#e0a030' : '#7d8f99');
+    svg += '<g class="clic" data-zlieu="' + L.id + '"' + tip(L.nom + ' (' + L.type + ')\nContrôle : ' + l.controle + '\nPopulation civile : ' + ['nulle', 'faible', 'moyenne', 'dense'][l.civils] + (l.controle === 'ennemi' ? '\nAdversaire : ' + (l.revele ? 'environ ' + l.estimee + ' ± ' + l.marge : 'position non confirmée') + (l.dispersion ? '\nDispersé parmi les civils' : '') : '') + (l.ressortissants ? '\nPersonnes à évacuer : ' + l.ressortissants : '')) + '>';
+    if (L.type === 'base') svg += '<rect x="' + (L.x - 15) + '" y="' + (L.y - 15) + '" width="30" height="30" fill="' + fill + '" stroke="' + st + '" stroke-width="2"/>';
+    else if (L.type === 'zone') svg += '<polygon points="' + L.x + ',' + (L.y - 19) + ' ' + (L.x + 19) + ',' + L.y + ' ' + L.x + ',' + (L.y + 19) + ' ' + (L.x - 19) + ',' + L.y + '" fill="' + fill + '" stroke="' + st + '" stroke-width="2"/>';
+    else svg += '<circle cx="' + L.x + '" cy="' + L.y + '" r="17" fill="' + fill + '" stroke="' + st + '" stroke-width="2"/>';
+    if (lieuxObj.includes(L.id)) svg += '<circle cx="' + L.x + '" cy="' + L.y + '" r="25" fill="none" stroke="#e0a030" stroke-dasharray="4 3"/>';
+    if (ui.zoomUnite && P.some(a => a.unite === ui.zoomUnite && (a.vers === L.id || (a.lieu === L.id && a.type === 'Z_RAID')))) svg += '<circle cx="' + L.x + '" cy="' + L.y + '" r="30" fill="none" stroke="#5bc0de" stroke-width="2"/>';
+    svg += '<text x="' + L.x + '" y="' + (L.y - 24) + '" text-anchor="middle" fill="#e6edf0" font-size="13">' + esc(L.nom) + '</text>';
+    if (l.controle === 'ennemi') svg += '<text x="' + L.x + '" y="' + (L.y + 5) + '" text-anchor="middle" fill="#ffd0cc" font-size="12">' + (l.revele ? l.estimee : '?') + '</text>';
+    if (l.dispersion) svg += '<text x="' + L.x + '" y="' + (L.y + 34) + '" text-anchor="middle" fill="#e0a030" font-size="10">DISPERSÉ</text>';
+    if (l.ressortissants) svg += '<text x="' + (L.x + 22) + '" y="' + (L.y + 5) + '" fill="#5bc0de" font-size="12">E:' + l.ressortissants + '</text>';
+    svg += '</g>';
+    const ici = z.unites.filter(u => u.lieu === L.id);
+    ici.forEach((u, i) => {
+      svg += '<g class="clic" data-zunite="' + u.id + '"><rect x="' + (L.x - 30 + i * 22) + '" y="' + (L.y + 20) + '" width="20" height="12" fill="' + (u.blesse ? '#5a2a2a' : '#1d3d5a') + '" stroke="' + (ui.zoomUnite === u.id ? '#fff' : '#5bc0de') + '"/>' +
+        '<text x="' + (L.x - 20 + i * 22) + '" y="' + (L.y + 30) + '" text-anchor="middle" fill="#fff" font-size="9">FS</text></g>';
+    });
+  }
+  svg += '</svg>';
+  h += '<div class="panneau" style="padding:0">' + svg + '</div>';
+  // Colonne droite : journal local
+  h += '<div class="panneau"><h2>Journal d’opération</h2><div class="journal">' + z.journal.map(t => '<div>' + esc(t) + '</div>').join('') + '</div></div>';
+  // Bas : actions
+  h += '<div class="panneau zb">' + panneauZoomActions(P) + '</div></div>';
+  el.innerHTML = h;
+}
+function libelleZoom(a) {
+  const z = state.zoom;
+  switch (a.type) {
+    case 'Z_DEPLACER': return 'Déplacer ' + UN[a.unite].nom + ' vers ' + nomLieu(z, a.vers);
+    case 'Z_RAID': return 'Raid de ' + UN[a.unite].nom + ' sur ' + nomLieu(z, a.lieu);
+    case 'Z_EVACUER': return 'Évacuation par ' + UN[a.unite].nom + ' depuis ' + nomLieu(z, a.lieu);
+    case 'Z_RECO': return 'Reconnaissance par drone sur ' + nomLieu(z, a.lieu);
+    case 'Z_FRAPPE': return 'Frappe aérienne sur ' + nomLieu(z, a.lieu);
+    case 'Z_APPUI': return 'Appui à l’offensive locale sur ' + nomLieu(z, a.lieu);
+    default: return a.type;
+  }
+}
+function panneauZoomActions(P) {
+  const l = ui.zoomLieu, u = ui.zoomUnite;
+  let h = '<h2>Actions locales' + (l ? ' — ' + esc(nomLieu(state.zoom, l)) : '') + (u ? ' — ' + esc(UN[u].nom) : '') + '</h2>';
+  const liste = P.filter(a => a.type !== 'Z_SEMAINE' && a.type !== 'Z_RETRAIT' && ((u && a.unite === u) || (l && (a.lieu === l || a.vers === l))));
+  if (!l && !u) h += '<p class="pale">Sélectionnez un lieu ou un détachement. Les raids partent du lieu occupé vers un lieu adjacent ; les frappes et reconnaissances visent tout lieu tenu par l’adversaire ; l’appui local vise un lieu adjacent à une position alliée.</p>';
+  else if (!liste.length) h += '<p class="pale">Aucune action possible pour cette sélection cette semaine.</p>';
+  h += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+  for (const a of liste) {
+    let t = '';
+    if (a.type === 'Z_RAID') t = 'Réussite plus probable si la position est reconnue. Échec : risque de blessés.';
+    if (a.type === 'Z_FRAPPE') t = 'Efficacité réduite si la position n’est pas reconnue ou si l’adversaire est dispersé. Risque collatéral selon la densité civile.';
+    if (a.type === 'Z_APPUI') t = 'Les forces locales attaquent, appuyées par les détachements au contact. Seul moyen de reprendre durablement un lieu.';
+    if (a.type === 'Z_RECO') t = 'Révèle la position et resserre l’estimation (marge 5). Réduit la dispersion.';
+    const ev = evaluerActionZoom(state, a, false);
+    let suff = '';
+    if (ev && a.type === 'Z_FRAPPE') { suff = ' (dégâts ' + ev.degatsMin + '-' + ev.degatsMax + ', collatéral ' + pct(ev.risqueCollat) + ')'; }
+    else if (ev) { suff = ' (' + pct(ev.pSucces) + ')'; t += '\nSuccès estimé ' + pct(ev.pSucces) + (ev.risquePertes ? ' · risque de blessés ' + pct(ev.risquePertes) : '') + (ev.risqueCollat ? ' · risque collatéral ' + pct(ev.risqueCollat) : '') + '\nEstimation fondée sur le renseignement disponible.'; }
+    h += '<button' + attrAction(a) + (t ? tip(t) : '') + '>' + esc(libelleZoom(a) + suff) + '</button>';
+  }
+  return h + '</div>';
+}
+
+// ---------- Situation, graphiques, effets, aide ----------
+function panneauSituation() {
+  let h = '<div class="bloc"><h2>Tendances</h2>' + graphique(state.historique.concat([instantane(state)]), 430, 150) + '</div>';
+  const ech = [];
+  for (const T of THEATRES) {
+    const th = state.theatres[T.id];
+    if (T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0) {
+      const dans = Math.max(1, PARAMS.dureeAvantVote + 1 - th.toursIntervention);
+      ech.push([dans, (dans === 1 ? '<span class="ambre">' : '<span>') + 'Vote article 35 (' + T.court + ') dans ' + dans + ' mois — adoption estimée ' + pct(probaVote(state)) + '</span>']);
+    }
+    if (th.crise && th.crise.statut === 'libre') ech.push([0, '<span class="rouge">Crise non traitée : ' + esc(th.crise.titre) + ' (' + th.crise.toursLibres + ' mois)</span>']);
+    if (th.allie) ech.push([th.allie, 'Appui allié ' + T.court + ' : encore ' + th.allie + ' mois']);
+    for (const a of th.appuis) ech.push([a.tours, '<span class="violet">' + esc(AL[a.allie].nom + ' — ' + appuiDef(a.allie, a.appui).nom) + ' (' + T.court + ') : ' + a.tours + ' mois</span>']);
+  }
+  for (const u of UNITES) {
+    const e = state.unites[u.id];
+    if (e.etat === 'projection') ech.push([e.compteur, u.nom + ' arrive sur ' + TH[e.theatre].court + ' dans ' + e.compteur + ' mois']);
+    if (e.etat === 'deployee' && e.fatigue >= 75) ech.push([0, '<span class="rouge">' + esc(u.nom) + ' : fatigue ' + Math.round(e.fatigue) + ', relève à prévoir</span>']);
+    for (const p of (u.indisponibilites || [])) if (p.debut > state.tour && p.debut - state.tour <= 3) ech.push([p.debut - state.tour, '<span class="ambre">' + esc(u.nom) + ' : arrêt technique dans ' + (p.debut - state.tour) + ' mois</span>']);
+  }
+  const prevu = state.ressources.budget + state.ressources.enveloppe - coutsMensuels(state);
+  if (prevu < 0) ech.push([0, '<span class="rouge">Dépassement budgétaire prévu en fin de mois : ' + prevu.toFixed(1) + ' M€</span>']);
+  h += '<div class="bloc"><h2>Échéances et alertes</h2>' + (ech.length ? ech.sort((a, b) => a[0] - b[0]).map(x => '<div>' + x[1] + '</div>').join('') : '<div class="pale">Rien à signaler.</div>');
+  h += '<p class="pale">Sélectionnez un théâtre sur la carte, une unité ou un service pour agir.</p></div>';
+  return h;
+}
+function graphique(hist, L, H) {
+  const series = [['opinion', '#4caf7a', 'Opinion'], ['menaceInt', '#d9534f', 'Menace int.'], ['credibilite', '#5bc0de', 'Crédibilité'], ['capital', '#e0a030', 'Capital'], ['menaceExt', '#a58bd6', 'Menace ext. réelle']];
+  const g = 30, d = 8, hh = H - 30;
+  const x = t => g + (L - g - d) * t / NB_TOURS;
+  const y = v => 8 + (hh - 8) * (1 - v / 100);
+  let h = '<svg width="100%" viewBox="0 0 ' + L + ' ' + H + '" style="max-width:' + L + 'px">';
+  for (const v of [0, 50, 100]) h += '<line x1="' + g + '" x2="' + (L - d) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#1f2b33"/><text x="' + (g - 4) + '" y="' + (y(v) + 3) + '" text-anchor="end" fill="#5b6a73" font-size="9">' + v + '</text>';
+  for (let t = 0; t <= NB_TOURS; t += 12) h += '<text x="' + x(t) + '" y="' + (hh + 12) + '" text-anchor="middle" fill="#5b6a73" font-size="9">' + (ANNEE_DEPART + t / 12) + '</text>';
+  const pts = hist.filter((p, i) => i === hist.length - 1 || p.tour !== hist[i + 1].tour);
+  // La menace extérieure réelle n'est révélée qu'en fin de partie (brouillard de guerre)
+  const visibles = state.fin ? series : series.slice(0, 4);
+  visibles.forEach((sr, i) => {
+    if (pts.length > 1) h += '<polyline fill="none" stroke="' + sr[1] + '" stroke-width="1.6" points="' + pts.map(p => x(p.tour).toFixed(1) + ',' + y(p[sr[0]]).toFixed(1)).join(' ') + '"/>';
+    h += '<text x="' + (g + i * 88) + '" y="' + (H - 3) + '" fill="' + sr[1] + '" font-size="10">' + sr[2] + '</text>';
+  });
+  if (pts.length <= 1) h += '<text x="' + (L / 2) + '" y="' + (hh / 2) + '" text-anchor="middle" fill="#5b6a73" font-size="10">Les courbes apparaissent après le premier mois.</text>';
+  return h + '</svg>';
+}
+function decrireEffets(e) {
+  if (!e) return '';
+  const r = [], sg = v => (v > 0 ? '+' : '') + v;
+  const lib = { opinion: 'opinion', capital: 'capital', credibilite: 'crédibilité', menaceInt: 'menace intérieure' };
+  for (const k in lib) if (e[k]) r.push(lib[k] + ' ' + sg(e[k]));
+  if (e.budget) r.push('budget ' + sg(e.budget) + ' M€');
+  if (e.enveloppe) r.push('enveloppe ' + sg(e.enveloppe) + ' M€/mois');
+  for (const x of (e.menace || [])) r.push(MT[x.type].nom + ' ' + sg(x.delta));
+  for (const x of (e.rens || [])) r.push('renseignement ' + TH[x.theatre].court + ' ' + sg(x.delta));
+  for (const x of (e.partenaire || [])) r.push('partenaire ' + TH[x.theatre].court + ' ' + sg(x.delta));
+  for (const x of (e.pression || [])) r.push('pression ' + TH[x.theatre].court + ' ' + sg(x.delta));
+  for (const x of (e.fatigue || [])) r.push('fatigue ' + (x.unite ? UN[x.unite].nom : CATEGORIES[x.categorie]) + ' ' + sg(x.delta));
+  if (e.indispo) r.push(UN[e.indispo.unite].nom + ' indisponible ' + e.indispo.tours + ' mois');
+  if (e.allie) r.push('appui allié ' + TH[e.allie.theatre].court);
+  for (const x of (e.relation || [])) r.push('relation ' + AL[x.allie].nom + ' ' + sg(x.delta));
+  if (e.appui) r.push(appuiDef(e.appui.allie, e.appui.appui).nom + ' (' + TH[e.appui.theatre].court + ', ' + e.appui.tours + ' mois)');
+  if (e.crise) r.push('ouverture d’une crise');
+  if (e.alea) r.push('issue incertaine (' + pct(e.alea.p) + ' favorable)');
+  return r.join(', ');
+}
+function modalAide() {
+  return '<div class="entete">Aide — règles essentielles</div><div class="aide">' +
+    '<p><b>Tour.</b> Un tour = un mois, 36 tours (janvier 2015 à décembre 2017). Agissez, puis cliquez sur « Fin du tour ».</p>' +
+    '<p><b>Actions.</b> Leur nombre dépend du capital politique (' + PARAMS.actionsBase + ' + 1 par tranche de ' + PARAMS.actionsParCapital + ', maximum ' + PARAMS.actionsMax + '). Déployer, rapatrier, opérer, arbitrer le budget et solliciter un allié consomment une action. Réaffecter des capteurs est gratuit.</p>' +
+    '<p><b>Renseignement.</b> Chaque menace a une force réelle cachée. Vous n’en voyez qu’une estimation avec une marge. Plus le renseignement est élevé (capteurs HUMINT, SIGINT, IMINT, unités de recueil), plus l’estimation est précise. Sous ' + PARAMS.rensFauxRapport + ', les rapports peuvent être faux.</p>' +
+    '<p><b>Menaces.</b> Une menace négligée grandit, peut s’étendre vers un théâtre voisin et passer à l’action. Les menaces extérieures fortes alimentent la menace intérieure. La pression (forces, capteurs, partenaires, alliés) freine leur croissance.</p>' +
+    '<p><b>Unités.</b> Disponible, puis en projection (délai), déployée (la fatigue monte), en régénération après rapatriement. À 100 de fatigue, l’unité est relevée d’office. Le porte-avions a des arrêts techniques programmés.</p>' +
+    '<p><b>Article 35.</b> Au-delà de ' + PARAMS.dureeAvantVote + ' mois, une intervention extérieure est soumise au Parlement. Un vote négatif impose le retrait. Les théâtres à forces prépositionnées ne sont pas concernés.</p>' +
+    '<p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût OPEX et coûte du capital politique.</p>' +
+    '<p><b>Crises.</b> Vous pouvez intervenir ou non. Au Levant et au Sahel, l’intervention ouvre un zoom régional : 6 semaines au plus, raids, frappes, reconnaissance, appui aux forces locales (seules capables de reprendre un lieu), évacuation. Ailleurs, elle est résolue globalement.</p>' +
+    '<p><b>Défaite.</b> Opinion sous 10, capital à 0, ou menace intérieure à 100 pendant 3 mois. Sinon, bilan noté au 36e tour.</p>' +
+    '</div><div class="ligne"><button class="primaire" id="btnFermerAide">Fermer</button></div>';
+}
+
+// ---------- Débogage ----------
+function rendreDebug() {
+  const el = $('debug');
+  el.hidden = !ui.debug;
+  if (!ui.debug) return;
+  let h = '<h2>Débogage — état réel</h2><div class="pale">Graine ' + esc(state.graine) + ' · rngState ' + state.rngState + ' · phase ' + state.phase + ' · tour ' + state.tour + ' · menaceInt100 ' + state.menaceInt100 + '</div>';
+  h += '<table class="t"><tr><th>Id</th><th>Type</th><th>Théâtre</th><th>Réelle</th><th>Estimée</th><th>Marge</th><th>Détectée</th><th>Faux</th><th>Pression</th></tr>';
+  for (const m of state.menaces) h += '<tr><td>' + m.id + '</td><td>' + MT[m.type].nom + '</td><td>' + TH[m.theatre].court + '</td><td class="ambre">' + m.force + '</td><td>' + (m.estimation === null ? '—' : m.estimation) + '</td><td>' + m.marge + '</td><td>' + (m.detectee ? 'oui' : 'non') + '</td><td>' + (m.rapportFaux ? 'oui' : '') + '</td><td>' + pressionMenace(state, m).toFixed(1) + '</td></tr>';
+  h += '</table>';
+  if (state.zoom) {
+    h += '<h3>Zoom : forces réelles (réserve ' + state.zoom.reserve + ')</h3><div>' + Object.keys(state.zoom.lieux).filter(k => state.zoom.lieux[k].controle === 'ennemi').map(k => nomLieu(state.zoom, k) + ' ' + state.zoom.lieux[k].force).join(' · ') + '</div>';
+  }
+  h += '<h3>Alliés</h3><div>' + ALLIES.map(A => A.nom + ' ' + state.allies[A.id].relation + (state.allies[A.id].cooldown ? ' (délai ' + state.allies[A.id].cooldown + ')' : '')).join(' · ') + '</div>';
+  const ed = verifierDonnees();
+  h += '<h3>Contrôle des données</h3><div class="' + (ed.length ? 'rouge' : 'vert') + '">' + (ed.length ? ed.map(esc).join('<br>') : 'Aucune incohérence détectée.') + '</div>';
+  h += '<h3>Forcer un événement</h3><div class="ligne"><select id="dbgEv">' + EVENEMENTS.map(e => '<option value="' + e.id + '">' + e.id + ' — ' + esc(e.titre) + '</option>').join('') + '</select><button id="dbgForcer">Forcer</button></div>';
+  h += '<h3>Graine</h3><div class="ligne"><input id="dbgGraine" value="' + esc(state.graine) + '"><button id="dbgGraineOk">Appliquer</button></div>';
+  h += '<h3>Simulation</h3><div class="ligne"><button id="dbgSim">simuler(20) — résultat dans la console</button></div>';
+  el.innerHTML = h;
+}
+
+// ---------- Sauvegarde ----------
+function exporter() {
+  const blob = new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cellule-de-crise-' + state.graine + '-tour' + (state.tour + 1) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importer(fichier) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const s = JSON.parse(r.result);
+      if (!s || s.version !== 1 || typeof s.rngState !== 'number' || !s.ressources || !s.unites || !s.theatres || !Array.isArray(s.menaces)) throw new Error('format inconnu');
+      if (s.evenementCourant && !EV[s.evenementCourant]) throw new Error('événement inconnu : ' + s.evenementCourant);
+      if (s.menaces.some(m => !MT[m.type] || !TH[m.theatre])) throw new Error('menace incohérente');
+      state = migrerEtat(s); ui.selection = null; ui.apercu = null; ui.bilan = null; ui.refMois = null;
+      rendre();
+      afficherToast('Sauvegarde chargée (graine ' + s.graine + ', ' + dateDuTour(Math.min(s.tour, NB_TOURS - 1)) + ').');
+    } catch (e) { afficherToast('Import impossible : ' + e.message); }
+  };
+  r.readAsText(fichier);
+}
+
+// ---------- Gestion des clics et infobulles ----------
+document.addEventListener('click', ev => {
+  const t = ev.target;
+  const act = t.closest('[data-act]');
+  if (act && !act.disabled) { jouer(JSON.parse(act.getAttribute('data-act'))); return; }
+  const ap = t.closest('[data-apercu]');
+  if (ap) { ui.apercu = JSON.parse(ap.getAttribute('data-apercu')); rendreModal(); return; }
+  const zs = t.closest('[data-zlieu]');
+  if (zs) { ui.zoomLieu = zs.getAttribute('data-zlieu'); ui.zoomUnite = null; rendreZoom(); return; }
+  const zu = t.closest('[data-zunite]');
+  if (zu) { ui.zoomUnite = zu.getAttribute('data-zunite'); ui.zoomLieu = null; rendreZoom(); return; }
+  const s = t.closest('[data-sel]');
+  if (s && state) { const [kind, id] = s.getAttribute('data-sel').split(':'); ui.selection = { kind, id }; rendre(); return; }
+  switch (t.id) {
+    case 'btnLancer': {
+      const g = $('inGraine').value.trim() || '1';
+      ui.graineAccueil = g; ui.difficulteAccueil = $('inDiff').value;
+      state = nouvellePartie(g, ui.difficulteAccueil); ui.selection = null; ui.refMois = null;
+      rendre(); break;
+    }
+    case 'btnFin': terminerTour(); break;
+    case 'btnExport': case 'btnExport3': exporter(); break;
+    case 'btnImport': case 'btnImport2': $('fichier').click(); break;
+    case 'btnAide': ui.aide = true; rendreModal(); break;
+    case 'btnFermerAide': ui.aide = false; rendre(); break;
+    case 'btnDebug': ui.debug = !ui.debug; rendreDebug(); break;
+    case 'btnNouvelle': case 'btnNouvelle2': state = null; ui.selection = null; ui.bilan = null; ui.apercu = null; ui.graineAccueil = String(Date.now() % 1000000); $('debug').hidden = true; ui.debug = false; rendre(); break;
+    case 'btnAnnulerApercu': ui.apercu = null; rendreModal(); break;
+    case 'btnFermerBilan': ui.bilan = null; rendre(); break;
+    case 'dbgForcer': state = forcerEvenement(state, $('dbgEv').value); rendre(); break;
+    case 'dbgGraineOk': state = changerGraine(state, $('dbgGraine').value.trim() || '1'); rendre(); break;
+    case 'dbgSim': afficherToast('Simulation en cours, voir la console...'); setTimeout(() => { const r = simuler(20); afficherToast('simuler(20) : ' + r.erreurs + ' erreur(s), durée moyenne ' + r.dureeMoyenne + ' tours.'); }, 50); break;
+  }
+});
+$('fichier').addEventListener('change', ev => { if (ev.target.files[0]) importer(ev.target.files[0]); ev.target.value = ''; });
+document.addEventListener('mouseover', ev => {
+  const el = ev.target.closest('[data-tip]'), ib = $('infobulle');
+  if (!el) { ib.style.display = 'none'; return; }
+  ib.textContent = el.getAttribute('data-tip');
+  ib.style.display = 'block';
+});
+document.addEventListener('mousemove', ev => {
+  const ib = $('infobulle');
+  if (ib.style.display !== 'block') return;
+  const w = ib.offsetWidth, hh = ib.offsetHeight;
+  ib.style.left = Math.min(ev.clientX + 14, window.innerWidth - w - 6) + 'px';
+  ib.style.top = Math.min(ev.clientY + 16, window.innerHeight - hh - 6) + 'px';
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { if (ui.aide) { ui.aide = false; rendre(); } else if (ui.apercu) { ui.apercu = null; rendreModal(); } else if (ui.zoomLieu || ui.zoomUnite) { ui.zoomLieu = null; ui.zoomUnite = null; if (state && state.zoom) rendreZoom(); } }
+});
+
+const erreursDonnees = verifierDonnees();
+if (erreursDonnees.length) console.warn('Incohérences dans les données :\n' + erreursDonnees.join('\n'));
+rendre();
+</script>
+</body>
+</html>
