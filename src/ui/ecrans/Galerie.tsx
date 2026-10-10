@@ -1,5 +1,5 @@
 // Planche de contrôle visuel (développement seulement, ?galerie) : toutes les illustrations et tous les insignes.
-import { MATERIELS, PERSONNAGES, UNITES } from '../../data';
+import { MATERIELS, PERSONNAGES, TOUTES_UNITES } from '../../data';
 import { Portrait } from '../composants/Portrait';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
 import { Insigne } from '../composants/Insigne';
@@ -15,7 +15,7 @@ export function Galerie() {
         {PERSONNAGES.map(p => <figure key={p.id}><Portrait id={p.id} taille={86} /><figcaption>{p.nom}</figcaption></figure>)}
       </div>
       <div className="galerie-insignes">
-        {UNITES.map(u => <figure key={u.id}><Insigne unite={u.id} taille={86} avecDevise /><figcaption><SymboleHtml unite={u.id} taille={18} /> {u.nom}</figcaption></figure>)}
+        {TOUTES_UNITES.map(u => <figure key={u.id}><Insigne unite={u.id} taille={86} avecDevise /><figcaption><SymboleHtml unite={u.id} taille={18} /> {u.nom}</figcaption></figure>)}
       </div>
     </div>
   );

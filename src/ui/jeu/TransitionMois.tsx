@@ -2,6 +2,7 @@
 // Il reste affiché jusqu'à ce que le joueur le ferme (Entrée, Échap ou bouton), puis les dossiers en attente s'ouvrent.
 import { useEffect, useRef } from 'react';
 import { TH } from '../../data';
+import { devise } from '../../sim';
 import { usePartie } from '../contexte';
 
 const LIGNES: [keyof import('../../sim').Ressources, string, boolean][] = [
@@ -10,7 +11,7 @@ const LIGNES: [keyof import('../../sim').Ressources, string, boolean][] = [
 const TON: Record<string, string> = { alerte: 'c-rouge', succes: 'c-vert', crise: 'c-rouge', evenement: 'c-ambre', decision: '', info: 'discret' };
 
 export function TransitionMois() {
-  const { ui, majUi } = usePartie();
+  const { etat: s, ui, majUi } = usePartie();
   const t = ui.transition;
   const bouton = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (t) bouton.current?.focus(); }, [t]);
@@ -35,8 +36,8 @@ export function TransitionMois() {
               </div>
             );
           })}
-          <div><span className="discret">Solde</span><b className={'chiffres ' + (budget >= 0 ? 'c-vert' : 'c-rouge')}>{budget > 0 ? '+' : ''}{budget} M€</b><span className="discret petit chiffres">{Math.round(t.apres.budget)} M€</span></div>
-          {surcout > 0 && <div><span className="discret">Surcoût</span><b className="chiffres c-rouge">+{surcout} M€</b></div>}
+          <div><span className="discret">Solde</span><b className={'chiffres ' + (budget >= 0 ? 'c-vert' : 'c-rouge')}>{budget > 0 ? '+' : ''}{budget} {devise(s)}</b><span className="discret petit chiffres">{Math.round(t.apres.budget)} {devise(s)}</span></div>
+          {surcout > 0 && <div><span className="discret">Surcoût</span><b className="chiffres c-rouge">+{surcout} {devise(s)}</b></div>}
         </div>
         {faits.length > 0 && (
           <section className="compte-rendu-section">

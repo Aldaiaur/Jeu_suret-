@@ -1,9 +1,9 @@
 // Note de situation d'ouverture (janvier 2015). Faits réels antérieurs au début de la partie,
 // sans nom de personne réelle. Tout ce qui suit le début de la partie est fictif.
 
-export interface ParagrapheBriefing { theatre: string | null; titre: string; texte: string }
+import type { BriefingDef } from '../sim/types';
 
-export const BRIEFING_FRA = {
+export const BRIEFING_FRA: BriefingDef = {
   date: 'Paris, le 15 janvier 2015',
   diffusion: 'Diffusion restreinte',
   expediteur: 'FRA_SGDSN',
@@ -17,6 +17,6 @@ export const BRIEFING_FRA = {
     { theatre: 'LIBYE', titre: 'Libye', texte: 'Le pays est déchiré entre deux gouvernements rivaux depuis l’été 2014. Des groupes ralliés à Daech s’y installent, à quelques centaines de kilomètres de nos côtes.' },
     { theatre: 'EST', titre: 'Flanc est de l’Europe', texte: 'La Russie a annexé la Crimée en mars 2014. Les combats se poursuivent dans le Donbass malgré le protocole de Minsk. Nos alliés baltes et polonais demandent des gages de solidarité.' },
     { theatre: 'INDOPAC', titre: 'Indo-Pacifique', texte: 'La Corée du Nord a mené trois essais nucléaires (2006, 2009, 2013) et multiplie les tirs balistiques. En mer de Chine méridionale, la construction d’îles artificielles s’accélère. Nos territoires et nos forces dans la zone sont exposés.' }
-  ] as ParagrapheBriefing[],
+  ],
   conclusion: 'Le Président vous demande d’arrêter, dès cette semaine, la doctrine qui guidera l’action de l’État pendant les trois années à venir.'
 };

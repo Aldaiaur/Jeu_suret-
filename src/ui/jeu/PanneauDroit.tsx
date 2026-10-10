@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { AL, MOIS, NB_TOURS, TH, THEATRES, UNITES } from '../../data';
+import { AL, MOIS, NB_TOURS, TH } from '../../data';
+import { devise, soumisProcedure, theatresDe, unitesDe } from '../../sim';
 import { appuiDef, coutsMensuels, dateDuTour, instantane, probaVote, soutienTheatre, type Action } from '../../sim';
 import { procedure } from '../../sim';
 import { usePartie, type OngletDroit } from '../contexte';
@@ -32,9 +33,9 @@ export function PanneauDroit() {
 function Situation() {
   const { etat: s } = usePartie();
   const ech: [number, ReactNode, string][] = [];
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const th = s.theatres[T.id];
-    if (T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0) {
+    if (soumisProcedure(s, T.id) && !th.voteFait && th.toursIntervention > 0) {
       const dans = Math.max(1, procedure(s).dureeAvantVote + 1 - th.toursIntervention);
       ech.push([dans, <>Vote {procedure(s).nom.toLowerCase()} ({T.court}) dans {dans} mois · adoption {pct(probaVote(s, T.id))}</>, dans === 1 ? 'ambre' : '']);
     }
@@ -42,19 +43,19 @@ function Situation() {
     if (th.allie) ech.push([th.allie, <>Appui allié {T.court} : encore {th.allie} mois</>, 'violet']);
     for (const a of th.appuis) ech.push([a.tours, <>{AL[a.allie].nom} — {appuiDef(a.allie, a.appui).nom} ({T.court}) : {a.tours} m</>, 'violet']);
   }
-  for (const u of UNITES) {
+  for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (e.etat === 'projection') ech.push([e.compteur, <>{u.nom} arrive sur {TH[e.theatre!].court} dans {e.compteur} mois</>, '']);
     if (e.etat === 'deployee' && e.fatigue >= 75) ech.push([0, <>{u.nom} : fatigue {Math.round(e.fatigue)}, relève à prévoir</>, 'rouge']);
     for (const p of u.indisponibilites || []) if (p.debut > s.tour && p.debut - s.tour <= 3) ech.push([p.debut - s.tour, <>{u.nom} : arrêt technique dans {p.debut - s.tour} mois</>, 'ambre']);
   }
   for (const c of s.chaines) { const dans = Math.max(1, c.tour - s.tour); ech.push([dans, <>Suite d’un dossier attendue dans {dans} mois</>, '']); }
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const sout = Object.values(s.unites).some(e => e.theatre === T.id) ? soutienTheatre(s, T.id) : null;
     if (sout && sout.ratio < 1) ech.push([0, <>Soutien insuffisant ({T.court}) : {sout.demande} / {sout.capacite}, efficacité réduite</>, 'rouge']);
   }
   const prevu = s.ressources.budget + s.ressources.enveloppe - coutsMensuels(s);
-  if (prevu < 0) ech.push([0, <>Dépassement budgétaire prévu : {prevu.toFixed(1)} M€</>, 'rouge']);
+  if (prevu < 0) ech.push([0, <>Dépassement budgétaire prévu : {prevu.toFixed(1)} {devise(s)}</>, 'rouge']);
   return (
     <>
       <section className="groupe">
@@ -78,14 +79,14 @@ function Gouvernement() {
     <section className="groupe" data-tuto="gouvernement">
       <h3 className="titre-section">Arbitrages budgétaires</h3>
       <div className="ligne-action" data-tip="Le gouvernement accepte de relever l’enveloppe des opérations, au prix de capital politique. Consomme une action.">
-        <div className="ligne-action-texte"><div>Demander une rallonge</div><div className="ligne-action-meta">Enveloppe +10 M€/mois · capital −8</div></div>
+        <div className="ligne-action-texte"><div>Demander une rallonge</div><div className="ligne-action-meta">Enveloppe +10 {devise(s)}/mois · capital −8</div></div>
         <button className="btn petit" disabled={!estPossible(hausse)} onClick={() => jouer(hausse)}>Demander</button>
       </div>
       <div className="ligne-action" data-tip="Rendre des crédits regagne la confiance du gouvernement. Consomme une action.">
-        <div className="ligne-action-texte"><div>Consentir des économies</div><div className="ligne-action-meta">Enveloppe −10 M€/mois · capital +4</div></div>
+        <div className="ligne-action-texte"><div>Consentir des économies</div><div className="ligne-action-meta">Enveloppe −10 {devise(s)}/mois · capital +4</div></div>
         <button className="btn petit" disabled={!estPossible(baisse)} onClick={() => jouer(baisse)}>Proposer</button>
       </div>
-      <p className="discret petit">Enveloppe actuelle : {s.ressources.enveloppe} M€/mois.</p>
+      <p className="discret petit">Enveloppe actuelle : {s.ressources.enveloppe} {devise(s)}/mois.</p>
     </section>
   );
 }

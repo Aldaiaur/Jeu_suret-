@@ -1,6 +1,9 @@
 // Accesseurs et petites règles dérivées de l'état.
-import { AL, ANNEE_DEPART, DOC, MOIS, NATIONS, PARAMS, TH, TYPES_CAPTEURS, UN, UNITES } from '../data';
-import type { AppuiDef, Categorie, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, NationDef, ProcedureDef, SaisonDef, UniteDef } from './types';
+import { AL, ANNEE_DEPART, DOC, MOIS, NATIONS, OP, PARAMS, TH, TYPES_CAPTEURS, UN } from '../data';
+import type {
+  AllieDef, AppuiDef, Categorie, DoctrineDef, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, NationDef, OperationDef, ProcedureDef,
+  SaisonDef, ServiceDef, TheatreDef, UniteDef
+} from './types';
 import { borner } from './outils';
 
 export function dateDuTour(t: number): string { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
@@ -18,10 +21,10 @@ export const MODS_NEUTRES: Mods = { rensBonus: 0, capteursBonus: {}, opBonus: 0,
 export function mods(s: Etat): Mods { return s.doctrine ? DOC[s.doctrine].mods : MODS_NEUTRES; }
 export function unitesDans(s: Etat, theatre: string, etats?: EtatUniteId[]): UniteDef[] {
   const e = etats || ['deployee'];
-  return UNITES.filter(u => s.unites[u.id].theatre === theatre && e.includes(s.unites[u.id].etat));
+  return unitesDe(s).filter(u => s.unites[u.id].theatre === theatre && e.includes(s.unites[u.id].etat));
 }
 export function nbCapteurs(s: Etat, service: string, theatre: string): number {
-  const a = s.services[service].affectations[theatre];
+  const a = s.services[service]?.affectations[theatre];
   if (!a) return 0;
   return TYPES_CAPTEURS.reduce((x, t) => x + (a[t] || 0), 0);
 }
@@ -80,3 +83,32 @@ export function bonusTheatre(s: Etat, t: string): BonusTheatre {
 export function delaiProjection(s: Etat, uniteId: string, theatre: string): number {
   return Math.max(0, UN[uniteId].delai + mods(s).delaiMod + bonusTheatre(s, theatre).delai);
 }
+
+// ---------- Nation jouée : listes de la partie ----------
+// Les catalogues de données couvrent toutes les nations ; une partie ne connaît que ceux de sa nation.
+interface ListesNation { theatres: TheatreDef[]; allies: AllieDef[]; operations: OperationDef[] }
+const listes: Record<string, ListesNation> = {};
+function listesDe(s: Etat): ListesNation {
+  const N = nation(s);
+  return listes[N.id] ||= { theatres: N.theatres.map(t => TH[t]), allies: Object.keys(N.allies).map(a => AL[a]), operations: N.operations.map(o => OP[o]) };
+}
+export function unitesDe(s: Etat): UniteDef[] { return nation(s).unites; }
+export function servicesDe(s: Etat): ServiceDef[] { return nation(s).services; }
+export function doctrinesDe(s: Etat): DoctrineDef[] { return nation(s).doctrines; }
+export function theatresDe(s: Etat): TheatreDef[] { return listesDe(s).theatres; }
+export function alliesDe(s: Etat): AllieDef[] { return listesDe(s).allies; }
+export function operationsDe(s: Etat): OperationDef[] { return listesDe(s).operations; }
+export function territoire(s: Etat): string { return nation(s).territoire; }
+export function relationReference(s: Etat, allie: string): number { return nation(s).allies[allie] ?? 50; }
+export function libelleCategorie(s: Etat, c: Categorie): string { return nation(s).categories[c]; }
+export function devise(s: Etat): string { return 'M' + nation(s).devise; }
+// Théâtres où la procédure d'emploi de la force s'applique (hors territoire et bases prépositionnées)
+export function estBasePermanente(s: Etat, theatre: string): boolean { return nation(s).basesPermanentes.includes(theatre); }
+export function soumisProcedure(s: Etat, theatre: string): boolean { return TH[theatre].exterieur && !estBasePermanente(s, theatre); }
+// Unités dont la présence déclenche la procédure (certaines nations exemptent forces spéciales ou drones)
+export function unitesSoumises(s: Etat, theatre: string, etats?: EtatUniteId[]): UniteDef[] {
+  const ex = procedure(s).categoriesExemptees || [];
+  return unitesDans(s, theatre, etats).filter(u => !ex.includes(u.categorie));
+}
+export function voisinsDe(s: Etat, theatre: string): string[] { return TH[theatre].voisins.filter(v => s.theatres[v]); }
+export function presents(s: Etat, theatres: string[]): string[] { return theatres.filter(t => s.theatres[t]); }

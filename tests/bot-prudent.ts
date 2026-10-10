@@ -3,11 +3,14 @@
 // Il n'utilise que l'API publique de la simulation et tolère l'absence des fonctions tactiques
 // (pour pouvoir être rejoué sur une version antérieure du jeu).
 import * as M from '../src/sim';
-import { EV, UN, UNITES, THEATRES } from '../src/data';
+import { EV, TH, UN } from '../src/data';
 import type { Action, Effets, Etat } from '../src/sim';
 
 type Moteur = typeof M & Partial<{ missionsPossibles: (s: Etat, u: string) => { type: string; lieu: string; vers?: string }[]; evaluerMission: (s: Etat, u: string, o: unknown) => { pSucces: number; risqueCollat: number; risquePertes: number } }>;
 const Mo = M as Moteur;
+// Listes de la partie lues dans l'état : fonctionne aussi sur les versions antérieures au modèle nation
+const unites = (s: Etat) => Object.keys(s.unites).map(id => UN[id]);
+const territoire = (s: Etat) => Object.keys(s.theatres).find(t => !TH[t].exterieur)!;
 
 export interface ResumeRobot { graine: number; difficulte: string; tour: number; fin: string; score: number; raison: string }
 
@@ -33,12 +36,12 @@ function moisPrudent(s0: Etat): Etat {
   for (let garde = 0; garde < 30; garde++) {
     const L = M.actionsPossibles(s).filter((a): a is Extract<Action, { type: 'CAPTEUR' }> => a.type === 'CAPTEUR' && a.delta === 1);
     if (!L.length) break;
-    const note = (t: string) => s.menaces.filter(m => m.theatre === t && m.detectee).reduce((x, m) => Math.max(x, m.estimation || 0), 0) + (t === 'METRO' ? 15 : 0);
+    const note = (t: string) => s.menaces.filter(m => m.theatre === t && m.detectee).reduce((x, m) => Math.max(x, m.estimation || 0), 0) + (t === territoire(s) ? 15 : 0);
     L.sort((a, b) => note(b.theatre) - note(a.theatre));
     s = M.appliquerAction(s, L[0]);
   }
   // 2. Unités épuisées : réserve, puis rapatriement
-  for (const u of UNITES) {
+  for (const u of unites(s)) {
     const e = s.unites[u.id];
     if (e.etat !== 'deployee') continue;
     if (e.fatigue > 85) s = essayer(s, { type: 'RAPATRIER', unite: u.id });
@@ -46,11 +49,12 @@ function moisPrudent(s0: Etat): Etat {
   }
   // 3. Budget : rapatrier si le mois suivant creuse le surcoût
   if (s.ressources.budget + s.ressources.enveloppe - M.coutsMensuels(s) < -10) {
-    const ext = UNITES.filter(u => s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre !== 'METRO').sort((a, b) => b.coutMensuel - a.coutMensuel);
+    const ext = unites(s).filter(u => s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre !== territoire(s)).sort((a, b) => b.coutMensuel - a.coutMensuel);
     if (ext[0]) s = essayer(s, { type: 'RAPATRIER', unite: ext[0].id });
   }
   // 4. Territoire : protection si la menace intérieure monte
-  if (s.ressources.menaceInt > 45) s = essayer(s, { type: 'DEPLOYER', unite: 'SENTI', theatre: 'METRO' });
+  const garde = unites(s).filter(u => u.protection).sort((a, b) => b.protection! - a.protection!)[0];
+  if (s.ressources.menaceInt > 45 && garde) s = essayer(s, { type: 'DEPLOYER', unite: garde.id, theatre: territoire(s) });
   // 4 bis. Article 35 : débat avant un vote incertain
   for (const a of M.actionsPossibles(s)) if (a.type === 'DEBAT' && s.theatres[a.theatre].toursIntervention >= 3 && M.probaVote(s, a.theatre) < 0.85) s = essayer(s, a);
   // 5. Opérations à bonne probabilité et faible risque collatéral
@@ -60,7 +64,7 @@ function moisPrudent(s0: Etat): Etat {
     if (ev.pSucces >= 0.6 && ev.risqueCollat < 0.12 && s.ressources.budget > ev.cout + 10) { s = essayer(s, a); break; }
   }
   // 6. Renfort du théâtre extérieur le plus menacé, si le budget le permet
-  const cibles = THEATRES.filter(T => T.exterieur).map(T => ({ t: T.id, n: s.menaces.filter(m => m.theatre === T.id && m.detectee).reduce((x, m) => Math.max(x, m.estimation || 0), 0) }))
+  const cibles = Object.keys(s.theatres).map(t => TH[t]).filter(T => T.exterieur).map(T => ({ t: T.id, n: s.menaces.filter(m => m.theatre === T.id && m.detectee).reduce((x, m) => Math.max(x, m.estimation || 0), 0) }))
     .filter(x => x.n >= 55).sort((a, b) => b.n - a.n);
   for (const c of cibles.slice(0, 1)) {
     const dep = M.actionsPossibles(s).filter((a): a is Extract<Action, { type: 'DEPLOYER' }> => a.type === 'DEPLOYER' && a.theatre === c.t);
@@ -70,7 +74,7 @@ function moisPrudent(s0: Etat): Etat {
   }
   // 7. Tactique : frappes sur positions identifiées à faible risque collatéral, reconnaissance des capteurs, patrouilles
   if (Mo.missionsPossibles && Mo.evaluerMission) {
-    for (const u of UNITES) {
+    for (const u of unites(s)) {
       const e = s.unites[u.id];
       if (e.etat !== 'deployee' || e.mission || e.posture === 'reserve') continue;
       if (u.cap.renseignement >= 8 && u.cap.frappe < 5) { s = essayer(s, { type: 'POSTURE', unite: u.id, posture: 'reconnaissance' } as Action); continue; }
@@ -101,13 +105,13 @@ function semaineZoom(s0: Etat): Etat {
   return s.phase === 'zoom' ? M.appliquerAction(s, { type: 'Z_SEMAINE' }) : s;
 }
 
-export function jouerPrudent(nb: number, difficultes: string[]): ResumeRobot[] {
+export function jouerPrudent(nb: number, difficultes: string[], nation = 'FRA'): ResumeRobot[] {
   const r: ResumeRobot[] = [];
-  const doctrines = ['RENS', 'PROJ', 'SANCT'];
   for (let i = 0; i < nb; i++) {
     const graine = 5000 + i, difficulte = difficultes[i % difficultes.length];
-    let s = M.nouvellePartie(graine, difficulte);
-    s = M.appliquerAction(s, { type: 'DOCTRINE', id: doctrines[Math.floor(i / difficultes.length) % 3] });
+    let s = (M.nouvellePartie as (g: number, d: string, n?: string) => Etat)(graine, difficulte, nation);
+    const doctrines = M.actionsPossibles(s);
+    s = M.appliquerAction(s, doctrines[Math.floor(i / difficultes.length) % doctrines.length]);
     for (let garde = 0; garde < 3000 && !s.fin; garde++) {
       if (s.phase === 'jeu') s = M.finDeTour(moisPrudent(s));
       else if (s.phase === 'evenement') {

@@ -52,7 +52,7 @@ interface Contexte {
   majUi: (p: Partial<UiEtat> | ((u: UiEtat) => Partial<UiEtat>)) => void;
   jouer: (a: Action) => void;
   terminerTour: () => void;
-  lancer: (graine: string, difficulte: string) => void;
+  lancer: (graine: string, difficulte: string, nation?: string) => void;
   charger: (s: Etat) => void;
   quitter: () => void;
   remplacer: (s: Etat) => void;
@@ -135,8 +135,8 @@ export function FournisseurJeu({ children }: { children: ReactNode }) {
     }));
   }, [etat]);
 
-  const lancer = useCallback((graine: string, difficulte: string) => {
-    setEtat(nouvellePartie(graine, difficulte));
+  const lancer = useCallback((graine: string, difficulte: string, nation = 'FRA') => {
+    setEtat(nouvellePartie(graine, difficulte, nation));
     setUi({ ...UI_INITIAL, ecran: 'briefing' });
   }, []);
   const charger = useCallback((s: Etat) => {

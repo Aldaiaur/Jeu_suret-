@@ -1,5 +1,6 @@
 // Renseignement : niveau par théâtre, connaissance des menaces, rapports bruités.
-import { MT, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, TH, THEATRES, TYPES_CAPTEURS } from '../data';
+import { MT, PARAMS, POIDS_CAPTEUR, POSTURES, TH, TYPES_CAPTEURS } from '../data';
+import { servicesDe, theatresDe } from './acces';
 import type { Etat, Menace } from './types';
 import { alea, aleaEntre, borner } from './outils';
 import { bonusTheatre, fiabilite, mods, nbCapteurs, unitesDans } from './acces';
@@ -7,10 +8,10 @@ import { plancherConnaissance } from './tactique';
 
 export function calculerRens(s: Etat): void {
   const md = mods(s);
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const th = s.theatres[T.id];
     let r = T.rensBase + md.rensBonus + th.rensBonus + th.rensPermanent;
-    for (const sv of SERVICES) {
+    for (const sv of servicesDe(s)) {
       const a = s.services[sv.id].affectations[T.id];
       if (!a) continue;
       for (const ty of TYPES_CAPTEURS) r += (a[ty] || 0) * POIDS_CAPTEUR[ty] * sv.efficacite[ty];
@@ -29,7 +30,7 @@ export function rensMenace(s: Etat, m: Menace): number {
 }
 export function serviceSource(s: Etat, theatre: string): string {
   let best: string | null = null, n = 0;
-  for (const sv of SERVICES) { const c = nbCapteurs(s, sv.id, theatre); if (c > n) { n = c; best = sv.id; } }
+  for (const sv of servicesDe(s)) { const c = nbCapteurs(s, sv.id, theatre); if (c > n) { n = c; best = sv.id; } }
   if (best) return best;
   return TH[theatre].exterieur ? 'DRM' : 'DGSI';
 }
@@ -55,7 +56,7 @@ export function estimerMenaces(s: Etat): void {
     s.rapports.push({ theatre: m.theatre, service: serviceSource(s, m.theatre), fiabilite: fiabilite(r),
       texte: MT[m.type].nom + ' : niveau estimé ' + m.estimation + ' (± ' + marge + '), ' + tend + '.' });
   }
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const th = s.theatres[T.id];
     if (th.rens < PARAMS.rensFauxRapport && alea(s) < 0.15) {
       s.rapports.push({ theatre: T.id, service: serviceSource(s, T.id), fiabilite: 'E',

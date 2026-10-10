@@ -4,6 +4,6 @@ import { writeFileSync } from 'node:fs';
 import { jouerPrudent } from './bot-prudent';
 
 it.skipIf(!process.env.ROBOT)('robot prudent', () => {
-  const r = jouerPrudent(Number(process.env.ROBOT_PARTIES || 45), ['facile', 'normal', 'difficile']);
+  const r = jouerPrudent(Number(process.env.ROBOT_PARTIES || 45), ['facile', 'normal', 'difficile'], process.env.ROBOT_NATION || 'FRA');
   writeFileSync(process.env.ROBOT_SORTIE || 'robot.json', JSON.stringify(r));
 }, 600000);

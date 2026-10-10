@@ -143,6 +143,37 @@ for (let i = 1; i <= 3; i++) {
 }
 await jeu(page, `window.__jeu.majUi({ catalogue: false })`);
 
+// Royaume-Uni : accueil, briefing, carte, territoire, Levant, alliés, catalogue
+await jeu(page, `window.__jeu.quitter()`);
+await page.waitForTimeout(300);
+await page.click('.nation >> text=Royaume-Uni');
+await capture('40-gbr-accueil');
+await page.click('text=Nouvelle partie');
+await capture('41-gbr-briefing');
+await page.click('text=Arrêter la doctrine');
+await capture('42-gbr-doctrines');
+await page.click('[data-tuto="doctrine-GBR_RELATION"]');
+await capture('43-gbr-carte');
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'theatre', id: 'GB' } })`);
+await capture('44-gbr-territoire');
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'theatre', id: 'LEVANT' } })`);
+await capture('45-gbr-levant');
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'allie', id: 'USA' } })`);
+await capture('46-gbr-allie-usa');
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.phase = 'evenement'; s.evenementCourant = 'GBR_SYRIE_VOTE'; s.file = []; j.remplacer(s); j.majUi({ selection: null }); })()`);
+await capture('47-gbr-evenement');
+await page.click('.choix >> nth=2');
+await page.waitForTimeout(300);
+await jeu(page, `window.__jeu.majUi({ selection: null, catalogue: true })`);
+await capture('48-gbr-catalogue');
+await page.click('.catalogue-onglets >> text=Matériels');
+await capture('49-gbr-materiels');
+for (let i = 1; i <= 2; i++) {
+  await page.evaluate((k) => { const c = document.querySelector('.fenetre-corps') || document.querySelector('.fenetre'); if (c) c.scrollTop = k * 560; }, i);
+  await capture('49-gbr-materiels-' + i);
+}
+await jeu(page, `window.__jeu.majUi({ catalogue: false })`);
+
 await navigateur.close();
 if (erreurs.length) { console.error('Erreurs dans la page :\n' + erreurs.join('\n')); process.exitCode = 1; }
 else console.log('Aucune erreur dans la page.');

@@ -1,6 +1,7 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
 import type { ReactNode } from 'react';
-import { AL, ALLIES, CATEGORIES, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
+import { AL, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SV, TH, TYPES_CAPTEURS, UN } from '../../data';
+import { alliesDe, devise, presents, estBasePermanente, nation, relationReference, servicesDe, soumisProcedure, theatresDe, unitesDe } from '../../sim';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
   facteursVote, libelleMission, soutienTheatre, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
@@ -84,13 +85,13 @@ function FicheTheatre({ id }: { id: string }) {
   const { etat: s, possibles, majUi, estPossible, jouer } = usePartie();
   const T = TH[id], th = s.theatres[id];
   const ms = s.menaces.filter(m => m.theatre === id && m.detectee);
-  const sur = UNITES.filter(u => s.unites[u.id].theatre === id);
+  const sur = unitesDe(s).filter(u => s.unites[u.id].theatre === id);
   const engager = possibles.filter((a): a is Extract<Action, { type: 'DEPLOYER' }> => a.type === 'DEPLOYER' && a.theatre === id);
   const ops = possibles.filter((a): a is Extract<Action, { type: 'OPERATION' }> => a.type === 'OPERATION' && a.theatre === id);
   const offres: [AllieDef, AppuiDef][] = [];
-  for (const A of ALLIES) for (const ap of A.appuis) if (ap.theatres.includes(id) && !th.appuis.some(x => x.allie === A.id && x.appui === ap.id)) offres.push([A, ap]);
+  for (const A of alliesDe(s)) for (const ap of A.appuis) if (ap.theatres.includes(id) && !th.appuis.some(x => x.allie === A.id && x.appui === ap.id)) offres.push([A, ap]);
   const sansAction = s.actionsRestantes <= 0;
-  const voteDans = T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0 ? Math.max(1, procedure(s).dureeAvantVote + 1 - th.toursIntervention) : null;
+  const voteDans = soumisProcedure(s, T.id) && !th.voteFait && th.toursIntervention > 0 ? Math.max(1, procedure(s).dureeAvantVote + 1 - th.toursIntervention) : null;
 
   return (
     <>
@@ -100,7 +101,7 @@ function FicheTheatre({ id }: { id: string }) {
         <div className="fiche-indicateurs">
           <span className="pastille turquoise" data-tip={'Niveau de renseignement. Fiabilité ' + fiabilite(th.rens) + ' (A très sûre, E douteuse).'}>Renseignement {th.rens} · {fiabilite(th.rens)}</span>
           {th.partenaire > 0 && <span className="pastille" data-tip="Capacité des forces partenaires locales, formées ou soutenues.">Partenaire {th.partenaire}</span>}
-          {T.exterieur && T.basePermanente && <span className="pastille contour" data-tip="Forces prépositionnées : pas de vote du Parlement.">Base permanente</span>}
+          {T.exterieur && estBasePermanente(s, T.id) && <span className="pastille contour" data-tip={"Forces prépositionnées : la procédure « " + procedure(s).nom + " » ne s’applique pas."}>Base permanente</span>}
           {th.voteFait && <span className="pastille vert">Intervention autorisée</span>}
           {th.crise && <span className="pastille rouge pulse">Crise</span>}
           {(() => { const sa = saisonDu(id, s.tour), ef = decrireSaison(sa.effets); return (
@@ -110,7 +111,7 @@ function FicheTheatre({ id }: { id: string }) {
         {voteDans !== null && (
           <div className="encart ambre" data-tuto="article35">
             <span data-tip={'Facteurs du vote\n' + facteursVote(s, id).map(f => f.lib + ' : ' + (f.val >= 0 ? '+' : '−') + Math.round(Math.abs(f.val) * 100) + ' %').join('\n') + '\nUn refus impose le retrait des forces du théâtre.'}>
-              <b>{procedure(s).nom}</b> — intervention depuis {th.toursIntervention} mois. Vote du Parlement dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s, id))}</b>.
+              <b>{procedure(s).nom}</b> — intervention depuis {th.toursIntervention} mois. Vote {procedure(s).institution} dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s, id))}</b>.
             </span>
             {!th.debat ? (
               <div className="encart-action">
@@ -144,7 +145,7 @@ function FicheTheatre({ id }: { id: string }) {
 
       <Section titre="Capteurs de renseignement" tuto="fiche-capteurs">
         <div className="capteurs-entete"><span /><span>HUMINT</span><span>SIGINT</span><span>IMINT</span></div>
-        {SERVICES.filter(x => x.theatres.includes(id)).map(sv => <Capteurs key={sv.id} service={sv.id} theatre={id} />)}
+        {servicesDe(s).filter(x => x.theatres.includes(id)).map(sv => <Capteurs key={sv.id} service={sv.id} theatre={id} />)}
         <p className="discret petit">Le chiffre grisé indique les capteurs encore libres. Réaffecter est gratuit.</p>
       </Section>
 
@@ -169,7 +170,7 @@ function FicheTheatre({ id }: { id: string }) {
           const penurie = demande > capacite && sout.demande <= sout.capacite;
           return (
             <LigneAction key={a.unite} titre={<><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{u.nom}</>}
-              meta={<>{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} M€ puis {(u.coutMensuel * cm).toFixed(1)} M€/mois{T.exterieur && <span className={penurie ? 'c-rouge' : ''}> · soutien {demande}/{capacite}{penurie ? ' : pénurie' : ''}</span>}</>}
+              meta={<>{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} {devise(s)} puis {(u.coutMensuel * cm).toFixed(1)} {devise(s)}/mois{T.exterieur && <span className={penurie ? 'c-rouge' : ''}> · soutien {demande}/{capacite}{penurie ? ' : pénurie' : ''}</span>}</>}
               tip={u.type + '\nAssaut ' + u.cap.assaut + ' · Rens. ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance}
               bouton="Engager" action={a} tuto={'engager-' + u.id} />
           );
@@ -218,7 +219,7 @@ function FicheUnite({ id }: { id: string }) {
         <div className="fiche-identite">
           <Insigne unite={id} taille={74} avecDevise />
           <div>
-            <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{CATEGORIES[u.categorie]}</div>
+            <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{nation(s).categories[u.categorie]}</div>
             <h2 className="fiche-titre">{u.nom}</h2>
             <div className="second">{u.type} · effectif {u.effectif.toLocaleString('fr-FR')}</div>
             <div className="symbole-ligne" data-tip={'Symbole militaire OTAN (APP-6)\nCode ' + IDENTITES[id].sidc}><SymboleHtml unite={id} taille={22} /><span className="discret petit">{IDENTITES[id].sigle}</span></div>
@@ -239,7 +240,7 @@ function FicheUnite({ id }: { id: string }) {
         {caps.map(([nom, v]) => (
           <div key={nom} className="capacite"><span>{nom}</span><span className="barre"><i style={{ width: v * 10 + '%', background: 'var(--texte-2)' }} /></span><span className="chiffres">{v}</span></div>
         ))}
-        <p className="discret petit">Projection : {u.delai} mois · mise en place {u.coutDeploiement} M€ · {u.coutMensuel} M€/mois</p>
+        <p className="discret petit">Projection : {u.delai} mois · mise en place {u.coutDeploiement} {devise(s)} · {u.coutMensuel} {devise(s)}/mois</p>
         {u.indisponibilites && <p className="c-ambre petit">Arrêts techniques programmés : {u.indisponibilites.map(p => dateDuTour(p.debut) + ' à ' + dateDuTour(p.fin)).join(' ; ')}</p>}
       </Section>
       <Section titre="Ordres">
@@ -279,7 +280,7 @@ function FicheAllie({ id }: { id: string }) {
   const { etat: s } = usePartie();
   const A = AL[id], st = s.allies[id];
   const actifs: string[] = [];
-  for (const T of THEATRES) for (const a of s.theatres[T.id].appuis) if (a.allie === id) actifs.push(appuiDef(id, a.appui).nom + ' — ' + T.nom + ' (' + a.tours + ' mois)');
+  for (const T of theatresDe(s)) for (const a of s.theatres[T.id].appuis) if (a.allie === id) actifs.push(appuiDef(id, a.appui).nom + ' — ' + T.nom + ' (' + a.tours + ' mois)');
   return (
     <>
       <div className="fiche-entete">
@@ -289,15 +290,16 @@ function FicheAllie({ id }: { id: string }) {
         <div className="fiche-indicateurs">
           <span className="pastille" style={{ color: couleurNiveau(st.relation, true) }}>Relation {Math.round(st.relation)}/100</span>
           {st.cooldown > 0 && <span className="pastille ambre">Nouvelle demande dans {st.cooldown} mois</span>}
+          {nation(s).levier?.allie === id && <span className="pastille vert" data-tip={nation(s).levier!.description}>Effet de levier</span>}
         </div>
-        <p className="discret petit">La relation remonte vers sa référence ({A.relation}), progresse quand vous êtes engagé sur les théâtres d’intérêt ({A.interets.map(t => TH[t].court).join(', ')}) et avec votre crédibilité. Chaque appui accordé la consomme.</p>
+        <p className="discret petit">La relation remonte vers sa référence ({relationReference(s, A.id)}), progresse quand vous êtes engagé sur les théâtres d’intérêt ({presents(s, A.interets).map(t => TH[t].court).join(', ')}) et avec votre crédibilité. Chaque appui accordé la consomme.</p>
       </div>
       {actifs.length > 0 && <Section titre="Appuis en cours">{actifs.map(x => <div key={x} className="appui-actif"><span>{x}</span></div>)}</Section>}
       <Section titre="Appuis possibles">
-        {A.appuis.map(ap => (
+        {A.appuis.filter(ap => presents(s, ap.theatres).length).map(ap => (
           <div key={ap.id} className="appui-def">
             <div className="appui-def-nom"><b>{ap.nom}</b><span className="discret"> · {decrireAppui(ap)} · capital {ap.capital}</span></div>
-            {ap.theatres.map(t => s.theatres[t].appuis.some(x => x.allie === id && x.appui === ap.id)
+            {presents(s, ap.theatres).map(t => s.theatres[t].appuis.some(x => x.allie === id && x.appui === ap.id)
               ? <div key={t} className="appui-actif"><span>{TH[t].nom}</span><span className="pastille violet">en cours</span></div>
               : <LigneAppui key={t} allie={A} appui={ap} theatre={t} avecNom={false} />)}
           </div>

@@ -1,4 +1,5 @@
-import { ALLIES, CATEGORIES, ETATS_UNITE, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UNITES } from '../../data';
+import { CATEGORIES, ETATS_UNITE, TH, TYPES_CAPTEURS } from '../../data';
+import { alliesDe, nation, relationReference, servicesDe, theatresDe, unitesDe } from '../../sim';
 import { capteursLibres, fiabilite, type Categorie } from '../../sim';
 import { usePartie, type OngletGauche } from '../contexte';
 import { COULEURS_CATEGORIE, couleurNiveau } from '../format';
@@ -6,7 +7,7 @@ import { SymboleHtml } from '../composants/SymboleOtan';
 
 export function PanneauGauche() {
   const { etat: s, ui, majUi } = usePartie();
-  const engagees = UNITES.filter(u => ['deployee', 'projection'].includes(s.unites[u.id].etat)).length;
+  const engagees = unitesDe(s).filter(u => ['deployee', 'projection'].includes(s.unites[u.id].etat)).length;
   const onglet = (id: OngletGauche, lib: string, compte?: number) => (
     <button className={'onglet' + (ui.ongletGauche === id ? ' actif' : '')} onClick={() => majUi({ ongletGauche: id })} data-tuto={'onglet-' + id}>
       {lib}{compte !== undefined && <span className="compte">{compte}</span>}
@@ -34,8 +35,8 @@ function ListeForces() {
     <>
       {(Object.keys(CATEGORIES) as Categorie[]).map(cat => (
         <section key={cat} className="groupe">
-          <h3 className="titre-section"><i className="point" style={{ background: COULEURS_CATEGORIE[cat] }} />{CATEGORIES[cat]}</h3>
-          {UNITES.filter(u => u.categorie === cat).map(u => {
+          <h3 className="titre-section"><i className="point" style={{ background: COULEURS_CATEGORIE[cat] }} />{nation(s).categories[cat]}</h3>
+          {unitesDe(s).filter(u => u.categorie === cat).map(u => {
             const e = s.unites[u.id];
             const sel = ui.selection?.kind === 'unite' && ui.selection.id === u.id;
             const det = e.etat === 'projection' || e.etat === 'regeneration' ? ' · ' + e.compteur + ' m' : e.etat === 'indisponible' && e.indispo ? ' · ' + e.indispo + ' m' : '';
@@ -61,7 +62,7 @@ function ListeRenseignement() {
     <>
       <section className="groupe">
         <h3 className="titre-section">Services</h3>
-        {SERVICES.map(sv => {
+        {servicesDe(s).map(sv => {
           const st = s.services[sv.id];
           const sel = ui.selection?.kind === 'service' && ui.selection.id === sv.id;
           return (
@@ -85,7 +86,7 @@ function ListeRenseignement() {
       </section>
       <section className="groupe">
         <h3 className="titre-section">Niveau par théâtre</h3>
-        {THEATRES.map(T => {
+        {theatresDe(s).map(T => {
           const r = s.theatres[T.id].rens;
           return (
             <button key={T.id} className="ligne-rens" onClick={() => majUi({ selection: { kind: 'theatre', id: T.id } })} data-tip={'Renseignement ' + T.nom + ' : ' + r + '\nFiabilité ' + fiabilite(r) + ' (A très sûre, E douteuse)'}>
@@ -105,13 +106,13 @@ function ListeAllies() {
   const { etat: s, ui, majUi } = usePartie();
   return (
     <section className="groupe">
-      {ALLIES.map(A => {
+      {alliesDe(s).map(A => {
         const st = s.allies[A.id];
-        const actifs = THEATRES.reduce((n, T) => n + s.theatres[T.id].appuis.filter(x => x.allie === A.id).length, 0);
+        const actifs = theatresDe(s).reduce((n, T) => n + s.theatres[T.id].appuis.filter(x => x.allie === A.id).length, 0);
         const sel = ui.selection?.kind === 'allie' && ui.selection.id === A.id;
         return (
           <button key={A.id} className={'carte-allie' + (sel ? ' sel' : '')} onClick={() => majUi({ selection: { kind: 'allie', id: A.id } })}
-            data-tip={A.nom + '\n' + A.description + '\nRelation ' + Math.round(st.relation) + '/100 (référence ' + A.relation + ')'}>
+            data-tip={A.nom + '\n' + A.description + '\nRelation ' + Math.round(st.relation) + '/100 (référence ' + relationReference(s, A.id) + ')'}>
             <div className="carte-allie-haut">
               <b>{A.nom}</b>
               <span className="chiffres">{Math.round(st.relation)}</span>

@@ -10,12 +10,13 @@ export const TYPES_CAPTEURS: TypeCapteur[] = ['HUMINT','SIGINT','IMINT'];
 
 export const POIDS_CAPTEUR: Record<TypeCapteur, number> = { HUMINT: 9, SIGINT: 7, IMINT: 6 };
 
+// Libellés génériques des composantes ; chaque nation a les siens (NationDef.categories)
 export const CATEGORIES: Record<Categorie, string> = {
   FS:    'Forces spéciales',
   INT:   'Sécurité intérieure',
-  TERRE: 'Armée de Terre',
-  AIR:   'Armée de l’Air',
-  MER:   'Marine nationale'
+  TERRE: 'Forces terrestres',
+  AIR:   'Forces aériennes',
+  MER:   'Forces navales'
 };
 
 export const ETATS_UNITE: Record<EtatUniteId, string> = {
@@ -37,6 +38,12 @@ const SAISONS: Record<string, SaisonDef[]> = {
     { id:'PRINTEMPS', nom:'Printemps', mois:[2,3,4], visuel:'aucun', description:'Conditions habituelles.', effets:{} },
     { id:'ETE', nom:'Saison des grands rassemblements', mois:[5,6,7], visuel:'aucun', description:'Festivals, compétitions et vacances : davantage de sites à protéger.', effets:{ pression:{ INT:0.9 }, croissance:{ TERRO:1.1 } } },
     { id:'AUTOMNE', nom:'Automne', mois:[8,9,10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
+  GB: [
+    { id:'HIVER', nom:'Tempêtes d’hiver', mois:[11,0,1], visuel:'brouillard', description:'Dépressions atlantiques et jours courts : les dispositifs de protection s’usent plus vite.', effets:{ fatigue:1.1 } },
+    { id:'PRINTEMPS', nom:'Printemps', mois:[2,3,4], visuel:'aucun', description:'Conditions habituelles.', effets:{} },
+    { id:'ETE', nom:'Saison des grands événements', mois:[5,6,7], visuel:'aucun', description:'Concerts, festivals, carnavals et compétitions : davantage de sites ouverts à protéger.', effets:{ pression:{ INT:0.9 }, croissance:{ TERRO:1.1 } } },
+    { id:'AUTOMNE', nom:'Automne', mois:[8,9,10], visuel:'brouillard', description:'Pluies et brouillards fréquents ; conditions habituelles pour les services.', effets:{} }
   ],
   EST: [
     { id:'HIVER', nom:'Neige et grand froid', mois:[11,0,1], visuel:'neige', description:'Froid intense : fatigue accrue, coûts de soutien en hausse, manœuvre ralentie.', effets:{ fatigue:1.3, cout:1.1, pression:{ TERRE:0.9 } } },
@@ -84,14 +91,15 @@ const SAISONS: Record<string, SaisonDef[]> = {
 // THÉÂTRES : nœuds du graphe stratégique (coordonnées schématiques)
 // ---------------------------------------------------------------------
 export const THEATRES: TheatreDef[] = [
-  { id:'METRO',   lon:2.35, lat:48.86, nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, basePermanente:true,  carteRegionale:'METRO', saisons:SAISONS.METRO },
-  { id:'EST',     lon:24.5, lat:55, nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO'],                exterieur:true,  maritime:true,  rensBase:15, basePermanente:false, carteRegionale:'BALTIQUE', saisons:SAISONS.EST },
-  { id:'LIBYE',   lon:15.5, lat:32, nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT'], exterieur:true, maritime:true,  rensBase:5,  basePermanente:false, carteRegionale:'LIBYE', saisons:SAISONS.LIBYE },
-  { id:'LEVANT',  lon:40.5, lat:35.3, nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE'], exterieur:true,  maritime:true,  rensBase:10, basePermanente:false, carteRegionale:'IRAK_NORD', saisons:SAISONS.LEVANT },
-  { id:'SAHEL',   lon:-0.5, lat:16.3, nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, basePermanente:false, carteRegionale:'SAHEL', saisons:SAISONS.SAHEL },
-  { id:'GUINEE',  lon:3.5, lat:3, nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:'GUINEE', saisons:SAISONS.GUINEE },
-  { id:'CORNE',   lon:43.1, lat:11.6, nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18, basePermanente:true,  carteRegionale:'DJIBOUTI', saisons:SAISONS.CORNE },
-  { id:'INDOPAC', lon:110, lat:10, nom:'Indo-Pacifique',            court:'INDO-PAC',  x:920, y:470, voisins:['CORNE'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:'MER_CHINE', saisons:SAISONS.INDOPAC }
+  { id:'METRO',   lon:2.35, lat:48.86, nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20,  carteRegionale:'METRO', saisons:SAISONS.METRO },
+  { id:'GB',      lon:-1.5, lat:52.8, nom:'Royaume-Uni',              court:'ROYAUME-UNI', x:440, y:120, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, carteRegionale:'GB', saisons:SAISONS.GB },
+  { id:'EST',     lon:24.5, lat:55, nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO','GB'],           exterieur:true,  maritime:true,  rensBase:15, carteRegionale:'BALTIQUE', saisons:SAISONS.EST },
+  { id:'LIBYE',   lon:15.5, lat:32, nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT','GB'], exterieur:true, maritime:true,  rensBase:5,  carteRegionale:'LIBYE', saisons:SAISONS.LIBYE },
+  { id:'LEVANT',  lon:40.5, lat:35.3, nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE','GB'], exterieur:true,  maritime:true,  rensBase:10, carteRegionale:'IRAK_NORD', saisons:SAISONS.LEVANT },
+  { id:'SAHEL',   lon:-0.5, lat:16.3, nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, carteRegionale:'SAHEL', saisons:SAISONS.SAHEL },
+  { id:'GUINEE',  lon:3.5, lat:3, nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10,  carteRegionale:'GUINEE', saisons:SAISONS.GUINEE },
+  { id:'CORNE',   lon:43.1, lat:11.6, nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18,  carteRegionale:'DJIBOUTI', saisons:SAISONS.CORNE },
+  { id:'INDOPAC', lon:110, lat:10, nom:'Indo-Pacifique',            court:'INDO-PAC',  x:920, y:470, voisins:['CORNE'],                 exterieur:true,  maritime:true,  rensBase:10,  carteRegionale:'MER_CHINE', saisons:SAISONS.INDOPAC }
 ];
 
 // Groupes de théâtres réutilisés par les unités et les opérations

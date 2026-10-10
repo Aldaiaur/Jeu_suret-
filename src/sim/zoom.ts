@@ -1,5 +1,6 @@
 // Zoom régional : moteur générique piloté par CARTES_REGIONALES (1 tour local = 1 semaine).
-import { CARTES_REGIONALES, TH, UN, UNITES } from '../data';
+import { CARTES_REGIONALES, TH, UN } from '../data';
+import { unitesDe } from './acces';
 import type { ActionZoom, CarteRegionaleDef, Etat, ObjectifEtat, Zoom, ZoomLieu } from './types';
 import { alea, aleaEntre, aleaInt, borner, choisir } from './outils';
 import { bonusTheatre, coutMult, decider, journaliser, saisonDu, unitesDans } from './acces';
@@ -34,7 +35,7 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
     const md = (sc.modifs && sc.modifs[L.id]) || {}, x = th.lieux[L.id];
     const f = x.controle === 'ennemi' ? Math.max(5, Math.round(x.activite * aleaEntre(s, 0.85, 1.15) + (md.force || 0))) : 0;
     total += f;
-    const garnison = UNITES.filter(u => estAuSol(u) && !C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre === theatre && s.unites[u.id].lieu === L.id);
+    const garnison = unitesDe(s).filter(u => estAuSol(u) && !C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre === theatre && s.unites[u.id].lieu === L.id);
     const defense = L.defense + garnison.reduce((a, u) => a + (s.unites[u.id].posture === 'defensive' ? 15 : 8), 0);
     lieux[L.id] = { controle: x.controle, force: f, civils: L.civils, defense, ressortissants: md.ressortissants || 0,
       revele: x.controle !== 'ennemi' || x.connu >= 50 || alea(s) < rens / 100, estimee: null, marge: Math.max(5, Math.round((100 - rens) / 3)), dispersion: 0, frappe: false };

@@ -1,5 +1,6 @@
 // Crises : ouverture, décision d'intervenir, résolution abstraite (hors carte régionale).
-import { CARTES_REGIONALES, MT, PARAMS, TH, UN, UNITES } from '../data';
+import { CARTES_REGIONALES, MT, PARAMS, TH, UN } from '../data';
+import { unitesDe } from './acces';
 import type { Action, Etat, Menace, ReponseCriseDef } from './types';
 import { alea, borner, choisir } from './outils';
 import { coutMult, decider, enIndisponibilite, journaliser, menaceParId, menacesDans, mods } from './acces';
@@ -37,9 +38,9 @@ export function reponsesCrise(theatre: string): ReponseCriseDef[] { return CARTE
 // Unité qui portera la réponse : déjà sur place, sinon disponible et projetable vers le théâtre
 export function porteurReponse(s: Etat, theatre: string, r: ReponseCriseDef): { id: string; urgence: boolean } | null {
   if (!r.requiert) return null;
-  const sur = UNITES.find(u => r.requiert!.includes(u.categorie) && s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre === theatre);
+  const sur = unitesDe(s).find(u => r.requiert!.includes(u.categorie) && s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre === theatre);
   if (sur) return { id: sur.id, urgence: false };
-  const dispo = UNITES.find(u => r.requiert!.includes(u.categorie) && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
+  const dispo = unitesDe(s).find(u => r.requiert!.includes(u.categorie) && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
   return dispo ? { id: dispo.id, urgence: true } : null;
 }
 export function reponsePossible(s: Etat, theatre: string, r: ReponseCriseDef): boolean { return !r.requiert || porteurReponse(s, theatre, r) !== null; }

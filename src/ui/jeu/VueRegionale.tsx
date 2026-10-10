@@ -2,7 +2,8 @@
 // et commandement tactique (implantation, posture, missions). Un ordre courant se donne en deux clics :
 // l'unité, puis le lieu (ordre par défaut), ou l'unité, puis un ordre du panneau.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BIOMES, CARTES_REGIONALES, CATEGORIES, IDENTITES, MISSIONS, MT, POSTURES, TH, THEATRES, UN, UNITES } from '../../data';
+import { BIOMES, CARTES_REGIONALES, IDENTITES, MISSIONS, MT, POSTURES, TH, UN } from '../../data';
+import { devise, nation, theatresDe, unitesDe } from '../../sim';
 import { SymboleSvg } from '../composants/SymboleOtan';
 import { Insigne } from '../composants/Insigne';
 import {
@@ -51,7 +52,7 @@ export function VueRegionale({ theatre }: { theatre: string }) {
 
   const saison = saisonDu(theatre, s.tour), effets = decrireSaison(saison.effets);
   const menaces = s.menaces.filter(m => m.theatre === theatre && m.detectee);
-  const presentes = UNITES.filter(u => s.unites[u.id].theatre === theatre);
+  const presentes = unitesDe(s).filter(u => s.unites[u.id].theatre === theatre);
   const sol = presentes.filter(u => estAuSol(u) && s.unites[u.id].lieu), horsCarte = presentes.filter(u => !sol.includes(u));
   const sout = soutienTheatre(s, theatre);
   const sel = ui.uniteRegion && s.unites[ui.uniteRegion]?.theatre === theatre ? ui.uniteRegion : null;
@@ -127,7 +128,7 @@ export function VueRegionale({ theatre }: { theatre: string }) {
       <div className="vr-entete">
         <button className="btn petit" onClick={() => majUi({ selection: null, uniteRegion: null })} data-tip="Revenir à la carte du monde (Échap)">← Monde</button>
         <nav className="vr-onglets" aria-label="Théâtres">
-          {THEATRES.map(X => (
+          {theatresDe(s).map(X => (
             <button key={X.id} className={'vr-onglet' + (X.id === theatre ? ' actif' : '') + (s.theatres[X.id].crise ? ' crise' : '')} data-tuto={'theatre-' + X.id}
               onClick={() => majUi({ selection: { kind: 'theatre', id: X.id }, uniteRegion: null })} aria-current={X.id === theatre ? 'page' : undefined}>{X.court}</button>
           ))}
@@ -182,7 +183,7 @@ export function PanneauOrdres({ uniteId, theatre }: { uniteId: string; theatre: 
         <div className="fiche-identite">
           <Insigne unite={uniteId} taille={44} />
           <div>
-          <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{CATEGORIES[u.categorie]}</div>
+          <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{nation(s).categories[u.categorie]}</div>
           <b className="vr-ordres-nom">{u.nom}</b>
           <span className="discret petit"> · {e.lieu ? 'implanté à ' + CARTES_REGIONALES[TH[theatre].carteRegionale].lieux.find(l => l.id === e.lieu)!.nom : 'hors carte'} · fatigue {Math.round(e.fatigue)}</span>
           </div>
@@ -210,7 +211,7 @@ export function PanneauOrdres({ uniteId, theatre }: { uniteId: string; theatre: 
                 <div className="titre-section">{NOMS[t]}</div>
                 {l.map((o, i) => (
                   <button key={i} className={'btn petit' + (t === 'frappe' || t === 'raid' ? ' principal' : '')} onClick={() => jouer(o.action)}
-                    data-tip={(t === 'positionner' ? 'Déplacer l’unité sur ce lieu.' : MISSIONS[t as keyof typeof MISSIONS].description) + (o.ev ? '\n' + o.ev.effet + '\nCoût : ' + o.ev.cout + ' M€/mois' : '')}>
+                    data-tip={(t === 'positionner' ? 'Déplacer l’unité sur ce lieu.' : MISSIONS[t as keyof typeof MISSIONS].description) + (o.ev ? '\n' + o.ev.effet + '\nCoût : ' + o.ev.cout + ' ' + devise(s) + '/mois' : '')}>
                     {o.cible}{decrireEval(o) && <span className="btn-suffixe">{decrireEval(o)}</span>}
                   </button>
                 ))}

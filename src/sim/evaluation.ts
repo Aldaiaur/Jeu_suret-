@@ -1,8 +1,8 @@
 // Évaluations : pression sur les menaces, chances des opérations, moyens de crise, appuis alliés.
-import { AL, CARTES_REGIONALES, MT, OP, TH, UN, UNITES } from '../data';
+import { AL, CARTES_REGIONALES, MT, OP, TH, UN } from '../data';
 import type { Capacite, Etat, Menace, OperationDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
-import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, nbCapteurs, unitesDans } from './acces';
+import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, nation, nbCapteurs, unitesDans, unitesDe } from './acces';
 import { multiplicateurUnite } from './tactique';
 import { rensMenace } from './renseignement';
 import { menaceDeCrise } from './crises';
@@ -49,12 +49,12 @@ export function moyensCrise(s: Etat, theatre: string): MoyensCrise {
   const C = CARTES_REGIONALES[TH[theatre].carteRegionale];
   if (C.zoomCrise) {
     const fs = unitesDans(s, theatre).filter(u => C.forcesCrise.includes(u.categorie));
-    const fsDispo = UNITES.filter(u => C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
+    const fsDispo = unitesDe(s).filter(u => C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
     const frappe = C.frappes ? unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && !C.forcesCrise.includes(u.categorie)) : [];
     return { zoom: true, fs: fs.map(u => u.id), fsDispo: fsDispo.map(u => u.id), frappe: frappe.map(u => u.id), possible: fs.length + fsDispo.length > 0 };
   }
   const sur = unitesDans(s, theatre);
-  const dispo = UNITES.filter(u => s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour) && (u.cap.assaut >= 5 || u.cap.frappe >= 5));
+  const dispo = unitesDe(s).filter(u => s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour) && (u.cap.assaut >= 5 || u.cap.frappe >= 5));
   return { zoom: false, sur: sur.map(u => u.id), dispo: dispo.map(u => u.id), possible: sur.length + dispo.length > 0 };
 }
 
@@ -69,9 +69,11 @@ export function evaluerCriseAbstraite(s: Etat, theatre: string, reel: boolean): 
 }
 
 // ---------- Demande d'appui allié ----------
-export function evaluerAppui(s: Etat, allieId: string, appuiId: string, theatre: string): { pSucces: number; capital: number; relation: number; duree: number } {
+export function evaluerAppui(s: Etat, allieId: string, appuiId: string, theatre: string): { pSucces: number; capital: number; relation: number; duree: number; levier: boolean } {
   const A = AL[allieId], ap = appuiDef(allieId, appuiId), rel = s.allies[allieId].relation;
   const interet = A.interets.includes(theatre) ? 0.1 : 0;
-  const p = borner(ap.base * (0.35 + rel / 100 * 0.65) * (0.75 + s.ressources.credibilite / 100 * 0.25) + interet, 0.05, 0.95);
-  return { pSucces: p, capital: ap.capital, relation: ap.relation, duree: ap.duree };
+  // Effet de levier : l'allié privilégié répond plus volontiers, à moindre coût politique
+  const lv = nation(s).levier?.allie === allieId ? nation(s).levier! : null;
+  const p = borner(ap.base * (0.35 + rel / 100 * 0.65) * (0.75 + s.ressources.credibilite / 100 * 0.25) + interet + (lv ? lv.base : 0), 0.05, 0.95);
+  return { pSucces: p, capital: Math.max(0, ap.capital - (lv ? lv.capital : 0)), relation: Math.max(0, ap.relation - (lv ? lv.relation : 0)), duree: ap.duree, levier: !!lv };
 }

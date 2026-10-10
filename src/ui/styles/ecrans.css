@@ -47,6 +47,7 @@
 .nation-sig { font-size: 11px; color: var(--texte-3); line-height: 1.35; }
 .case { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--texte-2); margin-top: 6px; cursor: pointer; }
 .case input { accent-color: var(--rouge); width: 15px; height: 15px; }
+.case.inactif { opacity: 0.55; cursor: default; }
 .lien-avance { align-self: flex-start; background: none; border: 0; padding: 0; color: var(--texte-3); font: 12px var(--police); cursor: pointer; }
 .lien-avance:hover { color: var(--texte); }
 .avance { display: flex; flex-direction: column; gap: 4px; }

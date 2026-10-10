@@ -23,7 +23,8 @@ export function Tutoriel() {
   const carteRef = useRef<HTMLDivElement>(null);
 
   const maj = (m: typeof mem) => { setMem(m); ecrireTutoriel(m); };
-  const etape: Etape | undefined = mem.actif && !mem.fini ? ETAPES[mem.etape] : undefined;
+  // Les étapes guidées suivent la campagne de la France ; les astuces valent pour toutes les nations
+  const etape: Etape | undefined = mem.actif && !mem.fini && s.nation === 'FRA' ? ETAPES[mem.etape] : undefined;
 
   // Astuce contextuelle : la première dont la condition est remplie et qui n'a pas encore été vue
   const astuce: Astuce | undefined = mem.actif || mem.fini

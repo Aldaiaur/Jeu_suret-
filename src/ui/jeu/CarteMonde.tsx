@@ -5,7 +5,8 @@ import { feature } from 'topojson-client';
 import type { Topology, GeometryCollection } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import monde from 'world-atlas/countries-50m.json';
-import { CATEGORIES, MT, TH, THEATRES, UNITES } from '../../data';
+import { CATEGORIES, MT, TH } from '../../data';
+import { theatresDe, unitesDe, voisinsDe } from '../../sim';
 import { appuiDef, fiabilite, saisonDu, type Etat } from '../../sim';
 import { COULEUR_SAISON } from '../composants/Saison';
 import { AL } from '../../data';
@@ -16,6 +17,7 @@ import { activable } from '../composants/activable';
 // Pays rattachés à chaque théâtre (codes ISO 3166 numériques de Natural Earth)
 const PAYS_THEATRE: Record<string, string[]> = {
   METRO: ['250'],
+  GB: ['826'],
   EST: ['233', '428', '440', '616', '642', '804'],
   LIBYE: ['434'],
   LEVANT: ['368', '760'],
@@ -78,28 +80,28 @@ export function CarteMonde() {
 
   const positions = useMemo(() => {
     const p: Record<string, [number, number]> = {};
-    for (const T of THEATRES) p[T.id] = projection([T.lon, T.lat]) as [number, number];
+    for (const T of theatresDe(s)) p[T.id] = projection([T.lon, T.lat]) as [number, number];
     return p;
-  }, [projection]);
+  }, [projection, s.nation]);
   const liaisons = useMemo(() => {
     const vus = new Set<string>(), r: { cle: string; d: string }[] = [];
-    for (const T of THEATRES) for (const v of T.voisins) {
+    for (const T of theatresDe(s)) for (const v of voisinsDe(s, T.id)) {
       const cle = [T.id, v].sort().join('-');
       if (vus.has(cle)) continue;
       vus.add(cle);
       r.push({ cle, d: chemin({ type: 'LineString', coordinates: [[T.lon, T.lat], [TH[v].lon, TH[v].lat]] }) || '' });
     }
     return r;
-  }, [chemin]);
+  }, [chemin, s.nation]);
 
   // Teinte des pays de chaque théâtre selon la menace estimée
   const teintes = useMemo(() => {
     const r: { id: string; d: string; couleur: string; theatre: string }[] = [];
     for (const f of pays.features) {
       const t = THEATRE_DU_PAYS[String(f.id)];
-      if (!t) continue;
+      if (!t || !s.theatres[t]) continue;
       const m = niveauAffiche(s, t);
-      r.push({ id: String(f.id), d: chemin(f) || '', couleur: t === 'METRO' ? 'var(--turquoise)' : couleurNiveau(m ? m.estimation : null), theatre: t });
+      r.push({ id: String(f.id), d: chemin(f) || '', couleur: !TH[t].exterieur ? 'var(--turquoise)' : couleurNiveau(m ? m.estimation : null), theatre: t });
     }
     return r;
   }, [s, chemin]);
@@ -160,7 +162,7 @@ export function CarteMonde() {
               onClick={ev => { ev.stopPropagation(); clic(p.theatre); }} />
           ))}
           {liaisons.map(l => <path key={l.cle} d={l.d} className="liaison" strokeWidth={1.2 / k} strokeDasharray={`${5 / k} ${5 / k}`} />)}
-          {THEATRES.map(T => <Marqueur key={T.id} id={T.id} pos={positions[T.id]} k={k} />)}
+          {theatresDe(s).map(T => <Marqueur key={T.id} id={T.id} pos={positions[T.id]} k={k} />)}
         </g>
       </svg>
       <div className="carte-legende">
@@ -178,10 +180,10 @@ function Marqueur({ id, pos, k }: { id: string; pos: [number, number]; k: number
   const { etat: s, ui, majUi } = usePartie();
   const T = TH[id], th = s.theatres[id];
   const m = niveauAffiche(s, id);
-  const dep = UNITES.filter(u => s.unites[u.id].theatre === id && s.unites[u.id].etat === 'deployee');
-  const proj = UNITES.filter(u => s.unites[u.id].theatre === id && s.unites[u.id].etat === 'projection').length;
+  const dep = unitesDe(s).filter(u => s.unites[u.id].theatre === id && s.unites[u.id].etat === 'deployee');
+  const proj = unitesDe(s).filter(u => s.unites[u.id].theatre === id && s.unites[u.id].etat === 'projection').length;
   const sel = ui.selection?.kind === 'theatre' && ui.selection.id === id;
-  const col = id === 'METRO' && !m ? 'var(--turquoise)' : couleurNiveau(m ? m.estimation : null);
+  const col = !TH[id].exterieur && !m ? 'var(--turquoise)' : couleurNiveau(m ? m.estimation : null);
   const R = 19, circ = 2 * Math.PI * R;
   const frac = m ? m.estimation! / 100 : 0;
   const compo = Object.keys(CATEGORIES).map(c => [c, dep.filter(u => u.categorie === c).length] as const).filter(x => x[1]);

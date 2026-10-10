@@ -1,4 +1,4 @@
-import type { AllieDef, DoctrineDef, OperationDef, ServiceDef, UniteDef } from '../sim/types';
+import type { DoctrineDef, ServiceDef, UniteDef } from '../sim/types';
 import { EXT, MARITIMES } from './monde';
 
 // ---------------------------------------------------------------------
@@ -9,7 +9,7 @@ import { EXT, MARITIMES } from './monde';
 // (Cour des comptes, « Les opérations extérieures de la France 2012-2015 », 2016), soit ≈ 10,5 M€/mois
 // pour 1 000 militaires. C'est un surcoût marginal, pas un coût complet.
 // ---------------------------------------------------------------------
-export const UNITES: UniteDef[] = [
+export const UNITES_FRA: UniteDef[] = [
   // Forces spéciales (COS)
   { id:'RPIMA1', nom:'1er RPIMa',          categorie:'FS', type:'Régiment de forces spéciales Terre', effectif:900,  cap:{assaut:9,renseignement:7,frappe:2,discretion:8,endurance:7}, delai:1, coutDeploiement:3,  coutMensuel:3,  theatres:EXT, depart:'SAHEL' }, // À VÉRIFIER (effectif du régiment ; le COS compte ≈ 3 000 à 4 000 militaires, S43 moyen ; TF Sabre au Sahel : « quelques centaines »)
   { id:'RDP13',  nom:'13e RDP',            categorie:'FS', type:'Recherche humaine en profondeur',     effectif:900,  cap:{assaut:5,renseignement:9,frappe:1,discretion:9,endurance:8}, delai:1, coutDeploiement:3,  coutMensuel:3,  theatres:EXT, depart:null }, // À VÉRIFIER (effectif ; non détaillé dans la fiche FRA)
@@ -49,7 +49,7 @@ export const UNITES: UniteDef[] = [
 // ---------------------------------------------------------------------
 // SERVICES DE RENSEIGNEMENT
 // ---------------------------------------------------------------------
-export const SERVICES: ServiceDef[] = [
+export const SERVICES_FRA: ServiceDef[] = [
   { id:'DGSE',  nom:'DGSE',  libelle:'Direction générale de la sécurité extérieure', domaine:'Extérieur',
     capteurs:{HUMINT:5,SIGINT:4,IMINT:1}, efficacite:{HUMINT:1.2,SIGINT:1.0,IMINT:0.8}, theatres:EXT,
     affectationInitiale:{ SAHEL:{HUMINT:2,SIGINT:1}, LEVANT:{HUMINT:2,SIGINT:2} } },
@@ -65,77 +65,9 @@ export const SERVICES: ServiceDef[] = [
 ];
 
 // ---------------------------------------------------------------------
-// ALLIÉS : acteurs avec une relation (0-100) et des appuis par théâtre.
-// appui.effets : rens, pression, frappesZoom, recosZoom, opBonus, delai (pendant duree mois),
-//                partenaire (immédiat). base : probabilité d'accord avant relation et crédibilité.
-// interets : théâtres où un engagement français améliore la relation.
-// ---------------------------------------------------------------------
-export const ALLIES: AllieDef[] = [
-  { id:'USA', nom:'États-Unis', relation:60, interets:['LEVANT','EST','SAHEL'],
-    description:'Premier partenaire militaire. Moyens de surveillance, de transport stratégique et de frappe sans équivalent, mais une attention fluctuante.',
-    appuis:[
-      { id:'ISR',       nom:'Drones et avions de surveillance',       theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE'], duree:4, capital:2, relation:3, base:0.8,  effets:{ rens:15, recosZoom:1 } }, // Appui américain au Sahel et au Levant : ravitaillement, ISR, C-17 (fiche FRA, S0 moyen). À VÉRIFIER (moyens par théâtre)
-      { id:'FRAPPES',   nom:'Frappes de la coalition',                theatres:['LEVANT','LIBYE'],                          duree:4, capital:3, relation:4, base:0.65, effets:{ pression:10, frappesZoom:2, opBonus:0.05 } },
-      { id:'TRANSPORT', nom:'Transport stratégique (C-17)',           theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE','EST'], duree:4, capital:1, relation:2, base:0.85, effets:{ delai:-1, soutien:2 } },
-      { id:'RAVITO',    nom:'Ravitaillement en vol (KC-135)',         theatres:['SAHEL','LEVANT','LIBYE'],                  duree:4, capital:1, relation:2, base:0.8,  effets:{ pression:4, opBonus:0.05, soutien:1 } },
-      { id:'REASSUR',   nom:'Présence renforcée de l’US Army',        theatres:['EST'],                                     duree:5, capital:2, relation:3, base:0.6,  effets:{ pression:12 } },
-      { id:'NAVAL',     nom:'Patrouilles de l’US Navy',               theatres:['INDOPAC','CORNE'],                         duree:4, capital:1, relation:2, base:0.7,  effets:{ pression:8, rens:5 } }
-    ] },
-  { id:'UK', nom:'Royaume-Uni', relation:65, interets:['LEVANT','EST'],
-    description:'Partenaire militaire le plus proche en Europe (traités de Lancaster House).',
-    appuis:[
-      { id:'FRAPPES',   nom:'Frappes de la RAF',                      theatres:['LEVANT'],          duree:4, capital:2, relation:3, base:0.7,  effets:{ pression:6, frappesZoom:1 } },
-      { id:'ISR',       nom:'Renseignement partagé',                  theatres:['LEVANT','LIBYE'],  duree:4, capital:1, relation:2, base:0.75, effets:{ rens:8 } },
-      { id:'HELICOS',   nom:'Hélicoptères lourds Chinook',            theatres:['SAHEL'],           duree:5, capital:2, relation:3, base:0.5,  effets:{ pression:4, delai:-1 } } // Réel : 3 Chinook à Barkhane en 2018, hors calendrier du jeu (fiche FRA, S0 moyen). Ici un possible plus précoce. À VÉRIFIER
-    ] },
-  { id:'DEU', nom:'Allemagne', relation:65, interets:['SAHEL','EST'],
-    description:'Partenaire européen central, engagé dans la formation au Mali et sur le flanc est.',
-    appuis:[
-      { id:'FORMATION', nom:'Formateurs (mission européenne au Mali)', theatres:['SAHEL'], duree:1, capital:1, relation:2, base:0.75, effets:{ partenaire:6 } },
-      { id:'REASSUR',   nom:'Contribution à la présence avancée',      theatres:['EST'],   duree:5, capital:1, relation:2, base:0.7,  effets:{ pression:6 } }
-    ] },
-  { id:'ITA', nom:'Italie', relation:60, interets:['LIBYE'],
-    description:'Partenaire de premier plan en Méditerranée centrale et en Libye.',
-    appuis:[ { id:'NAVAL', nom:'Opération navale en Méditerranée', theatres:['LIBYE'], duree:4, capital:1, relation:2, base:0.75, effets:{ pression:6, rens:6 } } ] },
-  { id:'JPN', nom:'Japon', relation:55, interets:['CORNE','INDOPAC'],
-    description:'Présent à Djibouti pour la lutte contre la piraterie.',
-    appuis:[ { id:'ISR', nom:'Patrouille maritime P-3C', theatres:['CORNE'], duree:4, capital:1, relation:2, base:0.7, effets:{ rens:8, pression:4 } } ] },
-  { id:'AUS', nom:'Australie', relation:55, interets:['INDOPAC'],
-    description:'Partenaire stratégique dans le Pacifique Sud.',
-    appuis:[ { id:'NAVAL', nom:'Patrouilles conjointes', theatres:['INDOPAC'], duree:4, capital:1, relation:2, base:0.7, effets:{ pression:6, rens:6 } } ] },
-  { id:'NGA', nom:'Nigeria', relation:50, interets:['GUINEE','SAHEL'],
-    description:'Puissance riveraine du golfe de Guinée.',
-    appuis:[ { id:'NAVAL', nom:'Patrouilles de la marine nigériane', theatres:['GUINEE'], duree:4, capital:1, relation:2, base:0.6, effets:{ pression:6 } } ] }
-];
-
-// ---------------------------------------------------------------------
-// OPÉRATIONS STRATÉGIQUES
-// ---------------------------------------------------------------------
-export const OPERATIONS: OperationDef[] = [
-  { id:'FRAPPE', nom:'Frappe', capacite:'frappe', categories:['AIR','MER','TERRE'], minCapacite:5, serviceRequis:null,
-    cibles:['DJIHAD','DAECH','PIRATERIE','BOKO_HARAM'], theatresInterdits:['METRO','EST','INDOPAC'], degats:14, cout:6, capital:0,
-    risquePertes:0.03, risqueCollat:0.28, pression:8, effetSucces:{}, description:'Frappe planifiée (aviation, aéronavale, hélicoptères d’attaque ou artillerie) sur des objectifs identifiés.' },
-  { id:'RAID', nom:'Raid de forces spéciales', capacite:'assaut', categories:['FS','INT'], minCapacite:5, serviceRequis:null,
-    cibles:['TERRO','DJIHAD','DAECH','PIRATERIE','BOKO_HARAM','SHABAAB'], theatresInterdits:[], degats:18, cout:3, capital:1,
-    risquePertes:0.18, risqueCollat:0.12, pression:8, effetSucces:{}, description:'Action ciblée contre un dispositif adverse (interpellation en métropole).' },
-  { id:'FORMATION', nom:'Formation d’une armée partenaire', capacite:'endurance', categories:['TERRE','FS'], minCapacite:5, serviceRequis:null,
-    cibles:null, theatresInterdits:['METRO'], degats:0, cout:4, capital:0,
-    risquePertes:0.03, risqueCollat:0, pression:3, effetSucces:{partenaire:8}, description:'Accompagnement et formation de forces locales (effet durable).' },
-  { id:'PROTECTION', nom:'Protection du territoire', capacite:'assaut', categories:['INT'], minCapacite:1, serviceRequis:null,
-    cibles:null, theatresInterdits:EXT, degats:0, cout:5, capital:0,
-    risquePertes:0.02, risqueCollat:0.04, pression:6, effetSucces:{menaceInt:-8, opinion:1}, description:'Renforcement de la protection des sites sensibles et des rassemblements.' },
-  { id:'CYBERDEF', nom:'Contre-mesure cyber', capacite:'renseignement', categories:[], minCapacite:0, serviceRequis:'ANSSI',
-    cibles:['CYBER','ETAT_EST'], theatresInterdits:[], degats:14, cout:2, capital:0,
-    risquePertes:0, risqueCollat:0.06, pression:4, effetSucces:{}, description:'Neutralisation d’infrastructures d’attaque et durcissement des systèmes.' },
-  { id:'REASSURANCE', nom:'Posture de réassurance', capacite:'endurance', categories:['AIR','MER','TERRE'], minCapacite:4, serviceRequis:null,
-    cibles:['ETAT_EST','INDOPAC_P','PIRATERIE','COREE_NORD'], theatresInterdits:['METRO'], degats:9, cout:5, capital:0,
-    risquePertes:0.01, risqueCollat:0.08, pression:6, effetSucces:{credibilite:1}, description:'Présence visible, exercices et patrouilles avec les partenaires.' }
-];
-
-// ---------------------------------------------------------------------
 // DOCTRINES (choix initial)
 // ---------------------------------------------------------------------
-export const DOCTRINES: DoctrineDef[] = [
+export const DOCTRINES_FRA: DoctrineDef[] = [
   { id:'RENS', nom:'Primauté du renseignement',
     texte:'Priorité aux services. Capteurs supplémentaires et meilleure lecture des menaces, mais des moyens d’action plus comptés.',
     bonus:'+1 capteur HUMINT DGSE et DGSI, renseignement +8 partout', malus:'Enveloppe OPEX -10 M€/mois, succès des opérations -5 %',

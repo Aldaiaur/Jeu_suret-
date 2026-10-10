@@ -1,11 +1,11 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
   AL, ALLIES, BIOMES, CARTES_REGIONALES, NATIONS, PERS, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
-  OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
+  OP, OPERATIONS, TOUS_SERVICES, TOUTES_DOCTRINES, TOUTES_UNITES, TH, THEATRES, TYPES_CAPTEURS, UN
 } from '../data';
-import type { Effets, Etat } from './types';
+import type { Effets, Etat, NationDef } from './types';
 import { cloner, graineVersEntier } from './outils';
-import { appuiDef, capteursLibres, journaliser } from './acces';
+import { alliesDe, appuiDef, capteursLibres, journaliser, servicesDe, theatresDe, unitesDe } from './acces';
 import { actionsPossibles } from './actions';
 import { avancerFile } from './evenements';
 
@@ -29,7 +29,7 @@ export function changerGraine(s: Etat, g: string): Etat {
 export function verifierDonnees(): string[] {
   const err: string[] = [];
   const ids = (l: { id: string }[], nom: string) => { const v: Record<string, number> = {}; for (const x of l) { if (v[x.id]) err.push(nom + ' : identifiant en double ' + x.id); v[x.id] = 1; } };
-  ids(THEATRES, 'THEATRES'); ids(UNITES, 'UNITES'); ids(SERVICES, 'SERVICES'); ids(MENACES, 'MENACES'); ids(EVENEMENTS, 'EVENEMENTS'); ids(ALLIES, 'ALLIES');
+  ids(THEATRES, 'THEATRES'); ids(TOUTES_UNITES, 'UNITES'); ids(TOUS_SERVICES, 'SERVICES'); ids(TOUTES_DOCTRINES, 'DOCTRINES'); ids(OPERATIONS, 'OPERATIONS'); ids(MENACES, 'MENACES'); ids(EVENEMENTS, 'EVENEMENTS'); ids(ALLIES, 'ALLIES');
   const th = (t: string) => TH[t] !== undefined;
   for (const T of THEATRES) for (const v of T.voisins) { if (!th(v)) err.push('Théâtre ' + T.id + ' : voisin inconnu ' + v); else if (!TH[v].voisins.includes(T.id)) err.push('Théâtre ' + T.id + ' : liaison non réciproque avec ' + v); }
   for (const T of THEATRES) {
@@ -47,10 +47,10 @@ export function verifierDonnees(): string[] {
       for (const c in (sa.effets.pression || {})) if (!CATEGORIES[c as keyof typeof CATEGORIES]) err.push('Théâtre ' + T.id + '/' + sa.id + ' : catégorie inconnue ' + c);
     }
   }
-  for (const u of UNITES) { for (const t of u.theatres) if (!th(t)) err.push('Unité ' + u.id + ' : théâtre inconnu ' + t); if (!CATEGORIES[u.categorie]) err.push('Unité ' + u.id + ' : catégorie inconnue'); if (u.depart && !u.theatres.includes(u.depart)) err.push('Unité ' + u.id + ' : théâtre de départ non accessible'); }
-  for (const sv of SERVICES) { for (const t of sv.theatres) if (!th(t)) err.push('Service ' + sv.id + ' : théâtre inconnu ' + t); for (const t in sv.affectationInitiale) if (!sv.theatres.includes(t)) err.push('Service ' + sv.id + ' : affectation hors périmètre ' + t); }
-  for (const m of MENACES) { for (const t of m.theatresDepart.concat(m.expansion)) if (!th(t)) err.push('Menace ' + m.id + ' : théâtre inconnu ' + t); for (const t in m.alimentePar) if (!MT[t]) err.push('Menace ' + m.id + ' : alimentation par type inconnu ' + t); }
-  for (const o of OPERATIONS) for (const c of (o.cibles || [])) if (!MT[c]) err.push('Opération ' + o.id + ' : cible inconnue ' + c);
+  for (const u of TOUTES_UNITES) { for (const t of u.theatres) if (!th(t)) err.push('Unité ' + u.id + ' : théâtre inconnu ' + t); if (!CATEGORIES[u.categorie]) err.push('Unité ' + u.id + ' : catégorie inconnue'); if (u.depart && !u.theatres.includes(u.depart)) err.push('Unité ' + u.id + ' : théâtre de départ non accessible'); }
+  for (const sv of TOUS_SERVICES) { for (const t of sv.theatres) if (!th(t)) err.push('Service ' + sv.id + ' : théâtre inconnu ' + t); for (const t in sv.affectationInitiale) if (!sv.theatres.includes(t)) err.push('Service ' + sv.id + ' : affectation hors périmètre ' + t); }
+  for (const m of MENACES) { for (const t of m.theatresDepart.concat(m.expansion)) if (!th(t)) err.push('Menace ' + m.id + ' : théâtre inconnu ' + t); for (const t in m.alimentePar) if (!MT[t]) err.push('Menace ' + m.id + ' : alimentation par type inconnu ' + t); for (const sv in { ...m.servicesCles, ...m.pressionServices }) if (!TOUS_SERVICES.some(x => x.id === sv)) err.push('Menace ' + m.id + ' : service inconnu ' + sv); }
+  for (const o of OPERATIONS) { for (const c of (o.cibles || [])) if (!MT[c]) err.push('Opération ' + o.id + ' : cible inconnue ' + c); for (const t of o.theatresInterdits) if (!th(t)) err.push('Opération ' + o.id + ' : théâtre inconnu ' + t); }
   for (const A of ALLIES) for (const ap of A.appuis) for (const t of ap.theatres) if (!th(t)) err.push('Allié ' + A.id + '/' + ap.id + ' : théâtre inconnu ' + t);
   const verifEffets = (e: Effets | undefined, ou: string): void => {
     if (!e) return;
@@ -67,7 +67,8 @@ export function verifierDonnees(): string[] {
     if (!E.choix || E.choix.length < 2 || E.choix.length > 3) err.push('Événement ' + E.id + ' : 2 ou 3 choix attendus');
     if (E.choix.every(c => c.requiert)) err.push('Événement ' + E.id + ' : au moins un choix doit être toujours possible');
     for (const c of E.choix) { verifEffets(c.effets, 'Événement ' + E.id); if (c.suite && !EV[c.suite]) err.push('Événement ' + E.id + ' : suite inconnue ' + c.suite); }
-    if (E.auteur && !PERS[E.auteur]) err.push('Événement ' + E.id + ' : auteur inconnu ' + E.auteur);
+    if (!PERS[E.auteur]) err.push('Événement ' + E.id + ' : auteur inconnu ' + E.auteur);
+    else if (!NATIONS[PERS[E.auteur].pays]) err.push('Événement ' + E.id + ' : l’auteur doit appartenir à une nation jouable');
     const k = E.cond || {};
     if (k.menace && !MT[k.menace.type]) err.push('Événement ' + E.id + ' : condition sur menace inconnue');
     for (const r of [k.relationMin, k.relationMax]) if (r && !AL[r.allie]) err.push('Événement ' + E.id + ' : condition sur allié inconnu');
@@ -76,15 +77,17 @@ export function verifierDonnees(): string[] {
   for (const M of Object.values(MISSIONS)) for (const c of M.categories) if (!CATEGORIES[c]) err.push('Mission ' + M.id + ' : catégorie inconnue ' + c);
   for (const u in SOUTIEN_UNITE) if (!UN[u]) err.push('Soutien : unité inconnue ' + u);
   for (const u of MOBILITE_HELICO) if (!UN[u]) err.push('Mobilité : unité inconnue ' + u);
-  for (const u of UNITES) if (!Object.values(POSTURES).some(P => P.categories.includes(u.categorie))) err.push('Unité ' + u.id + ' : aucune posture possible');
+  for (const u of TOUTES_UNITES) if (!Object.values(POSTURES).some(P => P.categories.includes(u.categorie))) err.push('Unité ' + u.id + ' : aucune posture possible');
   ids(MATERIELS, 'MATERIELS');
   for (const N of Object.values(NATIONS)) {
     const P = N.procedure;
     if (!(P.dureeAvantVote >= 1)) err.push('Nation ' + N.id + ' : durée avant vote invalide');
     if (!P.texteAutorise.includes('{theatre}') || !P.texteRefus.includes('{theatre}')) err.push('Nation ' + N.id + ' : textes du vote sans {theatre}');
     if (P.debat.bonus < 0 || P.debat.capital < 0) err.push('Nation ' + N.id + ' : débat invalide');
+    for (const c of P.categoriesExemptees || []) if (!CATEGORIES[c]) err.push('Nation ' + N.id + ' : catégorie exemptée inconnue ' + c);
+    err.push(...verifierNation(N));
   }
-  for (const u of UNITES) {
+  for (const u of TOUTES_UNITES) {
     const I = IDENTITES[u.id];
     if (!I) { err.push('Unité ' + u.id + ' : identité (sigle, symbole, insigne) manquante'); continue; }
     if (!/^[SGWIOE][PUAFNSHGWMDLJKO-][PAGSUFXZ-][APCDXF-][A-Z0-9-]{6}[A-Z0-9-]{5}$/.test(I.sidc)) err.push('Unité ' + u.id + ' : code SIDC invalide ' + I.sidc);
@@ -123,6 +126,55 @@ export function verifierDonnees(): string[] {
   return err;
 }
 
+// Une nation ne référence que ses propres théâtres, forces, services et alliés ; ses dossiers aussi.
+function verifierNation(N: NationDef): string[] {
+  const err: string[] = [], e = (m: string) => err.push('Nation ' + N.id + ' : ' + m);
+  const T = new Set(N.theatres), U = new Set(N.unites.map(u => u.id)), S = new Set(N.services.map(x => x.id)), A = new Set(Object.keys(N.allies));
+  for (const t of N.theatres) if (!TH[t]) e('théâtre inconnu ' + t);
+  if (!T.has(N.territoire) || TH[N.territoire]?.exterieur) e('territoire national invalide ' + N.territoire);
+  for (const t of N.theatres) if (t !== N.territoire && !TH[t]?.exterieur) e('un seul théâtre intérieur attendu (' + t + ')');
+  for (const t of N.basesPermanentes) if (!T.has(t)) e('base permanente hors des théâtres ' + t);
+  for (const u of N.unites) { for (const t of u.theatres) if (!T.has(t)) e('unité ' + u.id + ' sur un théâtre hors partie ' + t); }
+  for (const sv of N.services) for (const t of sv.theatres) if (!T.has(t)) e('service ' + sv.id + ' sur un théâtre hors partie ' + t);
+  for (const a of A) if (!AL[a]) e('allié inconnu ' + a);
+  for (const o of N.operations) { if (!OP[o]) e('opération inconnue ' + o); else if (OP[o].serviceRequis && !S.has(OP[o].serviceRequis!)) e('opération ' + o + ' : service requis absent'); }
+  for (const d of N.doctrines) for (const sv in d.mods.capteursBonus) if (!S.has(sv)) e('doctrine ' + d.id + ' : service inconnu ' + sv);
+  if (N.levier && !A.has(N.levier.allie)) e('levier sur un allié absent ' + N.levier.allie);
+  if (!PERS[N.briefing.expediteur] || PERS[N.briefing.expediteur].pays !== N.id) e('expéditeur du briefing invalide');
+  for (const p of N.briefing.paragraphes) if (p.theatre && !T.has(p.theatre)) e('briefing : théâtre hors partie ' + p.theatre);
+  if (!N.unites.some(u => u.categorie === 'INT' && u.theatres.includes(N.territoire))) e('aucune force de sécurité intérieure');
+  for (const m of MENACES) {
+    const cles = Object.keys(m.servicesCles);
+    if (m.theatresDepart.some(t => T.has(t)) && cles.length && !cles.some(sv => S.has(sv))) e('menace ' + m.id + ' : aucun service de la nation ne la renseigne');
+  }
+  const verif = (x: Effets | undefined, ou: string): void => {
+    if (!x) return;
+    for (const k of ['rens', 'partenaire', 'pression'] as const) for (const y of (x[k] || [])) if (!T.has(y.theatre)) e(ou + ' : théâtre hors partie ' + y.theatre);
+    for (const y of (x.fatigue || [])) if (y.unite && !U.has(y.unite)) e(ou + ' : unité étrangère ' + y.unite);
+    if (x.indispo && !U.has(x.indispo.unite)) e(ou + ' : unité étrangère ' + x.indispo.unite);
+    for (const y of (x.relation || [])) if (!A.has(y.allie)) e(ou + ' : allié absent ' + y.allie);
+    if (x.appui && (!A.has(x.appui.allie) || !T.has(x.appui.theatre))) e(ou + ' : appui hors partie');
+    if (x.allie && !T.has(x.allie.theatre)) e(ou + ' : théâtre hors partie ' + x.allie.theatre);
+    if (x.crise && TH[x.crise] && !T.has(x.crise)) e(ou + ' : crise hors partie ' + x.crise);
+    if (x.alea) { verif(x.alea.succes, ou); verif(x.alea.echec, ou); }
+  };
+  const dossiers = EVENEMENTS.filter(E => PERS[E.auteur]?.pays === N.id);
+  if (dossiers.length < 15) e('au moins 15 dossiers attendus (' + dossiers.length + ')');
+  for (const E of dossiers) {
+    for (const c of E.choix) { verif(c.effets, 'dossier ' + E.id); if (c.suite && EV[c.suite] && PERS[EV[c.suite].auteur]?.pays !== N.id) e('dossier ' + E.id + ' : suite d’une autre nation'); }
+    const k = E.cond || {};
+    if (k.theatreDeploye && !T.has(k.theatreDeploye)) e('dossier ' + E.id + ' : condition hors partie');
+    if (k.rensMin && !T.has(k.rensMin.theatre)) e('dossier ' + E.id + ' : condition hors partie');
+    for (const r of [k.relationMin, k.relationMax]) if (r && !A.has(r.allie)) e('dossier ' + E.id + ' : condition sur allié absent');
+  }
+  for (const id in CARTES_REGIONALES) {
+    const C = CARTES_REGIONALES[id];
+    if (!T.has(C.theatre)) continue;
+    for (const r of C.reponsesCrise || []) for (const x of [r.effets, r.succes, r.echec]) for (const y of (x.relation || [])) if (!A.has(y.allie)) e('carte ' + id + '/' + r.id + ' : allié absent ' + y.allie);
+  }
+  return err;
+}
+
 // ---------- Invariants de l'état ----------
 export function verifierInvariants(s: Etat, complet: boolean): string[] {
   const err: string[] = [];
@@ -130,7 +182,7 @@ export function verifierInvariants(s: Etat, complet: boolean): string[] {
   for (const k of ['opinion', 'capital', 'menaceInt', 'credibilite'] as const) if (!(R[k] >= 0 && R[k] <= 100)) err.push(k + ' hors bornes : ' + R[k]);
   for (const k of ['budget', 'enveloppe', 'surcout'] as const) if (!Number.isFinite(R[k])) err.push(k + ' invalide');
   for (const m of s.menaces) if (!(m.force > 0 && m.force <= 100)) err.push('force de menace invalide ' + m.id + ' : ' + m.force);
-  for (const u of UNITES) {
+  for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (!ETATS_UNITE[e.etat]) err.push('état inconnu ' + u.id);
     if ((e.etat === 'deployee' || e.etat === 'projection') && !TH[e.theatre!]) err.push('unité sans théâtre ' + u.id);
@@ -139,9 +191,9 @@ export function verifierInvariants(s: Etat, complet: boolean): string[] {
     if (e.lieu && (!e.theatre || !s.theatres[e.theatre].lieux[e.lieu])) err.push('implantation invalide ' + u.id);
     if (e.mission && (e.etat !== 'deployee' || !MISSIONS[e.mission.type])) err.push('mission invalide ' + u.id);
   }
-  for (const sv of SERVICES) for (const ty of TYPES_CAPTEURS) if (capteursLibres(s, sv.id, ty) < 0) err.push('capteurs négatifs ' + sv.id);
-  for (const A of ALLIES) if (!(s.allies[A.id].relation >= 0 && s.allies[A.id].relation <= 100)) err.push('relation invalide ' + A.id);
-  for (const T of THEATRES) for (const a of s.theatres[T.id].appuis) if (!(a.tours > 0) || !appuiDef(a.allie, a.appui)) err.push('appui invalide ' + T.id);
+  for (const sv of servicesDe(s)) for (const ty of TYPES_CAPTEURS) if (capteursLibres(s, sv.id, ty) < 0) err.push('capteurs négatifs ' + sv.id);
+  for (const A of alliesDe(s)) if (!(s.allies[A.id].relation >= 0 && s.allies[A.id].relation <= 100)) err.push('relation invalide ' + A.id);
+  for (const T of theatresDe(s)) for (const a of s.theatres[T.id].appuis) if (!(a.tours > 0) || !appuiDef(a.allie, a.appui)) err.push('appui invalide ' + T.id);
   const j = complet ? JSON.stringify(s) : null;
   if (complet && JSON.stringify(JSON.parse(j!)) !== j) err.push('état non sérialisable');
   if (!s.fin && actionsPossibles(s).length === 0 && s.phase !== 'jeu') err.push('blocage : aucune action en phase ' + s.phase);

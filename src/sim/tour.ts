@@ -1,8 +1,11 @@
 // Fin de tour mensuelle, fin de partie et score.
-import { ALLIES, CARTES_REGIONALES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
+import { CARTES_REGIONALES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH } from '../data';
 import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
-import { actionsParTour, appuiDef, dateDuTour, procedure, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
+import {
+  actionsParTour, alliesDe, appuiDef, dateDuTour, devise, procedure, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote,
+  relationReference, soumisProcedure, theatresDe, unitesDans, unitesDe, unitesSoumises, voisinsDe
+} from './acces';
 import { coutMissions, coutMensuelUnite, resoudreTactique } from './tactique';
 import { POSTURES } from '../data';
 import { calculerRens, estimerMenaces, rensMenace } from './renseignement';
@@ -21,19 +24,19 @@ export function finDeTour(s: Etat): Etat {
 
   // 1. Budget
   let depenses = 0;
-  for (const u of UNITES) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += coutMensuelUnite(n, u); }
+  for (const u of unitesDe(n)) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += coutMensuelUnite(n, u); }
   depenses += coutMissions(n);
   R.budget = arrondi(R.budget + R.enveloppe - depenses);
   if (R.budget < 0) {
     R.surcout = arrondi(R.surcout - R.budget);
     const pen = 1 + Math.floor(-R.budget / 20);
     R.capital = borner(R.capital - pen, 0, 100);
-    journaliser(n, 'Dépassement de l’enveloppe : ' + arrondi(-R.budget) + ' M€ de surcoût OPEX (capital -' + pen + ').', 'alerte');
+    journaliser(n, 'Dépassement de l’enveloppe : ' + arrondi(-R.budget) + ' ' + devise(n) + ' de surcoût opérationnel (capital -' + pen + ').', 'alerte');
     R.budget = 0;
   }
 
   // 2. Unités
-  for (const u of UNITES) {
+  for (const u of unitesDe(n)) {
     const e = n.unites[u.id];
     if (enIndisponibilite(u, n.tour + 1)) {
       if (e.etat === 'deployee' || e.etat === 'projection') rapatrier(n, u.id, 'arrêt technique programmé');
@@ -54,11 +57,11 @@ export function finDeTour(s: Etat): Etat {
     if (e.etat === 'disponible') e.fatigue = borner(e.fatigue - PARAMS.fatigueRepos, 0, 100);
   }
 
-  // 3. Procédure d'emploi de la force (France : article 35 de la Constitution)
-  for (const T of THEATRES) {
-    if (!T.exterieur || T.basePermanente) continue;
+  // 3. Procédure d'emploi de la force (décrite en données par la nation)
+  for (const T of theatresDe(n)) {
+    if (!soumisProcedure(n, T.id)) continue;
     const th = n.theatres[T.id];
-    if (unitesDans(n, T.id, ['deployee', 'projection']).length) {
+    if (unitesSoumises(n, T.id, ['deployee', 'projection']).length) {
       th.toursIntervention++;
       if (th.toursIntervention > procedure(n).dureeAvantVote && !th.voteFait) {
         const p = probaVote(n, T.id);
@@ -69,7 +72,7 @@ export function finDeTour(s: Etat): Etat {
           journaliser(n, t, 'succes'); decider(n, t);
         } else {
           n.stats.votesPerdus++;
-          for (const u of unitesDans(n, T.id, ['deployee', 'projection'])) rapatrier(n, u.id, 'vote négatif du Parlement');
+          for (const u of unitesSoumises(n, T.id, ['deployee', 'projection'])) rapatrier(n, u.id, procedure(n).motifRetrait);
           R.capital = borner(R.capital + procedure(n).refus.capital, 0, 100); R.credibilite = borner(R.credibilite + procedure(n).refus.credibilite, 0, 100);
           th.toursIntervention = 0; th.debat = false;
           const t = procedure(n).texteRefus.replace('{theatre}', T.nom);
@@ -96,7 +99,7 @@ export function finDeTour(s: Etat): Etat {
     m.force = borner(Math.round((m.force + delta) * 10) / 10, 0, 100);
     // Expansion vers un théâtre voisin
     if (m.force > T.seuilExpansion && alea(n) < T.probExpansion) {
-      const cibles = T.expansion.filter(t => TT.voisins.includes(t));
+      const voisins = voisinsDe(n, m.theatre), cibles = T.expansion.filter(t => voisins.includes(t));
       if (cibles.length) {
         const dest = choisir(n, cibles);
         const ex = n.menaces.find(x => x.type === m.type && x.theatre === dest);
@@ -130,19 +133,19 @@ export function finDeTour(s: Etat): Etat {
   // 5. Menace intérieure
   let cible = 0, prot = 0;
   for (const m of n.menaces) cible += (TH[m.theatre].exterieur ? 0 : MT[m.type].poidsInterieur * m.force) + MT[m.type].impactInterieur * m.force;
-  for (const u of UNITES) if (u.protection && n.unites[u.id].etat === 'deployee') prot += u.protection;
+  for (const u of unitesDe(n)) if (u.protection && n.unites[u.id].etat === 'deployee') prot += u.protection;
   prot = Math.min(prot * md.protectionMult, cible * PARAMS.plafondProtection);
   R.menaceInt = borner(Math.round(R.menaceInt + (cible - prot - R.menaceInt) * 0.35), 0, 100);
   n.menaceInt100 = R.menaceInt >= 100 ? n.menaceInt100 + 1 : 0;
 
   // 6. Opinion, crédibilité, capital
-  const nbExt = THEATRES.filter(T => T.exterieur && unitesDans(n, T.id).length).length;
+  const nbExt = theatresDe(n).filter(T => T.exterieur && unitesDans(n, T.id).length).length;
   R.opinion = borner(Math.round((R.opinion + (50 - R.opinion) * PARAMS.opinionRappel - Math.max(0, R.menaceInt - 55) * 0.1 - Math.max(0, nbExt - 3) * 0.5) * 10) / 10, 0, 100);
   R.credibilite = borner(Math.round((R.credibilite + (50 - R.credibilite) * 0.02 + nbExt * 0.3) * 10) / 10, 0, 100);
   R.capital = borner(R.capital + PARAMS.capitalMensuel + md.capitalMensuel - (R.opinion < 30 ? 1 : 0), 0, 100);
 
   // 7. Décroissances et crises livrées à elles-mêmes
-  for (const T of THEATRES) {
+  for (const T of theatresDe(n)) {
     const th = n.theatres[T.id];
     th.rensBonus = Math.abs(th.rensBonus) <= 2 ? 0 : th.rensBonus - Math.sign(th.rensBonus) * 2;
     th.pressionBonus = Math.round(th.pressionBonus * 0.7);
@@ -157,15 +160,15 @@ export function finDeTour(s: Etat): Etat {
       if (m) m.force = borner(m.force + 4, 0, 100);
       R.credibilite = borner(R.credibilite - 1, 0, 100);
       th.crise.toursLibres--;
-      if (th.crise.toursLibres <= 0) { journaliser(n, 'Crise close sans intervention française : ' + th.crise.titre + '.', 'info'); th.crise = null; }
+      if (th.crise.toursLibres <= 0) { journaliser(n, 'Crise close sans notre intervention : ' + th.crise.titre + '.', 'info'); th.crise = null; }
     }
   }
 
   // 7 bis. Relations avec les alliés : rappel vers la valeur de référence, engagement sur leurs théâtres d'intérêt
-  for (const A of ALLIES) {
+  for (const A of alliesDe(n)) {
     const st = n.allies[A.id];
-    const engage = A.interets.filter(t => unitesDans(n, t).length > 0).length;
-    st.relation = borner(Math.round((st.relation + (A.relation - st.relation) * 0.05 + engage * 0.4 + (R.credibilite - 50) * 0.01) * 10) / 10, 0, 100);
+    const engage = A.interets.filter(t => n.theatres[t] && unitesDans(n, t).length > 0).length;
+    st.relation = borner(Math.round((st.relation + (relationReference(n, A.id) - st.relation) * 0.05 + engage * 0.4 + (R.credibilite - 50) * 0.01) * 10) / 10, 0, 100);
     if (st.cooldown > 0) st.cooldown--;
   }
 
@@ -199,7 +202,7 @@ export function instantane(s: Etat): Instantane {
     tour: s.tour, opinion: s.ressources.opinion, capital: s.ressources.capital, menaceInt: s.ressources.menaceInt,
     credibilite: s.ressources.credibilite, surcout: s.ressources.surcout,
     menaceExt: ext.length ? Math.round(ext.reduce((a, m) => a + m.force, 0) / ext.length) : 0,
-    rens: Math.round(THEATRES.reduce((a, T) => a + s.theatres[T.id].rens, 0) / THEATRES.length)
+    rens: Math.round(theatresDe(s).reduce((a, T) => a + s.theatres[T.id].rens, 0) / theatresDe(s).length)
   };
 }
 
@@ -220,7 +223,7 @@ export function calculerScore(s: Etat): Score {
   const extFinal = ext.length ? ext.reduce((a, m) => a + m.force, 0) / ext.length : 0;
   const crises = s.stats.crisesInterv ? s.stats.crisesReussies / s.stats.crisesInterv : 0.5;
   // Terrain : part des lieux non tenus par l'adversaire sur les théâtres d'intervention (cartes de crise)
-  const terrains = THEATRES.filter(T => T.exterieur && CARTES_REGIONALES[T.carteRegionale].zoomCrise).map(T => {
+  const terrains = theatresDe(s).filter(T => T.exterieur && CARTES_REGIONALES[T.carteRegionale].zoomCrise).map(T => {
     const L = Object.values(s.theatres[T.id].lieux);
     return L.filter(x => x.controle !== 'ennemi').length / L.length;
   });
@@ -231,7 +234,7 @@ export function calculerScore(s: Etat): Score {
     { nom: 'Contrôle du terrain', valeur: Math.round(terrain * 100), poids: 0.1 },
     { nom: 'Renseignement', valeur: Math.round(moy('rens')), poids: 0.13 },
     { nom: 'Politique intérieure', valeur: Math.round((moy('opinion') + s.ressources.capital) / 2), poids: 0.13 },
-    { nom: 'Crédibilité et alliances', valeur: Math.round(moy('credibilite') * 0.7 + ALLIES.reduce((a, A) => a + s.allies[A.id].relation, 0) / ALLIES.length * 0.3), poids: 0.1 },
+    { nom: 'Crédibilité et alliances', valeur: Math.round(moy('credibilite') * 0.7 + alliesDe(s).reduce((a, A) => a + s.allies[A.id].relation, 0) / alliesDe(s).length * 0.3), poids: 0.1 },
     { nom: 'Maîtrise budgétaire', valeur: Math.round(borner(100 - s.ressources.surcout / 5, 0, 100)), poids: 0.1 }
   ];
   let total = Math.round(domaines.reduce((a, d) => a + d.valeur * d.poids, 0));

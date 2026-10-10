@@ -1,10 +1,11 @@
 // Actions du joueur : liste des actions permises et application (fonctions pures vues de l'extérieur).
-import { AL, ALLIES, DOC, DOCTRINES, EV, MT, OP, OPERATIONS, PARAMS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../data';
+import { AL, DOC, EV, MT, OP, PARAMS, TH, TYPES_CAPTEURS, UN } from '../data';
 import type { Action, ChoixDef, Effets, Etat, OperationDef } from './types';
 import { alea, borner, cleAction, cloner } from './outils';
 import {
   BONUS_PERIODIQUES, actionsParTour, appuiDef, capteursLibres, coutMult, decider, delaiProjection,
-  enIndisponibilite, journaliser, menaceParId, menacesDans, nbCapteurs, procedure
+  devise, enIndisponibilite, journaliser, menaceParId, menacesDans, nbCapteurs, procedure,
+  alliesDe, doctrinesDe, operationsDe, presents, servicesDe, soumisProcedure, theatresDe, unitesDe
 } from './acces';
 import { calculerRens } from './renseignement';
 import { evaluerAppui, evaluerOperation, moyensCrise, participantsOperation } from './evaluation';
@@ -18,7 +19,7 @@ import { actTactique, actionsTactiques, carteDuTheatre, estAuSol } from './tacti
 export function actionsPossibles(s: Etat): Action[] {
   const L: Action[] = [];
   if (s.fin) return L;
-  if (s.phase === 'doctrine') { for (const d of DOCTRINES) L.push({ type: 'DOCTRINE', id: d.id }); return L; }
+  if (s.phase === 'doctrine') { for (const d of doctrinesDe(s)) L.push({ type: 'DOCTRINE', id: d.id }); return L; }
   if (s.phase === 'evenement') {
     const E = EV[s.evenementCourant!];
     E.choix.forEach((c, i) => { if (choixPermis(s, c)) L.push({ type: 'CHOIX', index: i }); });
@@ -35,7 +36,7 @@ export function actionsPossibles(s: Etat): Action[] {
   if (s.phase !== 'jeu') return L;
 
   const R = s.ressources;
-  for (const sv of SERVICES) for (const t of sv.theatres) for (const ty of TYPES_CAPTEURS) {
+  for (const sv of servicesDe(s)) for (const t of sv.theatres) for (const ty of TYPES_CAPTEURS) {
     if (s.services[sv.id].capteurs[ty] <= 0) continue;
     if (capteursLibres(s, sv.id, ty) > 0) L.push({ type: 'CAPTEUR', service: sv.id, theatre: t, capteur: ty, delta: 1 });
     const a = s.services[sv.id].affectations[t];
@@ -43,14 +44,14 @@ export function actionsPossibles(s: Etat): Action[] {
   }
   L.push(...actionsTactiques(s));
   if (s.actionsRestantes <= 0) return L;
-  for (const u of UNITES) {
+  for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (e.etat === 'disponible' && !enIndisponibilite(u, s.tour)) for (const t of u.theatres) L.push({ type: 'DEPLOYER', unite: u.id, theatre: t });
     if (e.etat === 'deployee' || e.etat === 'projection') L.push({ type: 'RAPATRIER', unite: u.id });
   }
-  for (const op of OPERATIONS) {
+  for (const op of operationsDe(s)) {
     if (R.capital <= op.capital) continue;
-    for (const T of THEATRES) {
+    for (const T of theatresDe(s)) {
       if (op.theatresInterdits.includes(T.id)) continue;
       if (op.serviceRequis && nbCapteurs(s, op.serviceRequis, T.id) === 0) continue;
       if (!op.serviceRequis && participantsOperation(s, op, T.id).length === 0) continue;
@@ -58,24 +59,24 @@ export function actionsPossibles(s: Etat): Action[] {
       else for (const m of menacesDans(s, T.id)) if (m.detectee && op.cibles.includes(m.type)) L.push({ type: 'OPERATION', op: op.id, theatre: T.id, cible: m.id });
     }
   }
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const th = s.theatres[T.id];
-    if (T.exterieur && !T.basePermanente && !th.voteFait && !th.debat && th.toursIntervention > 0 && R.capital > procedure(s).debat.capital) L.push({ type: 'DEBAT', theatre: T.id });
+    if (soumisProcedure(s, T.id) && !th.voteFait && !th.debat && th.toursIntervention > 0 && R.capital > procedure(s).debat.capital) L.push({ type: 'DEBAT', theatre: T.id });
   }
   if (R.capital > 8) L.push({ type: 'BUDGET', sens: 'hausse' });
   if (R.enveloppe > 20) L.push({ type: 'BUDGET', sens: 'baisse' });
-  for (const A of ALLIES) {
+  for (const A of alliesDe(s)) {
     if (s.allies[A.id].cooldown > 0) continue;
     for (const ap of A.appuis) {
       if (R.capital <= ap.capital) continue;
-      for (const t of ap.theatres) if (!s.theatres[t].appuis.some(x => x.allie === A.id && x.appui === ap.id)) L.push({ type: 'ALLIE', allie: A.id, appui: ap.id, theatre: t });
+      for (const t of presents(s, ap.theatres)) if (!s.theatres[t].appuis.some(x => x.allie === A.id && x.appui === ap.id)) L.push({ type: 'ALLIE', allie: A.id, appui: ap.id, theatre: t });
     }
   }
   return L;
 }
 export function choixPermis(s: Etat, c: ChoixDef): boolean {
   if (!c.requiert) return true;
-  if (c.requiert.categorie) return UNITES.some(u => u.categorie === c.requiert!.categorie && ['disponible', 'deployee'].includes(s.unites[u.id].etat));
+  if (c.requiert.categorie) return unitesDe(s).some(u => u.categorie === c.requiert!.categorie && ['disponible', 'deployee'].includes(s.unites[u.id].etat));
   return true;
 }
 
@@ -216,10 +217,10 @@ function actDebat(s: Etat, a: ActionDe<'DEBAT'>): void {
 }
 function actBudget(s: Etat, a: ActionDe<'BUDGET'>): void {
   const R = s.ressources;
-  if (a.sens === 'hausse') { R.capital -= 8; R.enveloppe += 10; decider(s, 'Rallonge budgétaire obtenue : enveloppe portée à ' + R.enveloppe + ' M€/mois.'); }
-  else { R.enveloppe -= 10; R.capital = borner(R.capital + 4, 0, 100); decider(s, 'Économies consenties : enveloppe ramenée à ' + R.enveloppe + ' M€/mois.'); }
+  if (a.sens === 'hausse') { R.capital -= 8; R.enveloppe += 10; decider(s, 'Rallonge budgétaire obtenue : enveloppe portée à ' + R.enveloppe + ' ' + devise(s) + '/mois.'); }
+  else { R.enveloppe -= 10; R.capital = borner(R.capital + 4, 0, 100); decider(s, 'Économies consenties : enveloppe ramenée à ' + R.enveloppe + ' ' + devise(s) + '/mois.'); }
   s.actionsRestantes--;
-  journaliser(s, 'Arbitrage budgétaire : enveloppe ' + R.enveloppe + ' M€/mois.', 'decision');
+  journaliser(s, 'Arbitrage budgétaire : enveloppe ' + R.enveloppe + ' ' + devise(s) + '/mois.', 'decision');
 }
 export function activerAppui(s: Etat, allieId: string, appuiId: string, theatre: string, tours: number): void {
   const ap = appuiDef(allieId, appuiId), th = s.theatres[theatre];
@@ -232,13 +233,13 @@ export function activerAppui(s: Etat, allieId: string, appuiId: string, theatre:
 function actAllie(s: Etat, a: ActionDe<'ALLIE'>): void {
   const A = AL[a.allie], ap = appuiDef(a.allie, a.appui), R = s.ressources, rel = s.allies[a.allie];
   const ev = evaluerAppui(s, a.allie, a.appui, a.theatre);
-  R.capital -= ap.capital;
+  R.capital -= ev.capital;
   s.actionsRestantes--;
   rel.cooldown = 2;
   let txt: string;
   if (alea(s) < ev.pSucces) {
     activerAppui(s, a.allie, a.appui, a.theatre, ap.duree);
-    rel.relation = borner(rel.relation - ap.relation, 0, 100);
+    rel.relation = borner(rel.relation - ev.relation, 0, 100);
     txt = A.nom + ' accorde : ' + ap.nom + ' (' + TH[a.theatre].nom + (ap.duree > 1 ? ', ' + ap.duree + ' mois' : '') + ').';
   } else {
     rel.relation = borner(rel.relation - 1, 0, 100);

@@ -8,6 +8,8 @@ import type { IdentiteUnite } from '../sim/types';
 // protégés. Les devises sont fictives ou génériques.
 // Échelons SIDC (12e caractère) : D section, E compagnie ou escadron, F bataillon, G régiment.
 // ---------------------------------------------------------------------
+// Couleurs britanniques : bordeaux des parachutistes, vert fusilier, bleu de la RAF, bleu police
+const BORDEAUX = '#6b1f2a', VERT_FUSIL = '#25402c', BLEU_RAF = '#2c4a72', BLEU_POLICE = '#1f2f55', CIEL_GB = '#9cc3dd', SABLE_GB = '#b49a6a';
 const MARINE = '#16233f', OR = '#c9a54a', ARGENT = '#c8cdd2', ROUGE = '#9b2b2b', CIEL = '#3d6f9e', VERT = '#2f5b3e', NOIR = '#14181c', BLEU = '#25467a';
 
 export const IDENTITES: Record<string, IdentiteUnite> = {
@@ -66,5 +68,62 @@ export const IDENTITES: Record<string, IdentiteUnite> = {
   GABRIEL: { sigle:'GABRL', sidc:'SFAPMFRZ---D---', materiels:['C160G'],
     insigne:{ forme:'rond', fond:NOIR, bordure:CIEL, symbole:'onde', couleurSymbole:'#8fd0e8', bande:ARGENT, devise:'Écouter le ciel' } },
   HORIZON: { sigle:'HORZN', sidc:'SFSPCLDD-------', materiels:['HORIZON'],
-    insigne:{ forme:'ecu', fond:MARINE, bordure:ARGENT, symbole:'bouclier', couleurSymbole:ARGENT, bande:CIEL, devise:'Bouclier de la flotte' } }
+    insigne:{ forme:'ecu', fond:MARINE, bordure:ARGENT, symbole:'bouclier', couleurSymbole:ARGENT, bande:CIEL, devise:'Bouclier de la flotte' } },
+  // ---------- Royaume-Uni (créations originales, devises fictives : aucune ne reprend une devise réelle) ----------
+  SAS22:   { sigle:'22SAS', sidc:'SFFPG------G---', materiels:['JACKAL'],
+    insigne:{ forme:'losange', fond:NOIR, bordure:SABLE_GB, symbole:'etoile', couleurSymbole:SABLE_GB, bande:CIEL_GB, devise:'Plus loin que la nuit' } },
+  SBS:     { sigle:'SBS', sidc:'SFFPN------E---', materiels:['EMBARCATION'],
+    insigne:{ forme:'rond', fond:MARINE, bordure:ARGENT, symbole:'trident', couleurSymbole:ARGENT, bande:VERT, devise:'Sous la vague' } },
+  SRR:     { sigle:'SRR', sidc:'SFFPG------F---', materiels:['JACKAL'],
+    insigne:{ forme:'ecu', fond:NOIR, bordure:VERT_FUSIL, symbole:'oeil', couleurSymbole:VERT_FUSIL, devise:'Voir sans être vu' } },
+  SFSG:    { sigle:'SFSG', sidc:'SFGPUCIA---F---', materiels:['JACKAL'],
+    insigne:{ forme:'ecu', fond:BORDEAUX, bordure:CIEL_GB, symbole:'parachute', couleurSymbole:CIEL_GB, devise:'Toujours en appui' } },
+  JSFAW:   { sigle:'JSFAW', sidc:'SFFPAH-----F---', materiels:['CHINOOK'],
+    insigne:{ forme:'insigne_aile', fond:NOIR, bordure:CIEL_GB, symbole:'rotor', couleurSymbole:CIEL_GB, devise:'Entrer et sortir' } },
+  CTSFO:   { sigle:'CTSFO', sidc:'SFGPUULC---E---', materiels:[],
+    insigne:{ forme:'ecu_pointe', fond:BLEU_POLICE, bordure:ARGENT, symbole:'cible', couleurSymbole:ARGENT, devise:'Calme sous le feu' } },
+  ARV:     { sigle:'ARV', sidc:'SFGPUULF---H---', materiels:[],
+    insigne:{ forme:'ecu_pointe', fond:BLEU_POLICE, bordure:OR, symbole:'bouclier', couleurSymbole:OR, bande:ARGENT, devise:'Au service de la rue' } },
+  TEMPERER:{ sigle:'TMPR', sidc:'SFGPUCI----H---', materiels:['FOXHOUND'],
+    insigne:{ forme:'rond', fond:BORDEAUX, bordure:ARGENT, symbole:'tour', couleurSymbole:ARGENT, bande:BLEU_POLICE, devise:'Garder la cité' } },
+  PARA16:  { sigle:'16AA', sidc:'SFGPUCIA---F---', materiels:['JACKAL'],
+    insigne:{ forme:'ecu', fond:BORDEAUX, bordure:CIEL_GB, symbole:'parachute', couleurSymbole:CIEL_GB, bande:OR, devise:'Prêts avant l’aube' } },
+  CDO3:    { sigle:'3CDO', sidc:'SFGPUCIZ---F---', materiels:['CLASSE_ALBION'],
+    insigne:{ forme:'ecu', fond:VERT_FUSIL, bordure:OR, symbole:'dague', couleurSymbole:OR, bande:MARINE, devise:'De la mer à la terre' } },
+  BLINDE:  { sigle:'3DIV', sidc:'SFGPUCIZ---F---', materiels:['WARRIOR'],
+    insigne:{ forme:'ecu', fond:NOIR, bordure:ROUGE, symbole:'etoile', couleurSymbole:ROUGE, bande:OR, devise:'Le poids du fer' } },
+  GURKHA:  { sigle:'GURKH', sidc:'SFGPUCI----F---', materiels:['FOXHOUND'],
+    insigne:{ forme:'ecu', fond:VERT_FUSIL, bordure:ARGENT, symbole:'dague', couleurSymbole:ARGENT, bande:NOIR, devise:'Fidèles dans la jungle' } },
+  AAC:     { sigle:'AAC', sidc:'SFGPUCVRA--F---', materiels:['APACHE'],
+    insigne:{ forme:'insigne_aile', fond:CIEL_GB, bordure:OR, symbole:'helice', couleurSymbole:OR, devise:'Au-dessus de la mêlée' } },
+  GMLRS:   { sigle:'GMLRS', sidc:'SFGPUCFRM--E---', materiels:['M270'],
+    insigne:{ forme:'ecu', fond:MARINE, bordure:ROUGE, symbole:'eclair', couleurSymbole:ROUGE, devise:'Loin et juste' } },
+  FORMATEURS:{ sigle:'FORM', sidc:'SFGPUCI----E---', materiels:['FOXHOUND'],
+    insigne:{ forme:'rond', fond:VERT_FUSIL, bordure:OR, symbole:'etoile', couleurSymbole:OR, devise:'Enseigner pour durer' } },
+  TORNADO: { sigle:'GR4', sidc:'SFAPMFA----E---', materiels:['TORNADO'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_RAF, bordure:ARGENT, symbole:'eclair', couleurSymbole:ARGENT, bande:ROUGE, devise:'Frapper bas, frapper loin' } },
+  TYPHOON: { sigle:'TYPH', sidc:'SFAPMFF----E---', materiels:['TYPHOON'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_RAF, bordure:OR, symbole:'aile', couleurSymbole:OR, devise:'Maîtres du ciel' } },
+  REAPER_RAF:{ sigle:'MQ-9', sidc:'SFAPMFQ----D---', materiels:['REAPER'],
+    insigne:{ forme:'rond', fond:BLEU_RAF, bordure:ARGENT, symbole:'oeil', couleurSymbole:ARGENT, bande:NOIR, devise:'Patience et précision' } },
+  SENTINEL:{ sigle:'SNTL', sidc:'SFAPMFR----D---', materiels:['SENTINEL'],
+    insigne:{ forme:'rond', fond:BLEU_RAF, bordure:CIEL_GB, symbole:'oeil', couleurSymbole:CIEL_GB, devise:'Le sol n’a pas de secret' } },
+  RIVET:   { sigle:'RC135', sidc:'SFAPMFRZ---D---', materiels:['RC135W'],
+    insigne:{ forme:'rond', fond:NOIR, bordure:BLEU_RAF, symbole:'onde', couleurSymbole:'#8fd0e8', devise:'Entendre le silence' } },
+  E3D:     { sigle:'E-3D', sidc:'SFAPMFRW---D---', materiels:['E3D'],
+    insigne:{ forme:'rond', fond:BLEU_RAF, bordure:ARGENT, symbole:'onde', couleurSymbole:ARGENT, bande:OR, devise:'Veiller sur la flotte du ciel' } },
+  VOYAGER: { sigle:'VYGR', sidc:'SFAPMFK----D---', materiels:['VOYAGER'],
+    insigne:{ forme:'rond', fond:BLEU_RAF, bordure:OR, symbole:'goutte', couleurSymbole:OR, devise:'Toujours plus loin' } },
+  C17:     { sigle:'C-17', sidc:'SFAPMFC----D---', materiels:['C17'],
+    insigne:{ forme:'rond', fond:BLEU_RAF, bordure:ARGENT, symbole:'aile', couleurSymbole:ARGENT, bande:CIEL_GB, devise:'Partout en un jour' } },
+  CHINOOK: { sigle:'CHNK', sidc:'SFAPMHH----E---', materiels:['CHINOOK'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_RAF, bordure:OR, symbole:'rotor', couleurSymbole:OR, devise:'Porter le fardeau' } },
+  T45:     { sigle:'T45', sidc:'SFSPCLDD-------', materiels:['TYPE45'],
+    insigne:{ forme:'ecu', fond:MARINE, bordure:OR, symbole:'bouclier', couleurSymbole:OR, bande:ROUGE, devise:'Bouclier du large' } },
+  T23:     { sigle:'T23', sidc:'SFSPCLFF-------', materiels:['TYPE23'],
+    insigne:{ forme:'ecu', fond:MARINE, bordure:ARGENT, symbole:'ancre', couleurSymbole:ARGENT, devise:'Chasser sous la mer' } },
+  ASTUTE:  { sigle:'SSN', sidc:'SFUPSNA--------', materiels:['ASTUTE'],
+    insigne:{ forme:'rond', fond:NOIR, bordure:OR, symbole:'trident', couleurSymbole:OR, devise:'Silence et patience' } },
+  ALBION:  { sigle:'ALBN', sidc:'SFSPCALS-------', materiels:['CLASSE_ALBION'],
+    insigne:{ forme:'ecu', fond:MARINE, bordure:OR, symbole:'ancre', couleurSymbole:OR, bande:VERT_FUSIL, devise:'Du large au rivage' } }
 };

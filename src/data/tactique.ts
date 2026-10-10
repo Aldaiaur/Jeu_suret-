@@ -41,10 +41,10 @@ export const MISSIONS: Record<TypeMission, MissionDef> = {
 export const SOUTIEN_CATEGORIE: Record<Categorie, number> = { FS: 1, INT: 0, TERRE: 2, AIR: 1, MER: 0 };
 
 // Apports logistiques particuliers (unités de transport et de ravitaillement)
-export const SOUTIEN_UNITE: Record<string, number> = { A400M: 4, MRTT: 2, BPC: 2 };
+export const SOUTIEN_UNITE: Record<string, number> = { A400M: 4, MRTT: 2, BPC: 2, C17: 4, VOYAGER: 2, ALBION: 2, CHINOOK: 2 };
 
 // Unités qui donnent de la mobilité (raids à deux liaisons de distance)
-export const MOBILITE_HELICO: string[] = ['GAM', 'RHFS4', 'BPC'];
+export const MOBILITE_HELICO: string[] = ['GAM', 'RHFS4', 'BPC', 'JSFAW', 'AAC', 'CHINOOK', 'ALBION'];
 
 export const PARAMS_TACTIQUE = {
   seuilIdentifie: 50,      // connaissance à partir de laquelle un lieu est identifié

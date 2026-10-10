@@ -18,7 +18,6 @@ export interface TheatreDef {
   voisins: string[];
   exterieur: boolean; maritime: boolean;
   rensBase: number;
-  basePermanente: boolean;
   carteRegionale: string;
   saisons: SaisonDef[];
 }
@@ -85,7 +84,7 @@ export interface AppuiDef {
   effets: EffetsAppui;
 }
 
-export interface AllieDef { id: string; nom: string; relation: number; interets: string[]; description: string; appuis: AppuiDef[] }
+export interface AllieDef { id: string; nom: string; interets: string[]; description: string; appuis: AppuiDef[] }
 
 export interface MenaceDef {
   id: string; nom: string; criseTitre: string;
@@ -125,11 +124,11 @@ export interface Mods {
   voteBonus: number; opinion: number; credibilite: number;
 }
 
-// Nation jouable. Phase 1 du modèle générique : la procédure d'emploi de la force est décrite en données
-// et interprétée par un moteur commun (tour.ts, acces.ts). Forces, services et alliés restent ceux de la France.
+// Nation jouable : tout ce qui la distingue est en données (forces, services, alliés, doctrines, procédure
+// d'emploi de la force, briefing) ; un moteur commun l'interprète. Le monde (théâtres, menaces, cartes) est partagé.
 export interface ProcedureDef {
   nom: string;                    // « Article 35 »
-  institution: string;            // « le Parlement »
+  institution: string;            // complément du nom : « du Parlement »
   description: string;
   dureeAvantVote: number;         // mois d'intervention avant le vote
   poids: { base: number; opinion: number; capital: number; credibilite: number; crise: number };
@@ -137,8 +136,28 @@ export interface ProcedureDef {
   succes: { capital: number };
   refus: { capital: number; credibilite: number };
   texteAutorise: string; texteRefus: string;   // {theatre} est remplacé par le nom du théâtre
+  motifRetrait: string;                        // motif affiché pour chaque unité retirée après un refus
+  categoriesExemptees?: Categorie[];           // engagements qui n'entrent pas dans la procédure (forces spéciales, drones)
 }
-export interface NationDef { id: string; nom: string; role: string; signature: string; procedure: ProcedureDef }
+// Effet de levier : un allié privilégié répond plus volontiers et à moindre coût politique
+export interface LevierDef { allie: string; base: number; capital: number; relation: number; description: string }
+export interface ParagrapheBriefing { theatre: string | null; titre: string; texte: string }
+export interface BriefingDef { date: string; diffusion: string; expediteur: string; destinataire: string; introduction: string; paragraphes: ParagrapheBriefing[]; conclusion: string }
+export interface NationDef {
+  id: string; nom: string; role: string; signature: string;
+  devise: string;                  // symbole monétaire des montants affichés (échelle de jeu commune)
+  cellule: string;                 // nom de la cellule de crise dirigée par le joueur
+  territoire: string;              // théâtre du territoire national
+  theatres: string[];              // théâtres de la partie, dans l'ordre de résolution
+  basesPermanentes: string[];      // théâtres où les forces sont prépositionnées : pas de procédure d'emploi de la force
+  unites: UniteDef[]; services: ServiceDef[]; doctrines: DoctrineDef[];
+  operations: string[];            // identifiants du catalogue OPERATIONS
+  allies: Record<string, number>;  // allié → relation initiale (ordre d'itération = ordre des clés)
+  categories: Record<Categorie, string>;   // libellés des composantes
+  procedure: ProcedureDef;
+  levier?: LevierDef;
+  briefing: BriefingDef;
+}
 
 export interface DoctrineDef { id: string; nom: string; texte: string; bonus: string; malus: string; mods: Mods }
 
@@ -182,7 +201,7 @@ export interface ChoixDef {
   suite?: string; suiteDelai?: number; suiteP?: number;
 }
 
-export interface EvenementDef { id: string; titre: string; auteur?: string; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
+export interface EvenementDef { id: string; titre: string; auteur: string; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
 
 export type Controle = 'allie' | 'ennemi' | 'neutre';
 

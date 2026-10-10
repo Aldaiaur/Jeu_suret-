@@ -1,12 +1,13 @@
 // Note de situation d'ouverture, puis choix de la doctrine.
 import { useEffect, useState } from 'react';
-import { BRIEFING_FRA, DOCTRINES, PERS } from '../../data';
+import { PERS } from '../../data';
+import { doctrinesDe, nation } from '../../sim';
 import { usePartie } from '../contexte';
 
 export function Briefing() {
   const { etat: s, jouer, majUi } = usePartie();
   const [etape, setEtape] = useState<'note' | 'doctrine'>('note');
-  const B = BRIEFING_FRA, exp = PERS[B.expediteur];
+  const B = nation(s).briefing, exp = PERS[B.expediteur];
 
   // Une fois la doctrine retenue, la simulation quitte la phase « doctrine » : on passe à la carte
   useEffect(() => { if (s.phase !== 'doctrine') majUi({ ecran: 'jeu' }); }, [s.phase, majUi]);
@@ -44,7 +45,7 @@ export function Briefing() {
           <h1 className="note-titre">Quelle doctrine pour l’État ?</h1>
           <p className="second">Votre doctrine fixe les priorités de l’appareil de sécurité pour toute la partie. Elle ne pourra pas être changée.</p>
           <div className="doctrines-grille">
-            {DOCTRINES.map((d, i) => (
+            {doctrinesDe(s).map((d, i) => (
               <button key={d.id} className="doctrine" onClick={() => choisir(d.id)} style={{ animationDelay: i * 70 + 'ms' }} data-tuto={'doctrine-' + d.id}>
                 <span className="doctrine-num">0{i + 1}</span>
                 <span className="doctrine-nom">{d.nom}</span>

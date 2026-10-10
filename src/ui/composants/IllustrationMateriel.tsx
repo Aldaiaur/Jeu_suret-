@@ -209,8 +209,85 @@ const DESSINS: Record<string, Dessin> = {
       <path d="M200,112 L206,98 L232,98 L236,112 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
       <path d="M112,112 L104,132 L114,132 Z" fill="#2c343c" />
       <path d="M100,134 Q60,140 20,136 M104,138 Q70,146 30,146" stroke="#cfe6f2" strokeWidth={1.4} opacity={0.5} fill="none" />
+    </g>) },
+  // ---------- Royaume-Uni ----------
+  TYPHOON: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[362, 100], [340, 97], [296, 93], [262, 92], [256, 90], [140, 14], [122, 14], [118, 90], [86, 92], [62, 94], [58, 100]])} fill={m} />
+      <path d={symetrique([[318, 95], [300, 70], [292, 70], [298, 95]])} fill={m} />
+      <path d="M318,96 Q334,100 318,104 L286,103 L286,97 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M66,96 L118,96 M66,104 L118,104" stroke="#0b0f13" strokeWidth={2.6} />
+      <path d="M140,14 L122,14 M140,186 L122,186" stroke="#e8eef2" strokeWidth={1.2} opacity={0.6} />
+    </g>) },
+  TORNADO: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[366, 100], [344, 96], [300, 92], [236, 90], [214, 88], [150, 30], [136, 32], [176, 88], [104, 90], [96, 50], [80, 50], [82, 92], [56, 96], [52, 100]])} fill={m} />
+      <path d="M326,96 Q342,100 326,104 L292,103 L292,97 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M60,96 L100,96 M60,104 L100,104" stroke="#0b0f13" strokeWidth={3} />
+      {[64, 136].map((y, i) => <rect key={i} x={180} y={y - 3} width={34} height={6} rx={3} fill="#2c343c" stroke="#8d99a3" strokeWidth={0.6} />)}
+    </g>) },
+  C17: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[356, 100], [344, 84], [300, 78], [240, 78], [198, 6], [180, 6], [190, 78], [96, 80], [74, 38], [56, 38], [64, 84], [52, 96]])} fill={m} />
+      {[40, 64, 136, 160].map((y, i) => <rect key={i} x={i === 0 || i === 3 ? 206 : 220} y={y - 5} width={30} height={10} rx={4.5} fill="#2c343c" stroke="#8d99a3" strokeWidth={0.6} />)}
+      <path d="M342,92 Q350,100 342,108" stroke="#6fb6d6" strokeWidth={1.2} fill="none" />
+    </g>) },
+  CHINOOK: { milieu: 'air', profil: true, formes: m => (
+    <g>
+      <path d="M330,122 Q334,142 308,144 L96,144 Q70,142 66,120 L70,96 L96,90 L300,90 Q326,96 330,122 Z" fill={m} />
+      <path d="M300,94 Q320,100 326,118 L298,116 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M70,96 L76,66 L104,66 L110,90 Z" fill={m} />
+      {[120, 160, 200, 240].map((x, i) => <rect key={i} x={x} y={104} width={14} height={10} rx={2} fill="#1b2228" stroke="#7a8590" strokeWidth={0.6} />)}
+      {[110, 290].map((x, i) => roue(x, 150, 7, 'r' + i))}
+      {rotor(90, 60, 110)}
+      {rotor(300, 82, 110)}
+    </g>) },
+  APACHE: { milieu: 'air', profil: true, formes: m => (
+    <g>
+      <path d="M314,116 Q326,124 312,130 L250,134 L210,130 L150,120 L72,114 L62,96 L74,96 L84,110 L150,108 L194,100 L236,92 L264,92 Q290,96 314,116 Z" fill={m} />
+      <path d="M262,96 Q282,98 296,112 L268,110 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M236,96 Q248,92 256,100 L240,104 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <circle cx={228} cy={80} r={9} fill="#2a3138" stroke="#8d99a3" strokeWidth={0.8} />
+      <path d="M190,118 L246,118 L250,126 L190,126 Z" fill="#2c343c" />
+      {[194, 222].map((x, i) => <rect key={i} x={x} y={126} width={18} height={7} rx={3} fill="#1b2228" stroke="#7a8590" strokeWidth={0.6} />)}
+      <path d="M300,130 L300,140 M318,130 L322,138" stroke="#9aa6b0" strokeWidth={2.4} />
+      {roue(140, 144, 6, 'rq')}{roue(280, 146, 7, 'rv')}
+      {rotor(222, 72, 136)}
+    </g>) },
+  JACKAL: { milieu: 'terre', formes: m => (
+    <g>
+      <path d="M96,138 L94,116 L130,108 L250,106 L300,116 L308,138 Z" fill={m} />
+      <path d="M150,108 L162,88 L240,88 L246,106" fill="none" stroke="#8d99a3" strokeWidth={2.4} />
+      <path d="M232,90 L276,86" stroke="#aab4bc" strokeWidth={3} strokeLinecap="round" />
+      <rect x={224} y={84} width={14} height={10} fill="#2c343c" />
+      {[132, 270].map((x, i) => roue(x, 142, 17, 'r' + i))}
+    </g>) },
+  WARRIOR: { milieu: 'terre', formes: m => (
+    <g>
+      <path d="M66,134 L70,104 L94,92 L300,92 L332,112 L336,134 Z" fill={m} />
+      <path d="M176,92 L184,74 L238,74 L246,92 Z" fill={m} />
+      <path d="M238,82 L314,80" stroke="#aab4bc" strokeWidth={4} strokeLinecap="round" />
+      <rect x={66} y={132} width={272} height={20} rx={10} fill="#14191e" stroke="#4a545e" strokeWidth={1.2} />
+      {[92, 136, 180, 224, 268, 312].map((x, i) => <circle key={i} cx={x} cy={142} r={7} fill="#2a3138" stroke="#6b7782" strokeWidth={0.8} />)}
+    </g>) },
+  M270: { milieu: 'terre', formes: m => (
+    <g>
+      <path d="M260,132 L262,100 L300,100 L326,118 L328,132 Z" fill={m} />
+      <path d="M268,104 L296,104 L314,118 L268,118 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M74,132 L74,112 L258,112 L258,132 Z" fill={m} />
+      <path d="M86,112 L96,76 L232,62 L240,98 Z" fill={m} stroke="#aab4bc" strokeWidth={0.8} />
+      {[0, 1, 2].map(i => <path key={i} d={`M104,${86 - i * 6} L228,${72 - i * 4}`} stroke="#0b0f13" strokeWidth={1} opacity={0.6} />)}
+      <rect x={70} y={130} width={262} height={20} rx={10} fill="#14191e" stroke="#4a545e" strokeWidth={1.2} />
+      {[94, 138, 182, 226, 270, 310].map((x, i) => <circle key={i} cx={x} cy={140} r={7} fill="#2a3138" stroke="#6b7782" strokeWidth={0.8} />)}
     </g>) }
 };
+
+// Substituts en attendant l’art : un matériel proche, de même silhouette générale (voir docs/illustrations.md)
+const ALIAS: Record<string, string> = {
+  VOYAGER: 'C135FR', SENTINEL: 'C135FR', RC135W: 'C135FR', E3D: 'E3F', FOXHOUND: 'VAB',
+  TYPE45: 'HORIZON', TYPE23: 'FREMM', ASTUTE: 'RUBIS', CLASSE_ALBION: 'MISTRAL'
+};
+for (const k in ALIAS) DESSINS[k] = DESSINS[ALIAS[k]];
 
 function Fond({ milieu, profil, id }: { milieu: Milieu; profil: boolean; id: string }) {
   if (milieu === 'air' && !profil) return (

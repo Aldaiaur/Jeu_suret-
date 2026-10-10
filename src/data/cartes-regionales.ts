@@ -176,14 +176,14 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
            ['ZEILA','DJIBOUTI'],['ALI_SABIEH','ZEILA']],
     scenarios:[
       { id:'EVAC_ADEN', titre:'Ressortissants bloqués à Aden',
-        texte:'Les combats gagnent Aden. Des ressortissants français et européens attendent sur le port ; Djibouti servira de point de recueil.',
+        texte:'Les combats gagnent Aden. Nos ressortissants et d’autres Européens attendent sur le port ; Djibouti servira de point de recueil.',
         objectifs:[{type:'evacuer', lieu:'ADEN', nombre:2}, {type:'tenir', lieu:'DJIBOUTI'}],
         modifs:{ ADEN:{ressortissants:2} } },
       { id:'CARGO_DETOURNE', titre:'Cargo détourné dans le golfe d’Aden',
         texte:'Des pirates ont pris le contrôle d’un cargo et de son équipage. Le navire dérive vers la côte somalienne.',
         objectifs:[{type:'evacuer', lieu:'GOLFE_ADEN', nombre:1}, {type:'attrition', valeur:25}],
         modifs:{ GOLFE_ADEN:{ressortissants:1} } },
-      { id:'MENACE_EMPRISES', titre:'Menace sur les emprises françaises',
+      { id:'MENACE_EMPRISES', titre:'Menace sur les emprises alliées',
         texte:'Un groupe armé venu des monts Golis préparerait une action contre nos emprises ou les lieux fréquentés par nos militaires.',
         objectifs:[{type:'tenir', lieu:'DJIBOUTI'}, {type:'tenir', lieu:'ARTA'}, {type:'attrition', valeur:30}],
         modifs:{ GOLIS:{force:10} } }
@@ -220,13 +220,44 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
       { id:'SITE_SENSIBLE', titre:'Alerte sur un site industriel sensible', texte:'Des repérages autour d’un site classé ont été signalés. Une action contre l’installation aurait des effets graves.', objectifs:[], modifs:{} }
     ]
   },
+  GB: {
+    id:'GB', nom:'Royaume-Uni', theatre:'GB', largeur:760, hauteur:540, depart:'LONDRES',
+    biome:'urbain_bocage', zoomCrise:false, forcesCrise:['INT'], frappes:false, soutien:20,
+    fleuves:[{ nom:'Tamise', points:[[-1.9,51.7],[-1.25,51.75],[-0.9,51.52],[-0.12,51.5],[0.5,51.47],[0.9,51.5]] }, { nom:'Severn', points:[[-3.5,52.5],[-2.75,52.7],[-2.2,52.2],[-2.25,51.86],[-2.7,51.6],[-3.1,51.4]] }, { nom:'Clyde', points:[[-3.7,55.6],[-4.25,55.86],[-4.7,55.95]] }],
+    forceLocale:{ nom:'Polices et services de secours', force:60 }, reserveEnnemie:[0,0],
+    reponsesCrise:[
+      { id:'INTERVENTION', nom:'Engager les unités antiterroristes', description:'Tireurs d’élite de la police antiterroriste, forces spéciales en alerte. Décisif si le renseignement est bon.', requiert:['INT'], p:0.65,
+        effets:{ fatigue:[{categorie:'INT', delta:8}] }, succes:{ opinion:4, credibilite:2, menaceInt:-6 }, echec:{ opinion:-5, menaceInt:4 }, baisseMenace:15 },
+      { id:'NIVEAU_CRITIQUE', nom:'Relever le niveau de menace à « critique »', description:'Des militaires renforcent la police sur les sites sensibles, contrôles et annulations. Sûr, mais coûteux et pesant à la longue.', p:0.9,
+        effets:{ budget:-8, capital:-1 }, succes:{ menaceInt:-4, opinion:1 }, echec:{ opinion:-2 }, baisseMenace:6 }
+    ],
+    lieux:[
+      { id:'LONDRES',    lon:-0.12, lat:51.51, nom:'Londres',    type:'ville', controle:'allie', defense:60, force:null, civils:3 },
+      { id:'BIRMINGHAM', lon:-1.9,  lat:52.48, nom:'Birmingham', type:'ville', controle:'allie', defense:30, force:null, civils:3 },
+      { id:'MANCHESTER', lon:-2.24, lat:53.48, nom:'Manchester', type:'ville', controle:'allie', defense:35, force:null, civils:3 },
+      { id:'LEEDS',      lon:-1.55, lat:53.8,  nom:'Leeds',      type:'ville', controle:'allie', defense:30, force:null, civils:3 },
+      { id:'GLASGOW',    lon:-4.25, lat:55.86, nom:'Glasgow',    type:'ville', controle:'allie', defense:30, force:null, civils:3 },
+      { id:'EDIMBOURG',  lon:-3.19, lat:55.95, nom:'Édimbourg',  type:'ville', controle:'allie', defense:30, force:null, civils:3, littoral:true },
+      { id:'BELFAST',    lon:-5.93, lat:54.6,  nom:'Belfast',    type:'ville', controle:'allie', defense:35, force:null, civils:3, littoral:true },
+      { id:'CARDIFF',    lon:-3.18, lat:51.48, nom:'Cardiff',    type:'ville', controle:'allie', defense:25, force:null, civils:3, littoral:true },
+      { id:'PORTSMOUTH', lon:-1.09, lat:50.8,  nom:'Portsmouth', type:'base',  controle:'allie', defense:45, force:null, civils:2, littoral:true },
+      { id:'FASLANE',    lon:-4.82, lat:56.07, nom:'Faslane',    type:'base',  controle:'allie', defense:50, force:null, civils:1, littoral:true }
+    ],
+    liens:[['LONDRES','BIRMINGHAM'],['LONDRES','PORTSMOUTH'],['LONDRES','CARDIFF'],['LONDRES','LEEDS'],['BIRMINGHAM','MANCHESTER'],['BIRMINGHAM','CARDIFF'],
+           ['MANCHESTER','LEEDS'],['MANCHESTER','GLASGOW'],['LEEDS','EDIMBOURG'],['GLASGOW','EDIMBOURG'],['GLASGOW','FASLANE'],['GLASGOW','BELFAST']],
+    scenarios:[
+      { id:'RASSEMBLEMENT', titre:'Menace sur un grand rassemblement', texte:'Plusieurs services signalent un projet visant un concert ou un événement sportif. Les polices locales demandent des renforts.', objectifs:[], modifs:{} },
+      { id:'CELLULE_FUITE', titre:'Une cellule en fuite', texte:'Après une interpellation manquée, des suspects armés sont en fuite. Les unités armées de la police sont en alerte.', objectifs:[], modifs:{} },
+      { id:'TRANSPORTS', titre:'Alerte sur les transports publics', texte:'Des repérages dans le métro et les gares ont été signalés. Une action pendant l’heure de pointe aurait des effets graves.', objectifs:[], modifs:{} }
+    ]
+  },
   BALTIQUE: {
     id:'BALTIQUE', nom:'Pays baltes et Pologne', theatre:'EST', largeur:760, hauteur:540, depart:'TAPA',
     biome:'foret_plaine', zoomCrise:false, forcesCrise:[], frappes:false, soutien:6,
     fleuves:[{ nom:'Daugava', points:[[27.6,55.6],[26.5,55.9],[25.5,56.4],[24.11,56.95]] }, { nom:'Vistule', points:[[21.5,51.0],[21.01,52.23],[19.5,52.6],[18.6,53.5],[18.8,54.3]] }],
     forceLocale:{ nom:'Forces baltes et polonaises', force:50 }, reserveEnnemie:[0,0],
     reponsesCrise:[
-      { id:'REASSURANCE', nom:'Déployer une force de réassurance', description:'Des unités françaises rejoignent l’allié menacé. Un signal fort, au prix d’un engagement durable.', requiert:['TERRE','AIR'], p:0.8,
+      { id:'REASSURANCE', nom:'Déployer une force de réassurance', description:'Nos unités rejoignent l’allié menacé. Un signal fort, au prix d’un engagement durable.', requiert:['TERRE','AIR'], p:0.8,
         effets:{ relation:[{allie:'USA', delta:2}, {allie:'DEU', delta:2}] }, succes:{ credibilite:4 }, echec:{ credibilite:-2, menace:[{type:'ETAT_EST', delta:3}] }, baisseMenace:10 },
       { id:'DIPLOMATIE', nom:'Proposer une désescalade', description:'Médiation avec Berlin et canal direct avec Moscou. Peut désamorcer la crise, ou passer pour de la faiblesse.', p:0.45,
         effets:{ capital:-2 }, succes:{ credibilite:3 }, echec:{ credibilite:-3, relation:[{allie:'USA', delta:-2}] }, baisseMenace:12 }
@@ -257,7 +288,7 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
     biome:'archipel_ocean', zoomCrise:false, forcesCrise:[], frappes:false, soutien:3,
     forceLocale:{ nom:'Marines riveraines partenaires', force:30 }, reserveEnnemie:[0,0],
     reponsesCrise:[
-      { id:'NAVIGATION', nom:'Patrouille de liberté de navigation', description:'Un bâtiment français transite avec des partenaires dans les eaux disputées, sans provocation.', requiert:['MER'], p:0.75,
+      { id:'NAVIGATION', nom:'Patrouille de liberté de navigation', description:'Un de nos bâtiments transite avec des partenaires dans les eaux disputées, sans provocation.', requiert:['MER'], p:0.75,
         effets:{ fatigue:[{categorie:'MER', delta:5}] }, succes:{ credibilite:4, relation:[{allie:'JPN', delta:3}, {allie:'AUS', delta:3}] }, echec:{ credibilite:-2, opinion:-1 }, baisseMenace:10 },
       { id:'PROTESTATION', nom:'Protestation diplomatique coordonnée', description:'Déclaration commune avec les partenaires régionaux et rappel du droit de la mer.', p:0.5,
         effets:{ capital:-1 }, succes:{ credibilite:2 }, echec:{ credibilite:-2 }, baisseMenace:6 }
@@ -279,7 +310,7 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
            ['SCARBOROUGH','DETROIT_TAIWAN'],['SANYA','DETROIT_TAIWAN'],['MANILLE','DETROIT_TAIWAN']],
     scenarios:[
       { id:'COLLISION', titre:'Collision évitée de justesse près d’un récif', texte:'Un bâtiment de garde-côtes a coupé la route d’un navire partenaire à moins de cinquante mètres. Une vidéo circule déjà.', objectifs:[], modifs:{} },
-      { id:'ESCALE_ESCORTEE', titre:'Un bâtiment français suivi de près', texte:'Notre frégate en transit est talonnée par plusieurs navires qui exigent qu’elle quitte des eaux qu’ils revendiquent.', objectifs:[], modifs:{} },
+      { id:'ESCALE_ESCORTEE', titre:'Un de nos bâtiments suivi de près', texte:'Notre frégate en transit est talonnée par plusieurs navires qui exigent qu’elle quitte des eaux qu’ils revendiquent.', objectifs:[], modifs:{} },
       { id:'ZONE_TIR', titre:'Zone de tir décrétée sur une route maritime', texte:'Une zone d’exercice à tirs réels est décrétée sans préavis sur une route empruntée par le commerce mondial.', objectifs:[], modifs:{} }
     ]
   }

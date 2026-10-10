@@ -1,5 +1,6 @@
 // Fenêtres de décision et de bilan. Une seule à la fois, par ordre de priorité.
-import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, PERS, TH, UN, UNITES } from '../../data';
+import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, PERS, TH, UN } from '../../data';
+import { devise, unitesDe } from '../../sim';
 import { Portrait } from '../composants/Portrait';
 import { Insigne } from '../composants/Insigne';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
@@ -29,7 +30,8 @@ export function Fenetres() {
 }
 
 function Puces({ effets }: { effets: Parameters<typeof pucesEffets>[0] }) {
-  const p = pucesEffets(effets);
+  const { etat: s } = usePartie();
+  const p = pucesEffets(effets, devise(s));
   if (!p.length) return <span className="puce neutre">Pas d’effet immédiat</span>;
   return <>{p.map((x, i) => <span key={i} className={'puce ' + x.ton}>{x.texte}</span>)}</>;
 }
@@ -40,7 +42,7 @@ function unitesConcernees(s: Etat, E: EvenementDef): string[] {
   const ids: string[] = [];
   const ajouter = (id: string | undefined) => { if (id && !ids.includes(id)) ids.push(id); };
   const deCategorie = (c: Categorie) => {
-    const l = UNITES.filter(u => u.categorie === c);
+    const l = unitesDe(s).filter(u => u.categorie === c);
     return (l.find(u => s.unites[u.id].etat === 'deployee') || l.find(u => s.unites[u.id].etat === 'disponible'))?.id;
   };
   for (const c of E.choix) {
@@ -121,7 +123,7 @@ function FenetreCrise() {
                 <span className="choix-corps">
                   <span className="choix-texte">{r.nom} <span className="c-turquoise">· succès {pct(probaReponse(s, t, r, false))}</span>{!ok && <span className="c-rouge"> — moyens indisponibles</span>}</span>
                   <span className="petit second">{r.description}{porteur ? ' Moyen engagé : ' + UN[porteur.id].nom + (porteur.urgence ? ' (projection d’urgence).' : '.') : ''}</span>
-                  <span className="choix-effets"><Puces effets={r.effets} />{pucesEffets(r.succes).map((x, k) => <span key={'s' + k} className={'puce ' + x.ton}>Succès : {x.texte}</span>)}{pucesEffets(r.echec).map((x, k) => <span key={'e' + k} className={'puce ' + x.ton}>Échec : {x.texte}</span>)}</span>
+                  <span className="choix-effets"><Puces effets={r.effets} />{pucesEffets(r.succes, devise(s)).map((x, k) => <span key={'s' + k} className={'puce ' + x.ton}>Succès : {x.texte}</span>)}{pucesEffets(r.echec).map((x, k) => <span key={'e' + k} className={'puce ' + x.ton}>Échec : {x.texte}</span>)}</span>
                 </span>
               </button>
             );
@@ -176,7 +178,7 @@ function FenetreApercu() {
         <tbody>
           <tr><th>Risque de pertes</th><td className="chiffres">{pct(ev.risquePertes)}</td></tr>
           <tr><th>Risque de dommages collatéraux</th><td className="chiffres">{pct(ev.risqueCollat)}</td></tr>
-          <tr><th>Coût</th><td>{ev.cout} M€{ev.capital ? ' et ' + ev.capital + ' de capital politique' : ''} · 1 action</td></tr>
+          <tr><th>Coût</th><td>{ev.cout} {devise(s)}{ev.capital ? ' et ' + ev.capital + ' de capital politique' : ''} · 1 action</td></tr>
           <tr><th>Moyens engagés</th><td>{ev.participants.map(i => UN[i].nom).join(', ') || 'Capteurs ' + op.serviceRequis}</td></tr>
         </tbody>
       </table>
@@ -243,7 +245,7 @@ function FenetreAide() {
         <p><b>Renseignement.</b> Chaque menace a une force réelle cachée. Vous n’en voyez qu’une estimation avec une marge. Plus le renseignement est élevé, plus l’estimation est précise. Sous {PARAMS.rensFauxRapport}, les rapports peuvent être faux.</p>
         <p><b>Menaces.</b> Une menace négligée grandit, peut s’étendre vers un théâtre voisin et passer à l’action. La pression (forces, capteurs, partenaires, alliés) freine sa croissance.</p>
         <p><b>Unités.</b> Disponible, en projection, déployée (la fatigue monte), puis en régénération après rapatriement. À 100 de fatigue, l’unité est relevée d’office.</p>
-        <p><b>{procedure(s).nom}.</b> Au-delà de {procedure(s).dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. L’adoption dépend de l’opinion, du capital et de la crédibilité ; un débat préalable (+{Math.round(procedure(s).debat.bonus * 100)} %) la facilite. Un vote négatif impose le retrait.</p>
+        <p><b>{procedure(s).nom}.</b> {procedure(s).description} L’adoption dépend de l’opinion, du capital et de la crédibilité ; {procedure(s).debat.nom.toLowerCase()} (+{Math.round(procedure(s).debat.bonus * 100)} %) la facilite.</p>
         <p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût et coûte du capital politique.</p>
         <p><b>Théâtres.</b> Cliquez sur un théâtre pour ouvrir sa carte régionale : lieux, liaisons, biome et saison du mois. Les saisons modifient la pression exercée par chaque type de force, la fatigue, les coûts et la croissance de certaines menaces.</p>
         <p><b>Tactique.</b> Sur la carte régionale, cliquez une unité déployée puis un lieu marqué : l’ordre proposé s’exécute (deux clics). Le panneau de l’unité règle sa posture (offensive, défensive, reconnaissance, formation, réserve) et liste toutes ses missions avec leurs risques. Ces ordres sont gratuits et se résolvent à la fin du mois. Frappes et raids exigent une position identifiée ; les drones et la reconnaissance identifient, l’aviation frappe, les forces au sol exploitent. Le soutien logistique limite ce qu’un théâtre peut porter.</p>

@@ -19,7 +19,7 @@ export function tonNiveau(v: number, inverse = false): 'rouge' | 'ambre' | 'vert
 export interface Puce { texte: string; ton: 'vert' | 'rouge' | 'neutre' }
 
 // Effets d'un choix d'événement, en puces colorées (vert = favorable au joueur).
-export function pucesEffets(e: Effets | undefined): Puce[] {
+export function pucesEffets(e: Effets | undefined, dv = 'M€'): Puce[] {
   if (!e) return [];
   const r: Puce[] = [];
   const p = (texte: string, bon: boolean | null) => r.push({ texte, ton: bon === null ? 'neutre' : bon ? 'vert' : 'rouge' });
@@ -27,8 +27,8 @@ export function pucesEffets(e: Effets | undefined): Puce[] {
   if (e.capital) p('Capital ' + signe(e.capital), e.capital > 0);
   if (e.credibilite) p('Crédibilité ' + signe(e.credibilite), e.credibilite > 0);
   if (e.menaceInt) p('Menace intérieure ' + signe(e.menaceInt), e.menaceInt < 0);
-  if (e.budget) p('Budget ' + signe(e.budget) + ' M€', e.budget > 0);
-  if (e.enveloppe) p('Enveloppe ' + signe(e.enveloppe) + ' M€/mois', e.enveloppe > 0);
+  if (e.budget) p('Budget ' + signe(e.budget) + ' ' + dv, e.budget > 0);
+  if (e.enveloppe) p('Enveloppe ' + signe(e.enveloppe) + ' ' + dv + '/mois', e.enveloppe > 0);
   for (const x of e.menace || []) p(MT[x.type].nom + ' ' + signe(x.delta), x.delta < 0);
   for (const x of e.rens || []) p('Renseignement ' + TH[x.theatre].nom + ' ' + signe(x.delta), x.delta > 0);
   for (const x of e.partenaire || []) p('Partenaire ' + TH[x.theatre].nom + ' ' + signe(x.delta), x.delta > 0);

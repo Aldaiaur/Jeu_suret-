@@ -1,6 +1,7 @@
 // Panneau de débogage : état réel caché au joueur, contrôles de données, événements forcés.
 import { useState } from 'react';
-import { ALLIES, EVENEMENTS, MT, TH } from '../../data';
+import { EVENEMENTS, MT, TH } from '../../data';
+import { alliesDe } from '../../sim';
 import { changerGraine, forcerEvenement, nomLieu, pressionMenace, verifierDonnees } from '../../sim';
 import { usePartie } from '../contexte';
 
@@ -23,7 +24,7 @@ export function Debug() {
         </tbody>
       </table>
       {s.zoom && <div><b>Zoom</b> (réserve {s.zoom.reserve}) : {Object.keys(s.zoom.lieux).filter(k => s.zoom!.lieux[k].controle === 'ennemi').map(k => nomLieu(s.zoom!, k) + ' ' + s.zoom!.lieux[k].force).join(' · ')}</div>}
-      <div><b>Alliés</b> : {ALLIES.map(A => A.nom + ' ' + s.allies[A.id].relation).join(' · ')}</div>
+      <div><b>Alliés</b> : {alliesDe(s).map(A => A.nom + ' ' + s.allies[A.id].relation).join(' · ')}</div>
       <div className={erreurs.length ? 'c-rouge' : 'c-vert'}>{erreurs.length ? erreurs.join(' ; ') : 'Données cohérentes.'}</div>
       <div className="debug-ligne">
         <select className="champ" value={ev} onChange={e => setEv(e.target.value)}>{EVENEMENTS.map(e => <option key={e.id} value={e.id}>{e.id} — {e.titre}</option>)}</select>

@@ -1,19 +1,25 @@
 import { useState } from 'react';
-import { DIFFICULTES } from '../../data';
+import { DIFFICULTES, NATIONS as NATIONS_JOUABLES } from '../../data';
 import { dateDuTour } from '../../sim';
 import { lireSauvegarde, useJeu } from '../contexte';
 import { Drapeau, type NationJouable } from '../composants/Drapeau';
 import { importerFichier } from '../sauvegarde';
 import { tutorielDejaVu, activerTutoriel } from '../tutoriel/etat';
 
-const NATIONS: { id: NationJouable; nom: string; signature: string; dispo: boolean }[] = [
-  { id: 'FRA', nom: 'France', signature: 'Autonomie stratégique, article 35', dispo: true },
-  { id: 'USA', nom: 'États-Unis', signature: 'Moyens immenses, attention dispersée', dispo: false },
-  { id: 'GBR', nom: 'Royaume-Uni', signature: 'L’effet de levier', dispo: false },
-  { id: 'RUS', nom: 'Russie', signature: 'Le déni plausible', dispo: false },
-  { id: 'CHN', nom: 'Chine', signature: 'Le temps long, la zone grise', dispo: false },
-  { id: 'ISR', nom: 'Israël', signature: 'Fronts multiples, délais courts', dispo: false }
-];
+// Les nations décrites dans les données sont jouables ; les autres sont annoncées
+const NATIONS: { id: NationJouable; nom: string; signature: string; dispo: boolean }[] = ([
+  { id: 'FRA', nom: 'France', signature: '' },
+  { id: 'GBR', nom: 'Royaume-Uni', signature: '' },
+  { id: 'USA', nom: 'États-Unis', signature: 'Moyens immenses, attention dispersée' },
+  { id: 'RUS', nom: 'Russie', signature: 'Le déni plausible' },
+  { id: 'CHN', nom: 'Chine', signature: 'Le temps long, la zone grise' },
+  { id: 'ISR', nom: 'Israël', signature: 'Fronts multiples, délais courts' }
+] as { id: NationJouable; nom: string; signature: string }[]).map(n => {
+  const N = NATIONS_JOUABLES[n.id];
+  return { ...n, signature: N ? N.signature : n.signature, dispo: !!N };
+});
+// Le tutoriel suit la campagne de référence (France, janvier 2015)
+const NATION_TUTORIEL = 'FRA';
 
 export function Accueil() {
   const { lancer, charger, notifier } = useJeu();
@@ -24,7 +30,7 @@ export function Accueil() {
   const [tuto, setTuto] = useState(!tutorielDejaVu());
   const sauvegarde = lireSauvegarde();
 
-  const demarrer = () => { activerTutoriel(tuto); lancer(graine.trim() || '1', difficulte); };
+  const demarrer = () => { activerTutoriel(tuto && nation === NATION_TUTORIEL); lancer(graine.trim() || '1', difficulte, nation); };
 
   return (
     <div className="accueil">
@@ -39,7 +45,7 @@ export function Accueil() {
         <div className="accueil-panneau">
           {sauvegarde && (
             <button className="reprise" onClick={() => charger(sauvegarde)}>
-              <span><span className="titre-section">Reprendre</span><b>France — {dateDuTour(sauvegarde.tour)}</b></span>
+              <span><span className="titre-section">Reprendre</span><b>{(NATIONS_JOUABLES[sauvegarde.nation] || NATIONS_JOUABLES.FRA).nom} — {dateDuTour(sauvegarde.tour)}</b></span>
               <span className="btn principal">Continuer</span>
             </button>
           )}
@@ -63,9 +69,9 @@ export function Accueil() {
             ))}
           </div>
 
-          <label className="case">
-            <input type="checkbox" checked={tuto} onChange={e => setTuto(e.target.checked)} />
-            <span>Tutoriel guidé pendant les premiers mois</span>
+          <label className={'case' + (nation === NATION_TUTORIEL ? '' : ' inactif')} data-tip={nation === NATION_TUTORIEL ? undefined : 'Le tutoriel accompagne la campagne de la France.'}>
+            <input type="checkbox" checked={tuto && nation === NATION_TUTORIEL} disabled={nation !== NATION_TUTORIEL} onChange={e => setTuto(e.target.checked)} />
+            <span>Tutoriel guidé pendant les premiers mois{nation === NATION_TUTORIEL ? '' : ' (campagne de la France)'}</span>
           </label>
 
           <button className="lien-avance" onClick={() => setAvance(a => !a)}>{avance ? '▾' : '▸'} Options avancées</button>

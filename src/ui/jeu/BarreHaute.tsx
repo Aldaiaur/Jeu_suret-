@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { DOC, NB_TOURS, PARAMS } from '../../data';
-import { actionsParTour, coutsMensuels, dateDuTour } from '../../sim';
+import { actionsParTour, coutsMensuels, dateDuTour, devise, nation, procedure } from '../../sim';
 import { jouerSon, reglageSon, regler } from '../sons';
 import { usePartie } from '../contexte';
 import { tonNiveau } from '../format';
-import { Drapeau } from '../composants/Drapeau';
+import { Drapeau, type NationJouable } from '../composants/Drapeau';
 import { exporter, importerFichier } from '../sauvegarde';
 
 interface PropsJauge { lib: string; val: number; delta: number | null; inverse?: boolean; tip: string; tuto?: string; alerte?: string }
@@ -35,7 +35,7 @@ export function BarreHaute() {
     <header className="barre-haute">
       <div className="marque">
         <span className="marque-logo">RED<b>LINES</b></span>
-        <span className="marque-nation"><Drapeau nation="FRA" /> France</span>
+        <span className="marque-nation"><Drapeau nation={s.nation as NationJouable} /> {nation(s).nom}</span>
       </div>
 
       <div className="date-bloc" data-tip={'Un tour représente un mois. La campagne couvre janvier 2015 à décembre 2017.\nTour ' + (tour + 1) + ' sur ' + NB_TOURS + '.'} data-tuto="date">
@@ -45,7 +45,7 @@ export function BarreHaute() {
 
       <div className="jauges" data-tuto="jauges">
         <Jauge lib="Opinion" val={R.opinion} delta={d('opinion')} inverse tuto="jauge-opinion"
-          tip={'Soutien de l’opinion (0-100). Pèse sur les votes du Parlement (article 35).\nDéfaite sous 10.'} />
+          tip={'Soutien de l’opinion (0-100). Pèse sur les votes ' + procedure(s).institution + ' (' + procedure(s).nom + ').\nDéfaite sous 10.'} />
         <Jauge lib="Capital politique" val={R.capital} delta={d('capital')} inverse tuto="jauge-capital"
           tip={'Capital politique (0-100). Fixe le nombre d’actions par mois (' + PARAMS.actionsBase + ' + 1 par tranche de ' + PARAMS.actionsParCapital + ').\nDéfaite s’il tombe à 0.'} />
         <Jauge lib="Menace intérieure" val={R.menaceInt} delta={d('menaceInt')} tuto="jauge-menace"
@@ -55,8 +55,8 @@ export function BarreHaute() {
           tip={'Crédibilité internationale (0-100). Conditionne les réponses des alliés.'} />
       </div>
 
-      <div className="budget" data-tuto="budget" data-tip={'Solde : crédits disponibles.\nChaque mois : + enveloppe (' + R.enveloppe + ' M€) − coûts des unités engagées (' + couts.toFixed(1) + ' M€).\nUn solde négatif devient du surcoût OPEX et coûte du capital politique.' + (R.surcout ? '\nSurcoût cumulé : ' + R.surcout.toFixed(0) + ' M€.' : '')}>
-        <div className="budget-ligne"><span className="jauge-lib">Solde</span><span className={'chiffres budget-val' + (R.budget < 20 ? ' c-rouge' : '')}>{R.budget.toFixed(0)} M€</span></div>
+      <div className="budget" data-tuto="budget" data-tip={'Solde : crédits disponibles.\nChaque mois : + enveloppe (' + R.enveloppe + ' ' + devise(s) + ') − coûts des unités engagées (' + couts.toFixed(1) + ' ' + devise(s) + ').\nUn solde négatif devient du surcoût opérationnel et coûte du capital politique.' + (R.surcout ? '\nSurcoût cumulé : ' + R.surcout.toFixed(0) + ' ' + devise(s) + '.' : '')}>
+        <div className="budget-ligne"><span className="jauge-lib">Solde</span><span className={'chiffres budget-val' + (R.budget < 20 ? ' c-rouge' : '')}>{R.budget.toFixed(0)} {devise(s)}</span></div>
         <div className="budget-ligne discret"><span>Fin de mois</span><span className={'chiffres' + (prevu < 0 ? ' c-rouge' : '')}>{prevu >= 0 ? '+' : ''}{(prevu - R.budget).toFixed(0)} → {prevu.toFixed(0)}</span></div>
       </div>
 

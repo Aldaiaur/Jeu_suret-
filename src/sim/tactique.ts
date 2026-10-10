@@ -2,8 +2,9 @@
 // Tout se résout une fois par mois (resoudreTactique) et s'agrège en effets stratégiques :
 // pression sur les menaces, renseignement, fatigue, coûts, pertes et dommages collatéraux.
 import {
-  CARTES_REGIONALES, EV, MISSIONS, MOBILITE_HELICO, PARAMS_TACTIQUE, POSTURES, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, TH, THEATRES, UN, UNITES
+  CARTES_REGIONALES, EV, MISSIONS, MOBILITE_HELICO, PARAMS_TACTIQUE, POSTURES, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, TH, UN
 } from '../data';
+import { theatresDe, unitesDe } from './acces';
 import type { Action, CarteRegionaleDef, Categorie, Etat, EtatLieu, OrdreMission, TypeMission, UniteDef } from './types';
 import { alea, borner } from './outils';
 import { arrondi } from './outils';
@@ -32,7 +33,7 @@ export function identifie(s: Etat, theatre: string, lieu: string): boolean {
   return s.theatres[theatre].lieux[lieu].connu >= PARAMS_TACTIQUE.seuilIdentifie;
 }
 export function unitesDeployeesSur(s: Etat, theatre: string): UniteDef[] {
-  return UNITES.filter(u => s.unites[u.id].theatre === theatre && s.unites[u.id].etat === 'deployee');
+  return unitesDe(s).filter(u => s.unites[u.id].theatre === theatre && s.unites[u.id].etat === 'deployee');
 }
 export function mobiliteHelico(s: Etat, theatre: string): boolean {
   return unitesDeployeesSur(s, theatre).some(u => MOBILITE_HELICO.includes(u.id));
@@ -42,7 +43,7 @@ export interface Soutien { capacite: number; demande: number; ratio: number }
 export function soutienTheatre(s: Etat, theatre: string): Soutien {
   const C = carteDuTheatre(theatre);
   let capacite = C.soutien + bonusTheatre(s, theatre).soutien, demande = 0;
-  for (const u of UNITES) {
+  for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (e.theatre !== theatre || (e.etat !== 'deployee' && e.etat !== 'projection')) continue;
     demande += SOUTIEN_CATEGORIE[u.categorie];
@@ -141,7 +142,7 @@ export interface EvaluationMission { pSucces: number; risquePertes: number; risq
 export function evaluerMission(s: Etat, uniteId: string, o: OrdreMission): EvaluationMission {
   const e = s.unites[uniteId], u = UN[uniteId], th = s.theatres[e.theatre!], C = carteDuTheatre(e.theatre!);
   const L = th.lieux[o.lieu], def = C.lieux.find(l => l.id === o.lieu)!, f = facteurSoutien(s, e.theatre!) * (1 - e.fatigue / 200);
-  const M = MISSIONS[o.type], frappeCeMois = UNITES.some(x => s.unites[x.id].mission?.type === 'frappe' && s.unites[x.id].mission?.lieu === o.lieu && s.unites[x.id].theatre === e.theatre);
+  const M = MISSIONS[o.type], frappeCeMois = unitesDe(s).some(x => s.unites[x.id].mission?.type === 'frappe' && s.unites[x.id].mission?.lieu === o.lieu && s.unites[x.id].theatre === e.theatre);
   const pertesBase = (1.4 - u.cap.discretion / 10) * (escorteActive(s, e.theatre!) ? 0.7 : 1);
   switch (o.type) {
     case 'raid': {
@@ -163,7 +164,7 @@ export function evaluerMission(s: Etat, uniteId: string, o: OrdreMission): Evalu
   }
 }
 function escorteActive(s: Etat, theatre: string): boolean {
-  return UNITES.some(u => s.unites[u.id].theatre === theatre && s.unites[u.id].etat === 'deployee' && s.unites[u.id].mission?.type === 'escorte');
+  return unitesDe(s).some(u => s.unites[u.id].theatre === theatre && s.unites[u.id].etat === 'deployee' && s.unites[u.id].mission?.type === 'escorte');
 }
 // Coût mensuel d'une unité engagée : doctrine, saison, et affrètement quand le soutien manque
 export function coutMensuelUnite(s: Etat, u: UniteDef): number {
@@ -173,19 +174,19 @@ export function coutMensuelUnite(s: Etat, u: UniteDef): number {
 }
 export function coutsMensuels(s: Etat): number {
   let c = 0;
-  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += coutMensuelUnite(s, u); }
+  for (const u of unitesDe(s)) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += coutMensuelUnite(s, u); }
   return arrondi(c + coutMissions(s));
 }
 export function coutMissions(s: Etat): number {
   let c = 0;
-  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' && e.mission) c += MISSIONS[e.mission.type].cout; }
+  for (const u of unitesDe(s)) { const e = s.unites[u.id]; if (e.etat === 'deployee' && e.mission) c += MISSIONS[e.mission.type].cout; }
   return c;
 }
 
 // ---------- Actions tactiques (gratuites : elles ne consomment pas d'action du mois) ----------
 export function actionsTactiques(s: Etat): Action[] {
   const L: Action[] = [];
-  for (const u of UNITES) {
+  for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (e.etat !== 'deployee') continue;
     for (const p of Object.values(POSTURES)) if (p.id !== e.posture && p.categories.includes(u.categorie)) L.push({ type: 'POSTURE', unite: u.id, posture: p.id });
@@ -245,7 +246,7 @@ export function plancherConnaissance(s: Etat, theatre: string): void {
 // ---------- Résolution mensuelle ----------
 export function resoudreTactique(s: Etat): void {
   const R = s.ressources;
-  for (const T of THEATRES) {
+  for (const T of theatresDe(s)) {
     const th = s.theatres[T.id], C = carteDuTheatre(T.id), L = th.lieux, rapport: string[] = [];
     const unites = unitesDeployeesSur(s, T.id);
     const sout = soutienTheatre(s, T.id), fs = 0.5 + 0.5 * sout.ratio;
