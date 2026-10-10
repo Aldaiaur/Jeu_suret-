@@ -27,8 +27,8 @@ export const PERSONNAGES: Personnage[] = [
   // France
   { id: 'FRA_PR', nom: 'Bertrand Lacassagne', fonction: 'Président de la République', pays: 'FRA', ton: 'solennel, attentif aux symboles',
     ouverture: 'Je veux que nous soyons à la hauteur.', signature: 'Le Président de la République', portrait: P(CLAIR, POIVRE, 'degarni', 'costume', { lunettes: true }) },
-  { id: 'FRA_PM', nom: 'Claire Vautrin', fonction: 'Première ministre', pays: 'FRA', ton: 'pragmatique, soucieuse du Parlement et du budget',
-    ouverture: 'Il nous faut une position claire devant les assemblées.', signature: 'Claire Vautrin', portrait: P(CLAIR, CHATAIN, 'carre', 'tailleur') },
+  { id: 'FRA_PM', nom: 'Claire Lestrade', fonction: 'Première ministre', pays: 'FRA', ton: 'pragmatique, soucieuse du Parlement et du budget',
+    ouverture: 'Il nous faut une position claire devant les assemblées.', signature: 'Claire Lestrade', portrait: P(CLAIR, CHATAIN, 'carre', 'tailleur') },
   { id: 'FRA_DEF', nom: 'Olivier Ferrandi', fonction: 'Ministre de la Défense', pays: 'FRA', ton: 'direct, protecteur des armées',
     ouverture: 'Les armées tiennent, mais elles sont à la limite.', signature: 'Olivier Ferrandi, ministre de la Défense', portrait: P(MAT, BRUN, 'raie', 'costume') },
   { id: 'FRA_INT', nom: 'Hélène Castagnet', fonction: 'Ministre de l’Intérieur', pays: 'FRA', ton: 'ferme, préoccupée par l’usure des forces de sécurité',

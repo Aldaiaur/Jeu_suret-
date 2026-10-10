@@ -28,7 +28,7 @@ export const MATERIELS: MaterielDef[] = [
     ] },
   { id:'A400M', nom:'A400M Atlas', type:'Avion de transport', milieu:'air', role:'Transport tactique et stratégique',
     caracteristiques:[
-      { lib:'Flotte', val:'≈ 11 à 14 appareils fin 2018 (livraisons retardées)', source:'S19 (moyen)' },
+      { lib:'Livraisons', val:'8 fin 2015 (logistique seulement), 11 au 2/03/2017, 12 en service fin 2017', source:'Assemblée nationale, QE 99447 et 4414 (élevé)' },
       { lib:'Motorisation', val:'4 turbopropulseurs', source:'À VÉRIFIER (fiche constructeur)' }
     ] },
   { id:'C135FR', nom:'C-135FR', type:'Avion ravitailleur', milieu:'air', role:'Ravitaillement en vol, allonge des raids',
@@ -78,16 +78,18 @@ export const MATERIELS: MaterielDef[] = [
   { id:'CDG', nom:'Charles de Gaulle', type:'Porte-avions à propulsion nucléaire', milieu:'mer', role:'Groupe aéronaval : frappe et supériorité aérienne depuis la mer',
     caracteristiques:[
       { lib:'Groupe aérien en mission', val:'18 à 24 Rafale Marine, 2 E-2C', source:'S40, S41 (élevé)' },
+      { lib:'Effectif en opération', val:'≈ 1 900 (1 200 bâtiment, 600 groupe aérien, 100 état-major)', source:'Ministère de la Défense, 2009 (élevé)' },
       { lib:'Missions 2015-2016', val:'01-05/2015, 11/2015-03/2016, 09-12/2016', source:'S40, S41, S59 (élevé)' },
       { lib:'Arrêt technique majeur', val:'02/2017 à 09/2018 (≈ 1,3 Md€, estimation)', source:'S59 (élevé) ; iFRAP (moyen)' }
     ] },
   { id:'FREMM', nom:'FREMM', type:'Frégate multimissions', milieu:'mer', role:'Lutte anti-sous-marine, frappe vers la terre',
     caracteristiques:[
       { lib:'Bâtiments', val:'Aquitaine, Provence, Languedoc, Auvergne, Bretagne (2018)', source:'S32 (moyen)' },
+      { lib:'Équipage', val:'≈ 108, détachement hélicoptère compris', source:'Marine nationale, fiche FREMM (élevé)' },
       { lib:'Missile de croisière naval', val:'Premier tir opérationnel le 14/04/2018', source:'S32, S33 (moyen)' }
     ] },
   { id:'HORIZON', nom:'Frégate Horizon', type:'Frégate de défense aérienne', milieu:'mer', role:'Protection antiaérienne du groupe aéronaval',
-    caracteristiques:[{ lib:'Bâtiments', val:'2', source:'S32 (moyen)' }, { lib:'Système d’armes', val:'Missiles Aster (PAAMS)', source:'S0 (à vérifier)' }] },
+    caracteristiques:[{ lib:'Bâtiments', val:'2', source:'S32 (moyen)' }, { lib:'Équipage', val:'174', source:'techno-science, fiche classe Horizon (faible)' }, { lib:'Système d’armes', val:'Missiles Aster (PAAMS)', source:'S0 (à vérifier)' }] },
   { id:'RUBIS', nom:'SNA classe Rubis', type:'Sous-marin nucléaire d’attaque', milieu:'mer', role:'Renseignement, escorte, lutte sous la mer',
     caracteristiques:[{ lib:'Bâtiments', val:'6', source:'nation-FRA.md (élevé)' }, { lib:'Successeur', val:'Classe Suffren, non livrée sur la période', source:'nation-FRA.md (élevé)' }] },
   { id:'MISTRAL', nom:'BPC classe Mistral', type:'Porte-hélicoptères amphibie', milieu:'mer', role:'Projection d’un groupement et de ses hélicoptères',

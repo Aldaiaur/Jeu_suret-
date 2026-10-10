@@ -5,7 +5,7 @@ import type { EvenementDef } from '../sim/types';
 export const EVENEMENTS_2015: EvenementDef[] = [
   // ---------- Après les attentats de janvier ----------
   { id:'UNITE_NATIONALE', titre:'L’élan d’unité nationale', auteur:'FRA_PM', poids:8, max:1, cond:{ tourMax:2 },
-    texte:'Après les attentats et les grandes marches du 11 janvier, l’opinion attend des actes. La Première ministre, Claire Vautrin, vous demande quelles mesures porter devant le Parlement pendant que le consensus tient encore.',
+    texte:'Après les attentats et les grandes marches du 11 janvier, l’opinion attend des actes. La Première ministre, Claire Lestrade, vous demande quelles mesures porter devant le Parlement pendant que le consensus tient encore.',
     choix:[
       { texte:'Un plan de lutte antiterroriste : recrutements et moyens pour les services', effets:{ capital:-3, budget:-8, menace:[{type:'TERRO', delta:-5}], rens:[{theatre:'METRO', delta:6}] } },
       { texte:'Une réserve citoyenne et des mesures de cohésion', effets:{ opinion:4, budget:-4 } },
