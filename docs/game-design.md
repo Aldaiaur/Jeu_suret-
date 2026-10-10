@@ -1,4 +1,4 @@
-# Document de design — version 0.1
+# Red Lines — document de design, version 0.2
 
 > Document vivant. Les décisions ouvertes sont marquées **[À TRANCHER]**.
 > Les faits à sourcer sont marqués **[À SOURCER]** et renvoient aux prompts de `docs/recherche/prompts.md`.
@@ -13,7 +13,7 @@ L'objectif est un réalisme de **décideur**, pas de tacticien. Le joueur ne pil
 
 ## 2. Période
 
-**Proposition : départ commun en janvier 2015**, avec des campagnes couvrant 2015-2018. **[À TRANCHER]**
+**Décidé : départ commun en janvier 2015**, juste après les attentats de Paris, avec la menace russe et nord-coréenne en toile de fond. Campagnes 2015-2018.
 
 Raisons :
 - **Les 6 nations se croisent au Levant.** Coalition contre Daech (États-Unis, Royaume-Uni, France), intervention russe (septembre 2015), opérations israéliennes en Syrie contre les transferts d'armes iraniens. La Chine reste en retrait. C'est un théâtre commun naturel pour faire interagir les joueurs et les IA.
@@ -124,7 +124,7 @@ Le prototype est écrit pour la France. Il faut le généraliser :
 
 | Phase | Contenu | Critère de sortie |
 |---|---|---|
-| 0 | Migration du prototype en TypeScript, tests en ligne de commande, intégration continue (*CI*) | `simuler()` passe dans la CI |
+| 0 ✅ | Migration du prototype en TypeScript, tests en ligne de commande, nouvelle interface, tutoriel | Parties de référence rejouées à l’identique |
 | 1 | France généralisée (modèle `nation`) et robot testeur | Une partie complète jouable et équilibrée par le robot |
 | 2 | Royaume-Uni, la nation la plus proche de la France | Prouve que le modèle est générique |
 | 3 | Monde partagé avec nations IA | Les 6 nations coexistent, dont 5 pilotées par l'IA |
@@ -134,7 +134,7 @@ Le prototype est écrit pour la France. Il faut le généraliser :
 
 ## 9. Nom du jeu
 
-Nom de travail : **Cellule de crise**. **[À TRANCHER]**
+**Décidé : Red Lines.** Vérification de marque à faire avant la page Steam.
 
 Contrainte : le jeu sort sur Steam, donc le nom doit fonctionner en anglais. Une recherche web rapide a été faite le 9 octobre 2026. Ce n'est pas une recherche de marque déposée.
 

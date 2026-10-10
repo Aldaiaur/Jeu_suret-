@@ -124,7 +124,7 @@ export const OPERATIONS: OperationDef[] = [
     cibles:['CYBER','ETAT_EST'], theatresInterdits:[], degats:14, cout:2, capital:0,
     risquePertes:0, risqueCollat:0.06, pression:4, effetSucces:{}, description:'Neutralisation d’infrastructures d’attaque et durcissement des systèmes.' },
   { id:'REASSURANCE', nom:'Posture de réassurance', capacite:'endurance', categories:['AIR','MER','TERRE'], minCapacite:4, serviceRequis:null,
-    cibles:['ETAT_EST','INDOPAC_P','PIRATERIE'], theatresInterdits:['METRO'], degats:9, cout:5, capital:0,
+    cibles:['ETAT_EST','INDOPAC_P','PIRATERIE','COREE_NORD'], theatresInterdits:['METRO'], degats:9, cout:5, capital:0,
     risquePertes:0.01, risqueCollat:0.08, pression:6, effetSucces:{credibilite:1}, description:'Présence visible, exercices et patrouilles avec les partenaires.' }
 ];
 

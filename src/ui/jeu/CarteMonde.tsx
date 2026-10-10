@@ -20,7 +20,7 @@ const PAYS_THEATRE: Record<string, string[]> = {
   SAHEL: ['466', '562', '854', '148', '478'],
   GUINEE: ['566', '384', '288', '204', '768', '120', '266'],
   CORNE: ['262'],
-  INDOPAC: []
+  INDOPAC: ['408']
 };
 const THEATRE_DU_PAYS: Record<string, string> = {};
 for (const t in PAYS_THEATRE) for (const p of PAYS_THEATRE[t]) THEATRE_DU_PAYS[p] = t;

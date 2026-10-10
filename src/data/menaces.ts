@@ -26,7 +26,7 @@ export const MENACES: MenaceDef[] = [
     alimentePar:{}, seuilExpansion:50, expansion:['GUINEE','CORNE','INDOPAC'], probExpansion:0.08,
     seuilAttaque:40, attaque:{credibilite:-2, budget:-5}, apresAttaque:-3,
     poidsInterieur:0, impactInterieur:0, crise:true, secondaires:[] },
-  { id:'ETAT_EST', nom:'Pression d’une puissance étatique', criseTitre:'Crise militaire à la frontière d’un allié', theatresDepart:['EST'], forceDepart:[30,50], croissance:1.3,
+  { id:'ETAT_EST', nom:'Pression militaire russe', criseTitre:'Crise militaire russe à la frontière d’un allié', theatresDepart:['EST'], forceDepart:[30,50], croissance:1.3,
     sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.2}, pressionServices:{ANSSI:0.4}, servicesCles:{DRM:1, ANSSI:1},
     alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
     seuilAttaque:60, attaque:{credibilite:-5, opinion:-1}, apresAttaque:-6,
@@ -36,9 +36,16 @@ export const MENACES: MenaceDef[] = [
     alimentePar:{ETAT_EST:0.02}, seuilExpansion:999, expansion:[], probExpansion:0,
     seuilAttaque:45, attaque:{menaceInt:4, opinion:-3, budget:-8}, apresAttaque:-8,
     poidsInterieur:0.2, impactInterieur:0, crise:false, secondaires:[] },
-  { id:'INDOPAC_P', nom:'Pression maritime étatique', criseTitre:'Incident naval grave', theatresDepart:['INDOPAC'], forceDepart:[20,35], croissance:1.0,
+  { id:'INDOPAC_P', nom:'Pression maritime chinoise', criseTitre:'Incident naval grave', theatresDepart:['INDOPAC'], forceDepart:[20,35], croissance:1.0,
     sensibilite:{endurance:0.25, frappe:0.15, renseignement:0.15}, pressionServices:{}, servicesCles:{DRM:1},
     alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
     seuilAttaque:60, attaque:{credibilite:-4}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] },
+  // Programme nucléaire et balistique nord-coréen : la France n’y intervient pas militairement,
+  // mais chaque essai pèse sur sa crédibilité et sur ses partenaires de la zone.
+  { id:'COREE_NORD', nom:'Programme nucléaire nord-coréen', criseTitre:'Escalade nucléaire en Corée', theatresDepart:['INDOPAC'], forceDepart:[35,50], croissance:1.6,
+    sensibilite:{renseignement:0.15, endurance:0.1}, pressionServices:{}, servicesCles:{DRM:1, DGSE:1},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:55, attaque:{credibilite:-3, opinion:-1}, apresAttaque:-6,
     poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] }
 ];

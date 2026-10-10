@@ -13,7 +13,7 @@ import type { EvenementDef } from '../sim/types';
 // choix.requiert : {categorie} (une unité de cette catégorie disponible ou déployée)
 // choix.suite / suiteDelai / suiteP : événement enchaîné, délai en mois, probabilité (1 par défaut)
 // ---------------------------------------------------------------------
-export const EVENEMENTS: EvenementDef[] = [
+export const EVENEMENTS_BASE: EvenementDef[] = [
   { id:'OTAGES_SAHEL', titre:'Ressortissants enlevés au Sahel', poids:6, max:2,
     cond:{ tourMin:1, menace:{type:'DJIHAD', forceMin:35} },
     texte:'Deux ressortissants français ont été enlevés dans le nord du Niger. Une revendication circule. Les services estiment savoir dans quelle zone ils sont détenus.',

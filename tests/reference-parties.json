@@ -4,208 +4,208 @@
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 52,
-  "empreinte": "3ab73861:36581"
+  "score": 54,
+  "empreinte": "38eae7d1:36116"
  },
  {
   "graine": 1001,
   "difficulte": "normal",
-  "tour": 27,
+  "tour": 34,
   "fin": "defaite",
-  "score": 26,
-  "empreinte": "c13cf4b7:34652"
+  "score": 27,
+  "empreinte": "e18b16c1:36493"
  },
  {
   "graine": 1002,
   "difficulte": "difficile",
-  "tour": 20,
+  "tour": 31,
   "fin": "defaite",
   "score": 24,
-  "empreinte": "9722a5c1:26365"
+  "empreinte": "134c0c8a:37745"
  },
  {
   "graine": 1003,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 60,
-  "empreinte": "ee13a05d:36626"
+  "score": 54,
+  "empreinte": "fe1dbfd4:37173"
  },
  {
   "graine": 1004,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 53,
-  "empreinte": "f945e65c:36666"
+  "tour": 23,
+  "fin": "defaite",
+  "score": 24,
+  "empreinte": "627e4c6e:31662"
  },
  {
   "graine": 1005,
   "difficulte": "difficile",
-  "tour": 11,
+  "tour": 30,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "642fd672:20901"
+  "score": 24,
+  "empreinte": "4b0f2e3b:34953"
  },
  {
   "graine": 1006,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 61,
-  "empreinte": "f22110b1:36687"
+  "score": 65,
+  "empreinte": "c3c981b6:36351"
  },
  {
   "graine": 1007,
   "difficulte": "normal",
-  "tour": 33,
+  "tour": 30,
   "fin": "defaite",
-  "score": 28,
-  "empreinte": "f920e1dd:36817"
+  "score": 27,
+  "empreinte": "f0ba0bd1:37155"
  },
  {
   "graine": 1008,
   "difficulte": "difficile",
-  "tour": 18,
+  "tour": 22,
   "fin": "defaite",
-  "score": 27,
-  "empreinte": "95850d7d:26632"
+  "score": 19,
+  "empreinte": "b2370a5b:28364"
  },
  {
   "graine": 1009,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 63,
-  "empreinte": "a3e67096:35817"
+  "score": 50,
+  "empreinte": "a7288c8f:36638"
  },
  {
   "graine": 1010,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 59,
-  "empreinte": "7b9e3efa:37281"
+  "tour": 31,
+  "fin": "defaite",
+  "score": 26,
+  "empreinte": "31231dfc:35024"
  },
  {
   "graine": 1011,
   "difficulte": "difficile",
-  "tour": 32,
+  "tour": 16,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "dde65624:38065"
+  "score": 21,
+  "empreinte": "8a772592:27625"
  },
  {
   "graine": 1012,
   "difficulte": "facile",
-  "tour": 35,
-  "fin": "defaite",
-  "score": 23,
-  "empreinte": "d6b88bbf:37907"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 56,
+  "empreinte": "077f3af8:38642"
  },
  {
   "graine": 1013,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 58,
-  "empreinte": "56b8f9ff:36525"
+  "tour": 28,
+  "fin": "defaite",
+  "score": 27,
+  "empreinte": "0f11277c:36064"
  },
  {
   "graine": 1014,
   "difficulte": "difficile",
   "tour": 15,
   "fin": "defaite",
-  "score": 23,
-  "empreinte": "7462f5ee:24130"
+  "score": 22,
+  "empreinte": "35997789:23625"
  },
  {
   "graine": 1015,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 52,
-  "empreinte": "9be8136d:37053"
+  "score": 58,
+  "empreinte": "67501e29:35980"
  },
  {
   "graine": 1016,
   "difficulte": "normal",
-  "tour": 18,
+  "tour": 30,
   "fin": "defaite",
-  "score": 27,
-  "empreinte": "2a8d9a0d:25560"
+  "score": 26,
+  "empreinte": "e8627908:36297"
  },
  {
   "graine": 1017,
   "difficulte": "difficile",
-  "tour": 28,
+  "tour": 17,
   "fin": "defaite",
   "score": 25,
-  "empreinte": "19fc6338:34661"
+  "empreinte": "446cb861:27980"
  },
  {
   "graine": 1018,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 53,
-  "empreinte": "b304f3c8:36654"
+  "score": 58,
+  "empreinte": "20caeb33:37009"
  },
  {
   "graine": 1019,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 52,
-  "empreinte": "dab27200:38711"
+  "tour": 20,
+  "fin": "defaite",
+  "score": 25,
+  "empreinte": "b7649937:27769"
  },
  {
   "graine": 1020,
   "difficulte": "difficile",
   "tour": 25,
   "fin": "defaite",
-  "score": 27,
-  "empreinte": "9919498d:31244"
+  "score": 24,
+  "empreinte": "adf89d43:36342"
  },
  {
   "graine": 1021,
   "difficulte": "facile",
-  "tour": 32,
-  "fin": "defaite",
-  "score": 27,
-  "empreinte": "ec88859f:36601"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 53,
+  "empreinte": "42917095:36358"
  },
  {
   "graine": 1022,
   "difficulte": "normal",
-  "tour": 31,
+  "tour": 26,
   "fin": "defaite",
-  "score": 24,
-  "empreinte": "dc5efebf:35197"
+  "score": 26,
+  "empreinte": "f5f636ad:33675"
  },
  {
   "graine": 1023,
   "difficulte": "difficile",
-  "tour": 14,
+  "tour": 22,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "0e8ba137:23941"
+  "score": 24,
+  "empreinte": "8ecd5835:31563"
  },
  {
   "graine": 1024,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 57,
-  "empreinte": "1b640c1d:36175"
+  "score": 63,
+  "empreinte": "ccd3e6e0:37245"
  },
  {
   "graine": 1025,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 48,
-  "empreinte": "1d19481b:37937"
+  "tour": 27,
+  "fin": "defaite",
+  "score": 24,
+  "empreinte": "29f77d0c:35299"
  },
  {
   "graine": 1026,
@@ -213,7 +213,7 @@
   "tour": 22,
   "fin": "defaite",
   "score": 23,
-  "empreinte": "c0f85483:25124"
+  "empreinte": "4249fb01:32897"
  },
  {
   "graine": 1027,
@@ -221,167 +221,167 @@
   "tour": 36,
   "fin": "bilan",
   "score": 62,
-  "empreinte": "998d3c2d:36144"
+  "empreinte": "1f054e4e:34960"
  },
  {
   "graine": 1028,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 55,
-  "empreinte": "057ba19e:36282"
+  "tour": 28,
+  "fin": "defaite",
+  "score": 27,
+  "empreinte": "9245667d:36031"
  },
  {
   "graine": 1029,
   "difficulte": "difficile",
-  "tour": 20,
+  "tour": 17,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "1367ad97:30349"
+  "score": 26,
+  "empreinte": "876df839:27063"
  },
  {
   "graine": 1030,
   "difficulte": "facile",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 65,
-  "empreinte": "015cea33:36369"
+  "tour": 31,
+  "fin": "defaite",
+  "score": 26,
+  "empreinte": "b7ae0213:34914"
  },
  {
   "graine": 1031,
   "difficulte": "normal",
-  "tour": 23,
-  "fin": "defaite",
-  "score": 25,
-  "empreinte": "9e18a9eb:29575"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 52,
+  "empreinte": "6af5f508:38950"
  },
  {
   "graine": 1032,
   "difficulte": "difficile",
-  "tour": 18,
+  "tour": 11,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "639b5ccd:26028"
+  "score": 23,
+  "empreinte": "c1766328:22458"
  },
  {
   "graine": 1033,
   "difficulte": "facile",
-  "tour": 26,
-  "fin": "defaite",
-  "score": 27,
-  "empreinte": "cf7d6689:33441"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 56,
+  "empreinte": "59de843b:37617"
  },
  {
   "graine": 1034,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 48,
-  "empreinte": "500b1bd2:36594"
+  "tour": 25,
+  "fin": "defaite",
+  "score": 28,
+  "empreinte": "6ea85843:35507"
  },
  {
   "graine": 1035,
   "difficulte": "difficile",
-  "tour": 29,
+  "tour": 24,
   "fin": "defaite",
-  "score": 24,
-  "empreinte": "4af4ca50:35080"
+  "score": 19,
+  "empreinte": "23d4ffbc:33513"
  },
  {
   "graine": 1036,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 64,
-  "empreinte": "ca1aadc6:35841"
+  "score": 58,
+  "empreinte": "6515107f:39481"
  },
  {
   "graine": 1037,
   "difficulte": "normal",
-  "tour": 23,
+  "tour": 36,
   "fin": "defaite",
-  "score": 25,
-  "empreinte": "432b4256:32502"
+  "score": 24,
+  "empreinte": "616bd2df:39543"
  },
  {
   "graine": 1038,
   "difficulte": "difficile",
-  "tour": 20,
+  "tour": 17,
   "fin": "defaite",
-  "score": 26,
-  "empreinte": "7126cb73:29460"
+  "score": 24,
+  "empreinte": "95ed39c7:27616"
  },
  {
   "graine": 1039,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 62,
-  "empreinte": "c36ee5c6:36053"
+  "score": 63,
+  "empreinte": "84c861d4:36209"
  },
  {
   "graine": 1040,
   "difficulte": "normal",
-  "tour": 36,
+  "tour": 31,
   "fin": "defaite",
-  "score": 23,
-  "empreinte": "760d4081:37455"
+  "score": 20,
+  "empreinte": "895f9212:37090"
  },
  {
   "graine": 1041,
   "difficulte": "difficile",
-  "tour": 12,
+  "tour": 18,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "622f1565:21121"
+  "score": 23,
+  "empreinte": "1c36b685:25575"
  },
  {
   "graine": 1042,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 61,
-  "empreinte": "ab4d3ab1:37746"
+  "score": 54,
+  "empreinte": "bd663de3:36106"
  },
  {
   "graine": 1043,
   "difficulte": "normal",
-  "tour": 27,
-  "fin": "defaite",
-  "score": 24,
-  "empreinte": "68debdf5:33607"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 47,
+  "empreinte": "31e77d22:38279"
  },
  {
   "graine": 1044,
   "difficulte": "difficile",
-  "tour": 28,
+  "tour": 31,
   "fin": "defaite",
-  "score": 25,
-  "empreinte": "66009772:34896"
+  "score": 21,
+  "empreinte": "c48c3602:36029"
  },
  {
   "graine": 1045,
   "difficulte": "facile",
-  "tour": 32,
-  "fin": "defaite",
-  "score": 28,
-  "empreinte": "8f3f4422:35344"
+  "tour": 36,
+  "fin": "bilan",
+  "score": 60,
+  "empreinte": "66c0a4c5:37160"
  },
  {
   "graine": 1046,
   "difficulte": "normal",
   "tour": 36,
   "fin": "bilan",
-  "score": 59,
-  "empreinte": "8cbf128a:37898"
+  "score": 58,
+  "empreinte": "4d896fd7:38382"
  },
  {
   "graine": 1047,
   "difficulte": "difficile",
-  "tour": 15,
+  "tour": 31,
   "fin": "defaite",
-  "score": 27,
-  "empreinte": "d2f5f493:23390"
+  "score": 22,
+  "empreinte": "2ec0cf04:36889"
  },
  {
   "graine": 1048,
@@ -389,94 +389,94 @@
   "tour": 36,
   "fin": "bilan",
   "score": 52,
-  "empreinte": "902165ff:37752"
+  "empreinte": "5d5de4ea:37480"
  },
  {
   "graine": 1049,
   "difficulte": "normal",
-  "tour": 27,
+  "tour": 30,
   "fin": "defaite",
-  "score": 25,
-  "empreinte": "11d3cafd:34490"
+  "score": 26,
+  "empreinte": "668de234:35506"
  },
  {
   "graine": 1050,
   "difficulte": "difficile",
-  "tour": 28,
+  "tour": 22,
   "fin": "defaite",
-  "score": 22,
-  "empreinte": "4ffd307e:34027"
+  "score": 25,
+  "empreinte": "3109bbd9:28116"
  },
  {
   "graine": 1051,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 63,
-  "empreinte": "5295ac17:37948"
+  "score": 61,
+  "empreinte": "bd791949:35460"
  },
  {
   "graine": 1052,
   "difficulte": "normal",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 58,
-  "empreinte": "85da2b68:38005"
+  "tour": 27,
+  "fin": "defaite",
+  "score": 26,
+  "empreinte": "4812ae8a:32989"
  },
  {
   "graine": 1053,
   "difficulte": "difficile",
-  "tour": 19,
+  "tour": 25,
   "fin": "defaite",
-  "score": 24,
-  "empreinte": "c71ea874:27360"
+  "score": 22,
+  "empreinte": "6fe3f71e:35003"
  },
  {
   "graine": 1054,
   "difficulte": "facile",
   "tour": 36,
   "fin": "bilan",
-  "score": 58,
-  "empreinte": "3f9b1e5b:36315"
+  "score": 54,
+  "empreinte": "75378e46:36105"
  },
  {
   "graine": 1055,
   "difficulte": "normal",
-  "tour": 20,
+  "tour": 24,
   "fin": "defaite",
-  "score": 26,
-  "empreinte": "e9b8c3a5:26786"
+  "score": 24,
+  "empreinte": "8a437e27:31888"
  },
  {
   "graine": 1056,
   "difficulte": "difficile",
-  "tour": 12,
+  "tour": 24,
   "fin": "defaite",
-  "score": 23,
-  "empreinte": "ae6597f0:21721"
+  "score": 25,
+  "empreinte": "68b48a3c:34565"
  },
  {
   "graine": 1057,
   "difficulte": "facile",
-  "tour": 36,
-  "fin": "bilan",
-  "score": 56,
-  "empreinte": "03ee3158:37566"
+  "tour": 34,
+  "fin": "defaite",
+  "score": 28,
+  "empreinte": "4486436e:37349"
  },
  {
   "graine": 1058,
   "difficulte": "normal",
   "tour": 36,
-  "fin": "defaite",
-  "score": 23,
-  "empreinte": "e0abaf3c:37547"
+  "fin": "bilan",
+  "score": 53,
+  "empreinte": "c81717ab:39064"
  },
  {
   "graine": 1059,
   "difficulte": "difficile",
-  "tour": 19,
+  "tour": 25,
   "fin": "defaite",
-  "score": 26,
-  "empreinte": "4bc4e823:31404"
+  "score": 23,
+  "empreinte": "d86b533d:34450"
  }
 ]
