@@ -108,6 +108,27 @@ await page.waitForTimeout(3200);
 await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.file = []; s.phase = 'jeu'; s.evenementCourant = null; j.remplacer(s); j.majUi({ selection: { kind: 'theatre', id: 'SAHEL' }, uniteRegion: null }); })()`);
 await capture('25-compte-rendu-tactique');
 
+// Événement mobilisant des moyens identifiés, fiche d'unité avec insigne et matériels
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.phase = 'evenement'; s.evenementCourant = 'LAC_TCHAD'; s.file = []; j.remplacer(s); j.majUi({ selection: null }); })()`);
+await capture('16-evenement-moyens');
+await page.click('.choix >> nth=1');
+await page.waitForTimeout(300);
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'unite', id: 'RAFALE' } })`);
+await capture('17-fiche-unite');
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'unite', id: 'GTIA1' } })`);
+await capture('17-fiche-unite-gtia');
+
+// Catalogue : insignes et symboles, puis matériels illustrés
+await jeu(page, `window.__jeu.majUi({ selection: null, catalogue: true })`);
+await capture('30-catalogue-unites');
+await page.click('.catalogue-onglets >> text=Matériels');
+await capture('31-catalogue-materiels');
+for (let i = 1; i <= 3; i++) {
+  await page.evaluate((k) => { const c = document.querySelector('.fenetre-corps') || document.querySelector('.fenetre'); if (c) c.scrollTop = k * 560; }, i);
+  await capture('31-catalogue-materiels-' + i);
+}
+await jeu(page, `window.__jeu.majUi({ catalogue: false })`);
+
 await navigateur.close();
 if (erreurs.length) { console.error('Erreurs dans la page :\n' + erreurs.join('\n')); process.exitCode = 1; }
 else console.log('Aucune erreur dans la page.');

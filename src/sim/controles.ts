@@ -1,6 +1,6 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
-  AL, ALLIES, BIOMES, CARTES_REGIONALES, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
+  AL, ALLIES, BIOMES, CARTES_REGIONALES, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
   OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
 } from '../data';
 import type { Effets, Etat } from './types';
@@ -76,6 +76,17 @@ export function verifierDonnees(): string[] {
   for (const u in SOUTIEN_UNITE) if (!UN[u]) err.push('Soutien : unité inconnue ' + u);
   for (const u of MOBILITE_HELICO) if (!UN[u]) err.push('Mobilité : unité inconnue ' + u);
   for (const u of UNITES) if (!Object.values(POSTURES).some(P => P.categories.includes(u.categorie))) err.push('Unité ' + u.id + ' : aucune posture possible');
+  ids(MATERIELS, 'MATERIELS');
+  for (const u of UNITES) {
+    const I = IDENTITES[u.id];
+    if (!I) { err.push('Unité ' + u.id + ' : identité (sigle, symbole, insigne) manquante'); continue; }
+    if (!/^[SGWIOE][PUAFNSHGWMDLJKO-][PAGSUFXZ-][APCDXF-][A-Z0-9-]{6}[A-Z0-9-]{5}$/.test(I.sidc)) err.push('Unité ' + u.id + ' : code SIDC invalide ' + I.sidc);
+    for (const m of I.materiels) if (!MAT[m]) err.push('Unité ' + u.id + ' : matériel inconnu ' + m);
+    if (I.sigle.length > 6) err.push('Unité ' + u.id + ' : sigle trop long');
+    if (u.categorie !== 'INT' && !I.materiels.length) err.push('Unité ' + u.id + ' : au moins un matériel attendu');
+  }
+  for (const id in IDENTITES) if (!UN[id]) err.push('Identité pour une unité inconnue ' + id);
+  for (const m of MATERIELS) if (!m.caracteristiques.length || m.caracteristiques.some(c => !c.source)) err.push('Matériel ' + m.id + ' : caractéristiques sourcées attendues');
   for (const id in CARTES_REGIONALES) {
     const C = CARTES_REGIONALES[id], L: Record<string, unknown> = {};
     for (const l of C.lieux) L[l.id] = l;

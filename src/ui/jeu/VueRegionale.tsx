@@ -2,7 +2,9 @@
 // et commandement tactique (implantation, posture, missions). Un ordre courant se donne en deux clics :
 // l'unité, puis le lieu (ordre par défaut), ou l'unité, puis un ordre du panneau.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BIOMES, CARTES_REGIONALES, CATEGORIES, MISSIONS, MT, POSTURES, TH, THEATRES, UN, UNITES } from '../../data';
+import { BIOMES, CARTES_REGIONALES, CATEGORIES, IDENTITES, MISSIONS, MT, POSTURES, TH, THEATRES, UN, UNITES } from '../../data';
+import { SymboleSvg } from '../composants/SymboleOtan';
+import { Insigne } from '../composants/Insigne';
 import {
   dateDuTour, estAuSol, identifie, libelleMission, saisonDu, soutienTheatre, type Posture, type UniteDef
 } from '../../sim';
@@ -65,9 +67,9 @@ export function VueRegionale({ theatre }: { theatre: string }) {
     if (e.lieu && estAuSol(u)) {
       const ici = sol.filter(x => s.unites[x.id].lieu === e.lieu), i = ici.indexOf(u);
       const [x, y] = pos[e.lieu];
-      return [x - (ici.length - 1) * 13 + i * 26, y + 26];
+      return [x - (ici.length - 1) * 16 + i * 32, y + 30];
     }
-    return [34, 140 + horsCarte.indexOf(u) * 34];
+    return [34, 140 + horsCarte.indexOf(u) * 44];
   };
 
   return (
@@ -110,9 +112,10 @@ export function VueRegionale({ theatre }: { theatre: string }) {
             <g key={u.id} transform={`translate(${x},${y})`} className={'jeton' + (sel === u.id ? ' sel' : '') + (e.etat !== 'deployee' ? ' en-route' : '')}
               data-tip={u.nom + '\n' + POSTURES[e.posture].nom + (e.mission ? '\n' + libelleMission(theatre, e.mission) : '') + (e.etat !== 'deployee' ? '\nEn projection : arrivée sous ' + e.compteur + ' mois' : '') + '\nFatigue ' + Math.round(e.fatigue)}
               onClick={ev => { ev.stopPropagation(); majUi({ uniteRegion: sel === u.id ? null : u.id }); }} data-tuto={'jeton-' + u.id}>
-              <rect x={-11} y={-8} width={22} height={16} rx={2.5} style={{ fill: '#0c1116', stroke: COULEURS_CATEGORIE[u.categorie] }} />
-              <text y={3.5} textAnchor="middle" className="jeton-texte" style={{ fill: COULEURS_CATEGORIE[u.categorie] }}>{u.id.slice(0, 4)}</text>
-              <rect x={-11} y={9} width={22 * (1 - e.fatigue / 100)} height={2.5} style={{ fill: couleurNiveau(e.fatigue) }} />
+              <rect x={-14} y={-12} width={28} height={27} rx={3} className="jeton-fond" />
+              <SymboleSvg unite={u.id} taille={15} />
+              <rect x={-11} y={12} width={22 * (1 - e.fatigue / 100)} height={2.5} style={{ fill: couleurNiveau(e.fatigue) }} />
+              <text y={23} textAnchor="middle" className="jeton-texte">{IDENTITES[u.id].sigle}</text>
             </g>
           );
         })}
@@ -173,10 +176,13 @@ export function PanneauOrdres({ uniteId, theatre }: { uniteId: string; theatre: 
     <div className="vr-ordres">
       <div className="vr-ordres-entete">
         <button className="btn petit" onClick={() => majUi({ uniteRegion: null })} data-tip="Revenir à la fiche du théâtre (Échap)">← Théâtre</button>
-        <div>
+        <div className="fiche-identite">
+          <Insigne unite={uniteId} taille={44} />
+          <div>
           <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{CATEGORIES[u.categorie]}</div>
           <b className="vr-ordres-nom">{u.nom}</b>
           <span className="discret petit"> · {e.lieu ? 'implanté à ' + CARTES_REGIONALES[TH[theatre].carteRegionale].lieux.find(l => l.id === e.lieu)!.nom : 'hors carte'} · fatigue {Math.round(e.fatigue)}</span>
+          </div>
         </div>
       </div>
       {e.etat !== 'deployee' ? <p className="discret petit">En projection : arrivée sous {e.compteur} mois.</p> : (

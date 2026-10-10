@@ -67,6 +67,7 @@ function useRaccourcis() {
       if (!s || (ev.target as HTMLElement).closest('input, select, textarea')) return;
       if (ev.key === 'Escape') {
         if (ui.aide) majUi({ aide: false });
+        else if (ui.catalogue) majUi({ catalogue: false });
         else if (ui.apercu) majUi({ apercu: null });
         else if (ui.zoomLieu || ui.zoomUnite) majUi({ zoomLieu: null, zoomUnite: null });
         else if (ui.uniteRegion) majUi({ uniteRegion: null });
@@ -74,7 +75,7 @@ function useRaccourcis() {
         return;
       }
       if (ev.key === 'h' || ev.key === 'H') { majUi({ aide: !ui.aide }); return; }
-      if (ui.aide || ui.apercu || ui.bilan) return;
+      if (ui.aide || ui.catalogue || ui.apercu || ui.bilan) return;
       if (ev.key === 'Enter') {
         if (s.phase === 'jeu') { ev.preventDefault(); terminerTour(); }
         else if (s.phase === 'zoom') { ev.preventDefault(); jouer({ type: 'Z_SEMAINE' }); }

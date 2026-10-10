@@ -55,6 +55,20 @@ export interface UniteDef {
   indisponibilites?: { debut: number; fin: number }[];
 }
 
+// Catalogue des matériels et identité visuelle des unités (insigne original, symbole OTAN APP-6)
+export interface MaterielDef {
+  id: string; nom: string; type: string; milieu: 'air' | 'terre' | 'mer'; role: string;
+  caracteristiques: { lib: string; val: string; source: string }[];
+}
+export type SymboleInsigne = 'parachute' | 'ancre' | 'aile' | 'helice' | 'dague' | 'oeil' | 'canon' | 'roue' | 'bouclier' | 'etoile' | 'eclair' | 'trident' | 'rotor' | 'onde' | 'goutte' | 'tour' | 'cible';
+export interface InsigneDef {
+  forme: 'ecu' | 'rond' | 'losange' | 'ecu_pointe' | 'insigne_aile';
+  fond: string; bordure: string; symbole: SymboleInsigne; couleurSymbole: string;
+  bande?: string;            // bande diagonale de couleur
+  devise: string;            // devise fictive ou générique
+}
+export interface IdentiteUnite { sigle: string; sidc: string; materiels: string[]; insigne: InsigneDef }
+
 export interface ServiceDef {
   id: string; nom: string; libelle: string; domaine: string;
   capteurs: Record<TypeCapteur, number>;

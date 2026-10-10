@@ -2,6 +2,7 @@
 import { THEATRES } from './monde';
 import { UNITES, SERVICES, ALLIES, OPERATIONS, DOCTRINES } from './france';
 import { MENACES } from './menaces';
+import { MATERIELS } from './materiels';
 import type { EvenementDef } from '../sim/types';
 import { EVENEMENTS_BASE } from './evenements';
 import { EVENEMENTS_2015 } from './evenements-2015';
@@ -13,6 +14,8 @@ export * from './menaces';
 export * from './cartes-regionales';
 export * from './biomes';
 export * from './tactique';
+export * from './materiels';
+export * from './identite-unites';
 export * from './personnages';
 export * from './briefing';
 
@@ -26,4 +29,4 @@ function indexer<T extends { id: string }>(liste: T[]): Record<string, T> {
 }
 
 export const TH = indexer(THEATRES), UN = indexer(UNITES), SV = indexer(SERVICES),
-  MT = indexer(MENACES), OP = indexer(OPERATIONS), DOC = indexer(DOCTRINES), EV = indexer(EVENEMENTS), AL = indexer(ALLIES);
+  MT = indexer(MENACES), OP = indexer(OPERATIONS), DOC = indexer(DOCTRINES), EV = indexer(EVENEMENTS), AL = indexer(ALLIES), MAT = indexer(MATERIELS);

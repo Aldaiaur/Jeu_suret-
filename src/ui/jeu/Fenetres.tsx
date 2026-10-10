@@ -1,18 +1,22 @@
 // Fenêtres de décision et de bilan. Une seule à la fois, par ordre de priorité.
-import { CARTES_REGIONALES, EV, MT, NB_TOURS, OP, PARAMS, TH, UN } from '../../data';
+import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, TH, UN, UNITES } from '../../data';
+import { Insigne } from '../composants/Insigne';
+import { IllustrationMateriel } from '../composants/IllustrationMateriel';
 import {
   choixPermis, dateDuTour, evaluerCriseAbstraite, evaluerOperation, menaceDeCrise, menaceParId, moyensCrise,
-  type BilanZoom
+  type BilanZoom, type Categorie, type Etat, type EvenementDef
 } from '../../sim';
 import { usePartie } from '../contexte';
 import { pct, pucesEffets } from '../format';
 import { Fenetre } from '../composants/Fenetre';
 import { Graphique } from '../composants/Graphique';
 import { exporter } from '../sauvegarde';
+import { FenetreCatalogue } from './Catalogue';
 
 export function Fenetres() {
   const { etat: s, ui } = usePartie();
   if (ui.aide) return <FenetreAide />;
+  if (ui.catalogue) return <FenetreCatalogue />;
   if (ui.bilan) return <FenetreBilanZoom b={ui.bilan} />;
   if (ui.apercu) return <FenetreApercu />;
   if (s.phase === 'evenement') return <FenetreEvenement />;
@@ -27,12 +31,40 @@ function Puces({ effets }: { effets: Parameters<typeof pucesEffets>[0] }) {
   return <>{p.map((x, i) => <span key={i} className={'puce ' + x.ton}>{x.texte}</span>)}</>;
 }
 
+// Unités que mobilisent les choix d'un événement : citées explicitement, ou première unité engagée
+// (sinon disponible) de chaque catégorie demandée
+function unitesConcernees(s: Etat, E: EvenementDef): string[] {
+  const ids: string[] = [];
+  const ajouter = (id: string | undefined) => { if (id && !ids.includes(id)) ids.push(id); };
+  const deCategorie = (c: Categorie) => {
+    const l = UNITES.filter(u => u.categorie === c);
+    return (l.find(u => s.unites[u.id].etat === 'deployee') || l.find(u => s.unites[u.id].etat === 'disponible'))?.id;
+  };
+  for (const c of E.choix) {
+    if (c.effets.indispo) ajouter(c.effets.indispo.unite);
+    for (const f of c.effets.fatigue || []) ajouter(f.unite || (f.categorie && deCategorie(f.categorie)) || undefined);
+    if (c.requiert) ajouter(deCategorie(c.requiert.categorie));
+  }
+  return ids.slice(0, 3);
+}
+
 function FenetreEvenement() {
   const { etat: s, jouer } = usePartie();
   const E = EV[s.evenementCourant!];
+  const concernees = unitesConcernees(s, E);
   return (
     <Fenetre tampon="Événement" ton="ambre" titre={E.titre} sousTitre={dateDuTour(s.tour)}>
       <p className="texte-dossier">{E.texte}</p>
+      {concernees.length > 0 && (
+        <div className="moyens-concernes">
+          {concernees.map(id => (
+            <div key={id} className="moyen" data-tip={UN[id].nom + ' — ' + UN[id].type}>
+              {IDENTITES[id].materiels[0] ? <IllustrationMateriel id={IDENTITES[id].materiels[0]} largeur={150} /> : null}
+              <div className="moyen-nom"><Insigne unite={id} taille={22} /><span>{UN[id].nom}</span></div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="choix-liste">
         {E.choix.map((c, i) => {
           const ok = choixPermis(s, c);

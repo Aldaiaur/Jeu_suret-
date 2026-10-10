@@ -13,8 +13,10 @@ import './ui/styles/jeu.css';
 import './ui/styles/ecrans.css';
 import { App } from './ui/App';
 import { verifierDonnees } from './sim';
+import { Galerie } from './ui/ecrans/Galerie';
 
 const erreurs = verifierDonnees();
 if (erreurs.length) console.warn('Incohérences dans les données :\n' + erreurs.join('\n'));
 
-createRoot(document.getElementById('racine')!).render(<StrictMode><App /></StrictMode>);
+const galerie = import.meta.env.DEV && new URLSearchParams(location.search).has('galerie');
+createRoot(document.getElementById('racine')!).render(<StrictMode>{galerie ? <Galerie /> : <App />}</StrictMode>);

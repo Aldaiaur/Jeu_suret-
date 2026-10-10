@@ -21,6 +21,7 @@ export interface UiEtat {
   apercu: Extract<Action, { type: 'OPERATION' }> | null;
   bilan: BilanZoom | null;
   aide: boolean;
+  catalogue: boolean;
   debug: boolean;
   refMois: Ressources | null;
   zoomLieu: string | null;
@@ -32,7 +33,7 @@ export interface UiEtat {
 }
 
 const UI_INITIAL: UiEtat = {
-  ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, debug: false, refMois: null,
+  ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, catalogue: false, debug: false, refMois: null,
   zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null
 };
 

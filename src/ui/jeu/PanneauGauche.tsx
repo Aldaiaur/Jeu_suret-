@@ -2,6 +2,7 @@ import { ALLIES, CATEGORIES, ETATS_UNITE, SERVICES, TH, THEATRES, TYPES_CAPTEURS
 import { capteursLibres, fiabilite, type Categorie } from '../../sim';
 import { usePartie, type OngletGauche } from '../contexte';
 import { COULEURS_CATEGORIE, couleurNiveau } from '../format';
+import { SymboleHtml } from '../composants/SymboleOtan';
 
 export function PanneauGauche() {
   const { etat: s, ui, majUi } = usePartie();
@@ -41,7 +42,7 @@ function ListeForces() {
             return (
               <button key={u.id} className={'ligne-unite' + (sel ? ' sel' : '')} onClick={() => majUi({ selection: { kind: 'unite', id: u.id } })}
                 data-tip={u.nom + '\n' + u.type + ' · effectif ' + u.effectif + '\nAssaut ' + u.cap.assaut + ' · Rens. ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance + '\nFatigue ' + Math.round(e.fatigue)}>
-                <span className="ligne-unite-nom">{u.nom}</span>
+                <span className="ligne-unite-nom"><SymboleHtml unite={u.id} taille={11} />{u.nom}</span>
                 {e.theatre && <span className="ligne-unite-lieu">{TH[e.theatre].court}</span>}
                 <span className={'etat etat-' + e.etat}>{ETATS_UNITE[e.etat].replace(' (entretien)', '')}{det}</span>
                 <span className="barre ligne-unite-fatigue"><i style={{ width: e.fatigue + '%', background: couleurNiveau(e.fatigue) }} /></span>

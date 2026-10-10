@@ -87,6 +87,7 @@ function MenuJeu() {
       <button className="btn fantome carre" onClick={() => setOuvert(o => !o)} data-tip="Menu">≡</button>
       {ouvert && (
         <div className="menu-liste">
+          {item('Catalogue des forces et matériels', () => majUi({ catalogue: true }))}
           {item('Exporter la partie', () => exporter(etat))}
           {item('Importer une partie', () => importerFichier(charger, m => notifier('Import impossible', m, 'alerte')))}
           {item(ui.debug ? 'Masquer le débogage' : 'Débogage', () => majUi({ debug: !ui.debug }))}

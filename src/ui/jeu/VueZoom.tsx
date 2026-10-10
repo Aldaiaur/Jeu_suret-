@@ -7,6 +7,7 @@ import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../comp
 import { usePartie } from '../contexte';
 import { pct } from '../format';
 import { placerEtiquettes } from '../composants/etiquettes';
+import { SymboleHtml, SymboleSvg } from '../composants/SymboleOtan';
 
 const L = 900, H = 640;
 const CADRE: Cadre = { L, H, marges: { haut: 70, droite: 90, bas: 60, gauche: 90 } };
@@ -78,7 +79,7 @@ export function VueZoom() {
         <h3 className="titre-section">Détachements</h3>
         {z.unites.map(u => (
           <button key={u.id} className={'ligne-unite' + (selU === u.id ? ' sel' : '')} onClick={() => majUi({ zoomUnite: u.id, zoomLieu: null })}>
-            <span className="ligne-unite-nom">{UN[u.id].nom}</span>
+            <span className="ligne-unite-nom"><SymboleHtml unite={u.id} taille={11} />{UN[u.id].nom}</span>
             <span className="ligne-unite-lieu">{nomLieu(z, u.lieu)}</span>
             <span className={'etat ' + (u.blesse ? 'etat-indisponible' : u.aAgi ? 'etat-regeneration' : 'etat-disponible')}>{u.blesse ? 'diminué' : u.aAgi ? 'a agi' : 'prêt'}</span>
           </button>
@@ -124,8 +125,8 @@ export function VueZoom() {
             return (
               <g key={u.id} transform={`translate(${x - 16 + n * 20},${y + 20})`} className={'detachement' + (selU === u.id ? ' sel' : '') + (u.blesse ? ' blesse' : '')}
                 onClick={ev => { ev.stopPropagation(); majUi({ zoomUnite: u.id, zoomLieu: null }); }} data-tip={UN[u.id].nom + (u.blesse ? ' (diminué)' : '')} data-i={i}>
-                <rect width={18} height={12} rx={2} />
-                <path d="M0,0 L18,12 M18,0 L0,12" />
+                <rect x={-3} y={-5} width={24} height={22} rx={3} className="jeton-fond" />
+                <g transform="translate(9,6)"><SymboleSvg unite={u.id} taille={14} /></g>
               </g>
             );
           })}

@@ -1,12 +1,15 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
 import type { ReactNode } from 'react';
-import { AL, ALLIES, CATEGORIES, ETATS_UNITE, MT, OP, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
+import { AL, ALLIES, CATEGORIES, ETATS_UNITE, IDENTITES, MAT, MT, OP, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
   libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
 import { PanneauOrdres } from './VueRegionale';
+import { FicheMateriel } from './Catalogue';
+import { Insigne } from '../composants/Insigne';
+import { SymboleHtml } from '../composants/SymboleOtan';
 import { usePartie } from '../contexte';
 import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct } from '../format';
 
@@ -194,15 +197,26 @@ function FicheUnite({ id }: { id: string }) {
   return (
     <>
       <div className="fiche-entete">
-        <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{CATEGORIES[u.categorie]}</div>
-        <h2 className="fiche-titre">{u.nom}</h2>
-        <div className="second">{u.type} · effectif {u.effectif.toLocaleString('fr-FR')}</div>
+        <div className="fiche-identite">
+          <Insigne unite={id} taille={74} avecDevise />
+          <div>
+            <div className="fiche-type"><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{CATEGORIES[u.categorie]}</div>
+            <h2 className="fiche-titre">{u.nom}</h2>
+            <div className="second">{u.type} · effectif {u.effectif.toLocaleString('fr-FR')}</div>
+            <div className="symbole-ligne" data-tip={'Symbole militaire OTAN (APP-6)\nCode ' + IDENTITES[id].sidc}><SymboleHtml unite={id} taille={22} /><span className="discret petit">{IDENTITES[id].sigle}</span></div>
+          </div>
+        </div>
         <div className="fiche-indicateurs">
           <span className={'etat etat-' + e.etat}>{ETATS_UNITE[e.etat]}</span>
           {e.theatre && <span className="pastille">{TH[e.theatre].nom}</span>}
           <span className="pastille" style={{ color: couleurNiveau(e.fatigue) }}>Fatigue {Math.round(e.fatigue)}</span>
         </div>
       </div>
+      {IDENTITES[id].materiels.length > 0 && (
+        <Section titre="Matériels">
+          {IDENTITES[id].materiels.map(m => <div key={m} data-tip={MAT[m].caracteristiques.map(c => c.lib + ' : ' + c.val + ' (' + c.source + ')').join('\n')}><FicheMateriel id={m} compacte /></div>)}
+        </Section>
+      )}
       <Section titre="Capacités">
         {caps.map(([nom, v]) => (
           <div key={nom} className="capacite"><span>{nom}</span><span className="barre"><i style={{ width: v * 10 + '%', background: 'var(--texte-2)' }} /></span><span className="chiffres">{v}</span></div>

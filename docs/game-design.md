@@ -166,6 +166,13 @@ Une fois déployée, une unité se commande sur la carte régionale (`src/sim/ta
 - **Ergonomie** : deux clics pour un ordre courant (l’unité, puis le lieu marqué ; ou l’unité, puis un ordre du panneau).
 - **Lien avec les crises** : l’intervention de six semaines part de la situation du théâtre (contrôle des lieux, activité adverse, garnisons) et la met à jour à la fin.
 
+## 12. Identité visuelle des forces
+
+- **Insignes** : un par unité, créés par code (écu, couleurs, symbole de spécialité, devise fictive). Ils s’inspirent des conventions héraldiques sans reproduire d’insigne officiel.
+- **Symboles OTAN (APP-6)** : générés par la bibliothèque libre milsymbol à partir d’un code SIDC déclaré en données. Ils remplacent les jetons sur les cartes régionales et accompagnent les listes.
+- **Catalogue des matériels** (`src/data/materiels.ts`) : 22 matériels avec rôle, caractéristiques et source de chaque valeur, et une illustration dessinée par code. Chaque unité renvoie vers ses matériels (`src/data/identite-unites.ts`). Accessible par le menu (« Catalogue des forces et matériels »), dans la fiche d’unité et dans les fenêtres d’événement qui mobilisent des moyens.
+- Ce qui mériterait un travail d’artiste est suivi dans `docs/illustrations.md`.
+
 ## Décisions en attente de validation
 
 Décisions prises pendant la session autonome du 10 octobre 2026, avec l’option la plus prudente. À confirmer ou corriger.
@@ -179,3 +186,5 @@ Décisions prises pendant la session autonome du 10 octobre 2026, avec l’optio
 7. **Posture par défaut « défensive »** à chaque déploiement, pour conserver l’équilibre antérieur (même pression qu’avant).
 8. **Capacités de soutien des théâtres** (Sahel 8, Djibouti et pays baltes 6, golfe de Guinée 5, Levant 4, Libye et mer de Chine 3) : valeurs de conception, à confronter aux élongations réelles.
 9. **Difficulté** : le robot prudent (`tests/bot-prudent.ts`) ne perd que 4 à 7 % de ses parties, même en difficile. Le jeu est sans doute trop clément pour un joueur méthodique ; à rééquilibrer après les retours de parties humaines.
+10. **Devises des insignes** : fictives et volontairement génériques. À faire vérifier : aucune ne doit coïncider avec la devise réelle d’une unité.
+11. **Caractéristiques des matériels** : seules celles issues de la recherche portent une source ; les valeurs de constructeur (longueur, équipage, capacité) sont marquées « À VÉRIFIER ».
