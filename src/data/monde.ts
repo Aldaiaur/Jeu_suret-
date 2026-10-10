@@ -101,10 +101,11 @@ export const MARITIMES: string[] = ['EST','LIBYE','LEVANT','GUINEE','CORNE','IND
 
 // Enveloppe mensuelle (M€) : abstraction de jeu. Repères réels (fiche FRA, élevé) : provision OPEX de 450 M€/an
 // en loi de finances (≈ 37,5 M€/mois) pour des surcoûts OPEX + MISSINT de 1,1 à 1,54 Md€/an ; l’écart est le « surcoût ».
+// Calibrage (robot prudent, 60 parties) : défaites ≈ 5 % en facile, 15 % en normal, 30 % en difficile.
 export const DIFFICULTES: Record<string, DifficulteDef> = {
   facile:    { nom:'Facile',    croissanceMult:0.8,  enveloppe:75, budgetInitial:120, capital:70, opinion:60, menaceInt:30, credibilite:65, forceMult:0.9 },
-  normal:    { nom:'Normal',    croissanceMult:1.0,  enveloppe:62, budgetInitial:80, capital:60, opinion:55, menaceInt:35, credibilite:60, forceMult:1.0 },
-  difficile: { nom:'Difficile', croissanceMult:1.25, enveloppe:52,  budgetInitial:50,  capital:50, opinion:50, menaceInt:42, credibilite:55, forceMult:1.12 }
+  normal:    { nom:'Normal',    croissanceMult:1.25, enveloppe:62, budgetInitial:80, capital:60, opinion:52, menaceInt:35, credibilite:60, forceMult:1.12 },
+  difficile: { nom:'Difficile', croissanceMult:1.45, enveloppe:52,  budgetInitial:50,  capital:50, opinion:50, menaceInt:42, credibilite:55, forceMult:1.2 }
 };
 
 // Paramètres de règles exprimés en données (seuils, coefficients)
@@ -115,5 +116,6 @@ export const PARAMS = {
   dureeAvantVote:4,  // article 35, al. 3 : autorisation du Parlement au-delà de 4 mois (Constitution, S1)
    probaEvenement:0.65, toursCriseLibre:2,
   margeMin:4, rensFauxRapport:30,
-  plafondProtection:0.5   // part maximale de la menace intérieure que la protection peut absorber
+  plafondProtection:0.5,  // part maximale de la menace intérieure que la protection peut absorber
+  bonusDebat:0.15, capitalDebat:2   // débat au Parlement avant un vote de l’article 35
 };

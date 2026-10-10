@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { AL, ALLIES, CATEGORIES, ETATS_UNITE, IDENTITES, MAT, MT, OP, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
-  libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
+  facteursVote, libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
 import { PanneauOrdres } from './VueRegionale';
@@ -17,9 +17,15 @@ export function Fiche() {
   const { etat: s, ui, majUi } = usePartie();
   const sel = ui.selection;
   if (!sel) return null;
+  if (ui.ficheRepliee) return (
+    <button className="fiche-onglet" onClick={() => majUi({ ficheRepliee: false })} data-tip="Déplier la fiche">
+      <span>{sel.kind === 'theatre' ? TH[sel.id].nom : sel.kind === 'unite' ? UN[sel.id].nom : sel.kind === 'service' ? SV[sel.id].nom : AL[sel.id].nom}</span>
+    </button>
+  );
   return (
     <div className="fiche" key={sel.kind + sel.id}>
       <button className="btn fantome carre fiche-fermer" onClick={() => majUi({ selection: null })} aria-label="Fermer" data-tip="Fermer (Échap)">✕</button>
+      <button className="btn fantome carre fiche-replier" onClick={() => majUi({ ficheRepliee: true })} aria-label="Replier la fiche" data-tip="Replier la fiche pour dégager la carte">›</button>
       {sel.kind === 'theatre' && (ui.uniteRegion && s.unites[ui.uniteRegion]?.theatre === sel.id ? <PanneauOrdres uniteId={ui.uniteRegion} theatre={sel.id} /> : <FicheTheatre id={sel.id} />)}
       {sel.kind === 'unite' && <FicheUnite id={sel.id} />}
       {sel.kind === 'service' && <FicheService id={sel.id} />}
@@ -74,7 +80,7 @@ function Capteurs({ service, theatre }: { service: string; theatre: string }) {
 }
 
 function FicheTheatre({ id }: { id: string }) {
-  const { etat: s, possibles, majUi } = usePartie();
+  const { etat: s, possibles, majUi, estPossible, jouer } = usePartie();
   const T = TH[id], th = s.theatres[id];
   const ms = s.menaces.filter(m => m.theatre === id && m.detectee);
   const sur = UNITES.filter(u => s.unites[u.id].theatre === id);
@@ -102,7 +108,15 @@ function FicheTheatre({ id }: { id: string }) {
         </div>
         {voteDans !== null && (
           <div className="encart ambre" data-tuto="article35">
-            <b>Article 35</b> — intervention depuis {th.toursIntervention} mois. Vote du Parlement dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s))}</b>.
+            <span data-tip={'Facteurs du vote\n' + facteursVote(s, id).map(f => f.lib + ' : ' + (f.val >= 0 ? '+' : '−') + Math.round(Math.abs(f.val) * 100) + ' %').join('\n') + '\nUn refus impose le retrait des forces du théâtre.'}>
+              <b>Article 35</b> — intervention depuis {th.toursIntervention} mois. Vote du Parlement dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s, id))}</b>.
+            </span>
+            {!th.debat ? (
+              <div className="encart-action">
+                <button className="btn petit" disabled={!estPossible({ type: 'DEBAT', theatre: id })} onClick={() => jouer({ type: 'DEBAT', theatre: id })}
+                  data-tip={'Exposer les objectifs de l’intervention devant les assemblées.\nVote +' + Math.round(PARAMS.bonusDebat * 100) + ' % · capital −' + PARAMS.capitalDebat + ' · 1 action'}>Organiser un débat au Parlement</button>
+              </div>
+            ) : <div className="petit c-vert">Débat organisé : adoption facilitée.</div>}
           </div>
         )}
       </div>

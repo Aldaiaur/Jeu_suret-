@@ -63,7 +63,7 @@ function Jeu() {
 
 // Raccourcis clavier : Entrée (fin du mois / semaine suivante), Échap, H, 1-3 (choix d'un événement)
 function useRaccourcis() {
-  const { etat: s, ui, majUi, jouer, terminerTour } = useJeu();
+  const { etat: s, ui, majUi, jouer, terminerTour, estPossible } = useJeu();
   useEffect(() => {
     const touche = (ev: KeyboardEvent) => {
       if (!s) return;
@@ -86,6 +86,11 @@ function useRaccourcis() {
         else if (s.phase === 'zoom') { ev.preventDefault(); jouer({ type: 'Z_SEMAINE' }); }
         return;
       }
+      if (s.phase === 'crise' && /^[1-3]$/.test(ev.key)) {
+        const a = { type: 'CRISE_REPONSE', index: Number(ev.key) - 1 } as const;
+        if (estPossible(a)) jouer(a);
+        return;
+      }
       if (s.phase === 'evenement' && /^[1-3]$/.test(ev.key)) {
         const i = Number(ev.key) - 1, c = EV[s.evenementCourant!].choix[i];
         if (c && choixPermis(s, c)) jouer({ type: 'CHOIX', index: i });
@@ -93,5 +98,5 @@ function useRaccourcis() {
     };
     window.addEventListener('keydown', touche);
     return () => window.removeEventListener('keydown', touche);
-  }, [s, ui, majUi, jouer, terminerTour]);
+  }, [s, ui, majUi, jouer, terminerTour, estPossible]);
 }

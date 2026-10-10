@@ -28,7 +28,7 @@ export function nouvellePartie(graine: string | number, difficulte: string): Eta
   for (const T of THEATRES) {
     const engage = UNITES.some(u => u.depart === T.id);
     s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0,
-      toursIntervention: engage ? 12 : 0, voteFait: engage, allie: 0, appuis: [], crise: null, lieux: lieuxInitiaux(T.id), rapportTactique: [] };
+      toursIntervention: engage ? 12 : 0, voteFait: engage, debat: false, allie: 0, appuis: [], crise: null, lieux: lieuxInitiaux(T.id), rapportTactique: [] };
   }
   for (const A of ALLIES) s.allies[A.id] = { relation: A.relation, cooldown: 0 };
   for (const T of MENACES) {
@@ -53,7 +53,8 @@ export function migrerEtat(s0: Etat): Etat {
   if (!s.allies) s.allies = {};
   for (const A of ALLIES) if (!s.allies[A.id]) s.allies[A.id] = { relation: A.relation, cooldown: 0 };
   for (const T of THEATRES) {
-    if (!s.theatres[T.id]) s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0, toursIntervention: 0, voteFait: false, allie: 0, appuis: [], crise: null, lieux: lieuxInitiaux(T.id), rapportTactique: [] };
+    if (!s.theatres[T.id]) s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0, toursIntervention: 0, voteFait: false, debat: false, allie: 0, appuis: [], crise: null, lieux: lieuxInitiaux(T.id), rapportTactique: [] };
+    if (s.theatres[T.id].debat === undefined) s.theatres[T.id].debat = false;
     if (!s.theatres[T.id].appuis) s.theatres[T.id].appuis = [];
     // Sauvegardes antérieures aux cartes régionales : lieux complétés, lieux disparus retirés
     const ref = lieuxInitiaux(T.id), ex = s.theatres[T.id].lieux || {};

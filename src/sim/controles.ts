@@ -100,6 +100,12 @@ export function verifierDonnees(): string[] {
     if (!BIOMES[C.biome]) err.push('Carte ' + id + ' : biome inconnu ' + C.biome);
     for (const c of C.forcesCrise) if (!CATEGORIES[c]) err.push('Carte ' + id + ' : catégorie inconnue ' + c);
     if (!C.scenarios.length) err.push('Carte ' + id + ' : au moins un scénario de crise attendu');
+    for (const r of C.reponsesCrise || []) {
+      for (const e of [r.effets, r.succes, r.echec]) verifEffets(e, 'Carte ' + id + '/' + r.id);
+      for (const c of r.requiert || []) if (!CATEGORIES[c]) err.push('Carte ' + id + '/' + r.id + ' : catégorie inconnue ' + c);
+      if (!(r.p > 0 && r.p < 1)) err.push('Carte ' + id + '/' + r.id + ' : probabilité invalide');
+    }
+    if (!C.zoomCrise && !(C.reponsesCrise || []).length) err.push('Carte ' + id + ' : réponses de crise attendues hors carte');
     if (C.zoomCrise) {
       if (!C.forcesCrise.length) err.push('Carte ' + id + ' : forces de crise attendues');
       if ((L[C.depart] as { controle?: string } | undefined)?.controle !== 'allie') err.push('Carte ' + id + ' : le lieu de départ doit être allié');

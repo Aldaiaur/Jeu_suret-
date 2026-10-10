@@ -51,6 +51,8 @@ function moisPrudent(s0: Etat): Etat {
   }
   // 4. Territoire : protection si la menace intérieure monte
   if (s.ressources.menaceInt > 45) s = essayer(s, { type: 'DEPLOYER', unite: 'SENTI', theatre: 'METRO' });
+  // 4 bis. Article 35 : débat avant un vote incertain
+  for (const a of M.actionsPossibles(s)) if (a.type === 'DEBAT' && s.theatres[a.theatre].toursIntervention >= 3 && M.probaVote(s, a.theatre) < 0.85) s = essayer(s, a);
   // 5. Opérations à bonne probabilité et faible risque collatéral
   for (const a of M.actionsPossibles(s)) {
     if (a.type !== 'OPERATION' || s.actionsRestantes <= 0) continue;
@@ -113,8 +115,10 @@ export function jouerPrudent(nb: number, difficultes: string[]): ResumeRobot[] {
         const idx = E.choix.map((c, k) => ({ k, n: M.choixPermis(s, c) ? noteEffets(c.effets) : -Infinity })).sort((a, b) => b.n - a.n)[0].k;
         s = M.appliquerAction(s, { type: 'CHOIX', index: idx });
       } else if (s.phase === 'crise') {
-        const ok = M.actionsPossibles(s).some(a => a.type === 'CRISE' && a.intervenir);
-        s = M.appliquerAction(s, { type: 'CRISE', intervenir: ok });
+        const L = M.actionsPossibles(s);
+        const rep = L.find(a => (a.type as string) === 'CRISE_REPONSE');
+        const ok = L.some(a => a.type === 'CRISE' && a.intervenir);
+        s = M.appliquerAction(s, rep || { type: 'CRISE', intervenir: ok });
       } else if (s.phase === 'zoom') s = semaineZoom(s);
       else break;
     }

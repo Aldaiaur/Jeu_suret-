@@ -35,7 +35,7 @@ function Situation() {
     const th = s.theatres[T.id];
     if (T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0) {
       const dans = Math.max(1, PARAMS.dureeAvantVote + 1 - th.toursIntervention);
-      ech.push([dans, <>Vote article 35 ({T.court}) dans {dans} mois · adoption {pct(probaVote(s))}</>, dans === 1 ? 'ambre' : '']);
+      ech.push([dans, <>Vote article 35 ({T.court}) dans {dans} mois · adoption {pct(probaVote(s, T.id))}</>, dans === 1 ? 'ambre' : '']);
     }
     if (th.crise && th.crise.statut === 'libre') ech.push([0, <>Crise non traitée : {th.crise.titre} ({th.crise.toursLibres} m)</>, 'rouge']);
     if (th.allie) ech.push([th.allie, <>Appui allié {T.court} : encore {th.allie} mois</>, 'violet']);

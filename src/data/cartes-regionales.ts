@@ -194,6 +194,12 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
     biome:'urbain_bocage', zoomCrise:false, forcesCrise:['INT'], frappes:false, soutien:20,
     fleuves:[{ nom:'Seine', points:[[4.5,48.3],[3.0,48.4],[2.35,48.86],[1.6,49.1],[1.1,49.44],[0.1,49.48]] }, { nom:'Loire', points:[[4.0,46.0],[3.1,46.9],[2.4,47.6],[1.9,47.9],[0.69,47.39],[-0.55,47.47],[-1.55,47.22],[-2.2,47.27]] }, { nom:'Rhône', points:[[6.1,46.15],[5.5,45.9],[4.84,45.76],[4.89,44.93],[4.81,43.95],[4.63,43.68],[4.75,43.35]] }, { nom:'Garonne', points:[[0.6,43.0],[1.44,43.6],[0.6,44.2],[-0.58,44.84],[-1.0,45.5]] }],
     forceLocale:{ nom:'Forces de sécurité intérieure', force:60 }, reserveEnnemie:[0,0],
+    reponsesCrise:[
+      { id:'INTERVENTION', nom:'Engager les forces d’intervention', description:'GIGN, RAID ou BRI interviennent sur renseignement. Décisif si l’information est bonne.', requiert:['INT'], p:0.65,
+        effets:{ fatigue:[{categorie:'INT', delta:8}] }, succes:{ opinion:4, credibilite:2, menaceInt:-6 }, echec:{ opinion:-5, menaceInt:4 }, baisseMenace:15 },
+      { id:'PLAN_URGENCE', nom:'Déclencher le plan d’urgence', description:'Renforts sur les sites sensibles, contrôles, annulation de rassemblements. Sûr, mais coûteux et impopulaire à la longue.', p:0.9,
+        effets:{ budget:-8, capital:-1 }, succes:{ menaceInt:-4, opinion:1 }, echec:{ opinion:-2 }, baisseMenace:6 }
+    ],
     lieux:[
       { id:'PARIS',      lon:2.35,  lat:48.86, nom:'Paris',      type:'ville', controle:'allie', defense:60, force:null, civils:3 },
       { id:'LILLE',      lon:3.06,  lat:50.63, nom:'Lille',      type:'ville', controle:'allie', defense:30, force:null, civils:3 },
@@ -219,6 +225,12 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
     biome:'foret_plaine', zoomCrise:false, forcesCrise:[], frappes:false, soutien:6,
     fleuves:[{ nom:'Daugava', points:[[27.6,55.6],[26.5,55.9],[25.5,56.4],[24.11,56.95]] }, { nom:'Vistule', points:[[21.5,51.0],[21.01,52.23],[19.5,52.6],[18.6,53.5],[18.8,54.3]] }],
     forceLocale:{ nom:'Forces baltes et polonaises', force:50 }, reserveEnnemie:[0,0],
+    reponsesCrise:[
+      { id:'REASSURANCE', nom:'Déployer une force de réassurance', description:'Des unités françaises rejoignent l’allié menacé. Un signal fort, au prix d’un engagement durable.', requiert:['TERRE','AIR'], p:0.8,
+        effets:{ relation:[{allie:'USA', delta:2}, {allie:'DEU', delta:2}] }, succes:{ credibilite:4 }, echec:{ credibilite:-2, menace:[{type:'ETAT_EST', delta:3}] }, baisseMenace:10 },
+      { id:'DIPLOMATIE', nom:'Proposer une désescalade', description:'Médiation avec Berlin et canal direct avec Moscou. Peut désamorcer la crise, ou passer pour de la faiblesse.', p:0.45,
+        effets:{ capital:-2 }, succes:{ credibilite:3 }, echec:{ credibilite:-3, relation:[{allie:'USA', delta:-2}] }, baisseMenace:12 }
+    ],
     lieux:[
       { id:'TALLINN',     lon:24.75, lat:59.44, nom:'Tallinn',           type:'ville', controle:'allie',  defense:30, force:null,    civils:3, littoral:true },
       { id:'TAPA',        lon:25.96, lat:59.26, nom:'Tapa',              type:'base',  controle:'allie',  defense:35, force:null,    civils:1 },
@@ -244,6 +256,12 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
     id:'MER_CHINE', nom:'Mer de Chine méridionale', theatre:'INDOPAC', largeur:760, hauteur:540, depart:'SINGAPOUR',
     biome:'archipel_ocean', zoomCrise:false, forcesCrise:[], frappes:false, soutien:3,
     forceLocale:{ nom:'Marines riveraines partenaires', force:30 }, reserveEnnemie:[0,0],
+    reponsesCrise:[
+      { id:'NAVIGATION', nom:'Patrouille de liberté de navigation', description:'Un bâtiment français transite avec des partenaires dans les eaux disputées, sans provocation.', requiert:['MER'], p:0.75,
+        effets:{ fatigue:[{categorie:'MER', delta:5}] }, succes:{ credibilite:4, relation:[{allie:'JPN', delta:3}, {allie:'AUS', delta:3}] }, echec:{ credibilite:-2, opinion:-1 }, baisseMenace:10 },
+      { id:'PROTESTATION', nom:'Protestation diplomatique coordonnée', description:'Déclaration commune avec les partenaires régionaux et rappel du droit de la mer.', p:0.5,
+        effets:{ capital:-1 }, succes:{ credibilite:2 }, echec:{ credibilite:-2 }, baisseMenace:6 }
+    ],
     lieux:[
       { id:'SINGAPOUR',      lon:103.85, lat:1.29,  nom:'Singapour',              type:'base',  controle:'allie',  defense:40, force:null,    civils:3, littoral:true },
       { id:'MALACCA',        lon:101.2,  lat:2.6,   nom:'Détroit de Malacca',     type:'zone',  controle:'neutre', defense:0,  force:null,    civils:0, littoral:true },

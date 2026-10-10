@@ -1,8 +1,9 @@
 // Mesure des temps de réponse de l'interface : ouverture des vues régionales, retour au monde,
 // passage de mois, ouverture d'une intervention. Usage : npm run dev, puis node tools/performances.ts
 import { chromium } from '@playwright/test';
+import { navigateurInstalle } from './navigateur.ts';
 
-const navigateur = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const navigateur = await chromium.launch(navigateurInstalle());
 const page = await navigateur.newPage({ viewport: { width: 1600, height: 900 } });
 await page.goto(process.argv[2] || 'http://localhost:5173/');
 await page.evaluate(() => localStorage.clear());

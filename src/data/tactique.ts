@@ -48,6 +48,7 @@ export const MOBILITE_HELICO: string[] = ['GAM', 'RHFS4', 'BPC'];
 
 export const PARAMS_TACTIQUE = {
   seuilIdentifie: 50,      // connaissance à partir de laquelle un lieu est identifié
+  connuParRens: 0.65,      // plancher de connaissance = renseignement du théâtre × ce coefficient
   declinConnu: 12,         // perte mensuelle de connaissance
   infiltration: 40,        // activité adverse qui permet de s’infiltrer dans un lieu voisin
   menaceInfiltration: 55,  // niveau de menace du théâtre à partir duquel l’adversaire s’étend

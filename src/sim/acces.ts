@@ -40,9 +40,23 @@ export function enIndisponibilite(u: UniteDef, tour: number): boolean {
   return (u.indisponibilites || []).some(p => tour >= p.debut && tour <= p.fin);
 }
 export function coutMult(s: Etat): number { return mods(s).coutMult; }
-export function probaVote(s: Etat): number {
-  const R = s.ressources;
-  return borner(0.25 + R.opinion / 100 * 0.45 + R.capital / 100 * 0.35 + mods(s).voteBonus, 0.05, 0.97);
+// Article 35 : la jouabilité prime. Le vote reste incertain, mais le joueur voit ce qui le détermine
+// et peut le préparer (débat au Parlement). Dans la réalité 2015-2018, tous les votes ont été quasi unanimes.
+export function facteursVote(s: Etat, theatre?: string): { lib: string; val: number }[] {
+  const R = s.ressources, th = theatre ? s.theatres[theatre] : null;
+  const f = [
+    { lib: 'Base', val: 0.25 },
+    { lib: 'Opinion', val: R.opinion / 100 * 0.45 },
+    { lib: 'Capital politique', val: R.capital / 100 * 0.35 },
+    { lib: 'Crédibilité', val: (R.credibilite - 50) / 250 }
+  ];
+  if (mods(s).voteBonus) f.push({ lib: 'Doctrine', val: mods(s).voteBonus });
+  if (th?.debat) f.push({ lib: 'Débat au Parlement', val: PARAMS.bonusDebat });
+  if (th?.crise) f.push({ lib: 'Crise en cours sur le théâtre', val: 0.05 });
+  return f;
+}
+export function probaVote(s: Etat, theatre?: string): number {
+  return borner(facteursVote(s, theatre).reduce((a, x) => a + x.val, 0), 0.05, 0.97);
 }
 export function fiabilite(r: number): string { return r >= 75 ? 'A' : r >= 55 ? 'B' : r >= 35 ? 'C' : r >= 20 ? 'D' : 'E'; }
 export function journaliser(s: Etat, texte: string, genre?: GenreJournal): void {

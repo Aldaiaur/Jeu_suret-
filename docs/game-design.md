@@ -173,7 +173,18 @@ Une fois déployée, une unité se commande sur la carte régionale (`src/sim/ta
 - **Catalogue des matériels** (`src/data/materiels.ts`) : 22 matériels avec rôle, caractéristiques et source de chaque valeur, et une illustration dessinée par code. Chaque unité renvoie vers ses matériels (`src/data/identite-unites.ts`). Accessible par le menu (« Catalogue des forces et matériels »), dans la fiche d’unité et dans les fenêtres d’événement qui mobilisent des moyens.
 - Ce qui mériterait un travail d’artiste est suivi dans `docs/illustrations.md`.
 
-## Décisions en attente de validation
+## Décisions prises (validées par le propriétaire le 10 octobre 2026 : « privilégier la jouabilité, trancher en l’absence d’information »)
+
+1. **Article 35** : la jouabilité prime sur le réalisme (les votes réels de 2015-2018 ont été quasi unanimes). Le vote reste incertain mais lisible : la fiche du théâtre détaille ses facteurs (opinion, capital, crédibilité, doctrine, crise en cours) et le joueur peut **organiser un débat au Parlement** (1 action, 2 de capital, +15 %). Un refus impose toujours le retrait.
+2. **Crises hors carte** (Métropole, Est, Indo-Pacifique) : plus de tirage abstrait. Chaque théâtre propose deux réponses propres, avec leurs moyens, leur probabilité et leurs effets en cas de succès ou d’échec (forces d’intervention ou plan d’urgence ; réassurance ou désescalade ; patrouille de liberté de navigation ou protestation coordonnée).
+3. **Ordres tactiques gratuits** : confirmé. Ils sont limités par le soutien, les coûts et les risques, et l’adversaire réagit désormais (embuscades, harcèlement, dispersion après une frappe).
+4. **Posture défensive par défaut** au déploiement : confirmé.
+5. **Difficulté** : cible pour un joueur méthodique (robot prudent) ≈ 0-5 % de défaites en facile, ≈ 15 % en normal, ≈ 30 % en difficile.
+6. **Score** : un domaine « Contrôle du terrain » (part des lieux non tenus par l’adversaire sur les théâtres d’intervention) récompense le travail tactique.
+7. Les autres décisions de la première session (cinq théâtres à crises sur carte, lieux russes et chinois en lecture seule, coefficients saisonniers, capacités de soutien, devises fictives, caractéristiques « À VÉRIFIER ») sont maintenues.
+
+## Décisions de la première session (historique)
+
 
 Décisions prises pendant la session autonome du 10 octobre 2026, avec l’option la plus prudente. À confirmer ou corriger.
 

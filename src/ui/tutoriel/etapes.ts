@@ -72,7 +72,7 @@ export const ASTUCES: Astuce[] = [
     condition: s => s.phase === 'crise' },
   { id: 'zoom', titre: 'Intervention régionale', texte: 'Sélectionnez un détachement puis un lieu. Reconnaissez avant de frapper : une frappe mal renseignée touche plus de civils. Seules les forces locales reprennent durablement un lieu. « Semaine suivante » laisse l’adversaire réagir.',
     condition: s => s.phase === 'zoom' },
-  { id: 'vote', titre: 'Article 35', texte: 'Une intervention dure depuis plus de quatre mois : le Parlement va voter. Plus l’opinion et le capital politique sont élevés, plus l’autorisation est probable. Un refus impose le retrait.', cible: 'article35',
+  { id: 'vote', titre: 'Article 35', texte: 'Une intervention dure depuis plus de quatre mois : le Parlement va voter. Plus l’opinion, le capital politique et la crédibilité sont élevés, plus l’autorisation est probable ; un débat au Parlement, organisé depuis la fiche du théâtre, l’améliore encore. Un refus impose le retrait.', cible: 'article35',
     condition: s => Object.values(s.theatres).some(t => t.toursIntervention >= 3 && !t.voteFait) },
   { id: 'budget', titre: 'Budget sous tension', texte: 'Vos dépenses dépassent l’enveloppe. Le dépassement deviendra du surcoût et coûtera du capital politique. Rapatriez une unité, ou demandez une rallonge dans l’onglet Situation (arbitrages budgétaires).', cible: 'budget',
     condition: s => s.phase === 'jeu' && s.ressources.budget + s.ressources.enveloppe - coutsMensuels(s) < 0 },

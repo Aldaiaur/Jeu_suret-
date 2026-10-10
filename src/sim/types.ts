@@ -179,6 +179,16 @@ export interface LieuDef {
   controle: Controle; defense: number; force: [number, number] | null; civils: number;
 }
 
+// Réponse à une crise résolue hors carte (territoire national, adversaire étatique)
+export interface ReponseCriseDef {
+  id: string; nom: string; description: string;
+  requiert?: Categorie[];        // une unité de ces catégories, sur place ou projetée en urgence
+  p: number;                     // probabilité de succès de base
+  effets: Effets;                // effets immédiats, quelle que soit l’issue
+  succes: Effets; echec: Effets;
+  baisseMenace: number;          // réduction de la menace en cas de succès
+}
+
 export interface ObjectifDef { type: 'tenir' | 'controler' | 'evacuer' | 'attrition'; lieu?: string; nombre?: number; valeur?: number }
 
 export interface ScenarioDef {
@@ -197,6 +207,7 @@ export interface CarteRegionaleDef {
   frappes: boolean;               // règles d’engagement : frappes aériennes autorisées
   soutien: number;                // capacité logistique du théâtre (bases, ports, routes) ; voir POSTURES et MISSIONS
   fleuves?: { nom: string; points: [number, number][] }[];   // tracés schématiques (décor)
+  reponsesCrise?: ReponseCriseDef[];   // crises hors carte : réponses propres au théâtre
   forceLocale: { nom: string; force: number };
   reserveEnnemie: [number, number];
   lieux: LieuDef[];
@@ -255,6 +266,7 @@ export interface EtatTheatre {
   rens: number; rensBonus: number; rensPermanent: number; partenaire: number;
   pressionBonus: number; pressionOps: number;
   toursIntervention: number; voteFait: boolean;
+  debat: boolean;                   // débat organisé au Parlement avant le vote de l’article 35
   allie: number; appuis: AppuiActif[]; crise: Crise | null;
   lieux: Record<string, EtatLieu>;
   rapportTactique: string[];        // comptes rendus de la dernière résolution mensuelle
@@ -341,11 +353,13 @@ export type Action =
   | { type: 'BUDGET'; sens: 'hausse' | 'baisse' }
   | { type: 'ALLIE'; allie: string; appui: string; theatre: string }
   | { type: 'CHOIX'; index: number }
+  | { type: 'DEBAT'; theatre: string }
   | { type: 'POSITIONNER'; unite: string; lieu: string }
   | { type: 'POSTURE'; unite: string; posture: Posture }
   | { type: 'MISSION'; unite: string; mission: TypeMission; lieu: string; vers?: string }
   | { type: 'ANNULER_MISSION'; unite: string }
   | { type: 'CRISE'; intervenir: boolean }
+  | { type: 'CRISE_REPONSE'; index: number }
   | ActionZoom;
 
 export type ActionZoom =

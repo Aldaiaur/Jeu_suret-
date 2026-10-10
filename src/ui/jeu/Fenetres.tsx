@@ -4,7 +4,7 @@ import { Portrait } from '../composants/Portrait';
 import { Insigne } from '../composants/Insigne';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
 import {
-  choixPermis, dateDuTour, evaluerCriseAbstraite, evaluerOperation, menaceDeCrise, menaceParId, moyensCrise,
+  choixPermis, dateDuTour, porteurReponse, probaReponse, reponsePossible, reponsesCrise, evaluerCriseAbstraite, evaluerOperation, menaceDeCrise, menaceParId, moyensCrise,
   type BilanZoom, type Categorie, type Etat, type EvenementDef
 } from '../../sim';
 import { usePartie } from '../contexte';
@@ -103,14 +103,30 @@ function FenetreCrise() {
     <Fenetre tampon="Crise" ton="rouge" titre={crise.titre} sousTitre={TH[t].nom + ' · ' + dateDuTour(s.tour)} largeur={760}
       pied={<>
         <button className="btn danger" onClick={() => jouer({ type: 'CRISE', intervenir: false })} data-tip="Opinion −3, crédibilité −4. La crise évolue librement pendant deux mois.">Ne pas intervenir</button>
-        <button className="btn principal grand" disabled={!moy.possible} onClick={() => jouer({ type: 'CRISE', intervenir: true })}>Intervenir</button>
+        {!reponsesCrise(t).length && <button className="btn principal grand" disabled={!moy.possible} onClick={() => jouer({ type: 'CRISE', intervenir: true })}>Intervenir</button>}
       </>}>
       <p className="texte-dossier">{crise.texte}</p>
       <div className="grille-infos">
         <div><span className="titre-section">Adversaire</span><div>{m && m.detectee ? MT[m.type].nom + ' · niveau estimé ' + m.estimation + ' ± ' + m.marge : 'Mal identifié'}</div></div>
         <div><span className="titre-section">Renseignement</span><div>{th.rens}</div></div>
       </div>
-      {moy.zoom ? (
+      {reponsesCrise(t).length > 0 ? (
+        <div className="choix-liste">
+          {reponsesCrise(t).map((r, i) => {
+            const ok = reponsePossible(s, t, r), porteur = porteurReponse(s, t, r);
+            return (
+              <button key={r.id} className="choix" disabled={!ok} onClick={() => jouer({ type: 'CRISE_REPONSE', index: i })}>
+                <span className="choix-num">{i + 1}</span>
+                <span className="choix-corps">
+                  <span className="choix-texte">{r.nom} <span className="c-turquoise">· succès {pct(probaReponse(s, t, r, false))}</span>{!ok && <span className="c-rouge"> — moyens indisponibles</span>}</span>
+                  <span className="petit second">{r.description}{porteur ? ' Moyen engagé : ' + UN[porteur.id].nom + (porteur.urgence ? ' (projection d’urgence).' : '.') : ''}</span>
+                  <span className="choix-effets"><Puces effets={r.effets} />{pucesEffets(r.succes).map((x, k) => <span key={'s' + k} className={'puce ' + x.ton}>Succès : {x.texte}</span>)}{pucesEffets(r.echec).map((x, k) => <span key={'e' + k} className={'puce ' + x.ton}>Échec : {x.texte}</span>)}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : moy.zoom ? (
         <>
           <div className="grille-infos">
             <div><span className="titre-section">Forces spéciales</span><div>{moy.fs.length ? moy.fs.map(i => UN[i].nom).join(', ') : moy.fsDispo.length ? 'Projection d’urgence : ' + UN[moy.fsDispo[0]].nom : 'Aucune'}</div></div>
@@ -136,7 +152,7 @@ function FenetreCrise() {
           })()}
         </>
       )}
-      {!moy.possible && <div className="encart rouge">Aucun moyen adapté n’est disponible pour intervenir.</div>}
+      {!moy.possible && !reponsesCrise(t).length && <div className="encart rouge">Aucun moyen adapté n’est disponible pour intervenir.</div>}
     </Fenetre>
   );
 }
@@ -226,7 +242,7 @@ function FenetreAide() {
         <p><b>Renseignement.</b> Chaque menace a une force réelle cachée. Vous n’en voyez qu’une estimation avec une marge. Plus le renseignement est élevé, plus l’estimation est précise. Sous {PARAMS.rensFauxRapport}, les rapports peuvent être faux.</p>
         <p><b>Menaces.</b> Une menace négligée grandit, peut s’étendre vers un théâtre voisin et passer à l’action. La pression (forces, capteurs, partenaires, alliés) freine sa croissance.</p>
         <p><b>Unités.</b> Disponible, en projection, déployée (la fatigue monte), puis en régénération après rapatriement. À 100 de fatigue, l’unité est relevée d’office.</p>
-        <p><b>Article 35.</b> Au-delà de {PARAMS.dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. Un vote négatif impose le retrait.</p>
+        <p><b>Article 35.</b> Au-delà de {PARAMS.dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. L’adoption dépend de l’opinion, du capital et de la crédibilité ; un débat préalable (+{Math.round(PARAMS.bonusDebat * 100)} %) la facilite. Un vote négatif impose le retrait.</p>
         <p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût et coûte du capital politique.</p>
         <p><b>Théâtres.</b> Cliquez sur un théâtre pour ouvrir sa carte régionale : lieux, liaisons, biome et saison du mois. Les saisons modifient la pression exercée par chaque type de force, la fatigue, les coûts et la croissance de certaines menaces.</p>
         <p><b>Tactique.</b> Sur la carte régionale, cliquez une unité déployée puis un lieu marqué : l’ordre proposé s’exécute (deux clics). Le panneau de l’unité règle sa posture (offensive, défensive, reconnaissance, formation, réserve) et liste toutes ses missions avec leurs risques. Ces ordres sont gratuits et se résolvent à la fin du mois. Frappes et raids exigent une position identifiée ; les drones et la reconnaissance identifient, l’aviation frappe, les forces au sol exploitent. Le soutien logistique limite ce qu’un théâtre peut porter.</p>

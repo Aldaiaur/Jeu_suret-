@@ -236,6 +236,12 @@ export function deployerUrgence(s: Etat, uniteId: string, theatre: string): void
   e.posture = 'defensive'; e.mission = null;
 }
 
+// Le renseignement du théâtre fixe un plancher à la connaissance des positions adverses
+export function plancherConnaissance(s: Etat, theatre: string): void {
+  const th = s.theatres[theatre];
+  for (const x of Object.values(th.lieux)) x.connu = x.controle === 'ennemi' ? Math.max(Math.round(th.rens * PARAMS_TACTIQUE.connuParRens), Math.min(100, x.connu)) : 100;
+}
+
 // ---------- Résolution mensuelle ----------
 export function resoudreTactique(s: Etat): void {
   const R = s.ressources;
@@ -246,11 +252,8 @@ export function resoudreTactique(s: Etat): void {
     const menaceMax = menacesDans(s, T.id).reduce((a, m) => Math.max(a, m.force), 0);
 
     // 1. Connaissance des lieux : elle s'érode, le renseignement du théâtre fixe un plancher
-    for (const l of C.lieux) {
-      const x = L[l.id];
-      if (x.controle !== 'ennemi') { x.connu = 100; continue; }
-      x.connu = Math.max(Math.round(th.rens * 0.6), x.connu - PARAMS_TACTIQUE.declinConnu);
-    }
+    for (const l of C.lieux) { const x = L[l.id]; if (x.controle === 'ennemi') x.connu -= PARAMS_TACTIQUE.declinConnu; }
+    plancherConnaissance(s, T.id);
     for (const u of unites) {
       const e = s.unites[u.id], P = POSTURES[e.posture];
       if (P.connu) {
@@ -325,6 +328,34 @@ export function resoudreTactique(s: Etat): void {
       const e = s.unites[u.id], P = POSTURES[e.posture];
       if (P.partenaire) th.partenaire = borner(th.partenaire + P.partenaire * fs, 0, 60);
       if (P.risquePertes && alea(s) < P.risquePertes * (1.4 - u.cap.discretion / 10) * (escorte ? 0.7 : 1)) perte(u, 'posture offensive');
+    }
+
+    // 3 bis. Réaction de l'adversaire irrégulier (pas d'action de ce type face à un État) :
+    // dispersion après une frappe, embuscades sur les missions exposées, harcèlement des positions partenaires
+    if (C.frappes) {
+      for (const lieu of frappes) {
+        const x = L[lieu], refuges = voisinsCarte(C, lieu).filter(v => L[v].controle === 'ennemi');
+        if (x.activite <= 5 || !refuges.length) continue;
+        const dest = refuges.sort((a, b) => L[a].activite - L[b].activite)[0], k = Math.round(x.activite * 0.3);
+        x.activite -= k; L[dest].activite = Math.min(100, L[dest].activite + k); x.connu = Math.max(0, x.connu - 20);
+        rapport.push('L’adversaire se disperse de ' + nomLieuCarte(T.id, lieu) + ' vers ' + nomLieuCarte(T.id, dest) + '.');
+      }
+      const reco = unites.some(u => s.unites[u.id].posture === 'reconnaissance');
+      for (const u of unites) {
+        const e = s.unites[u.id], m = e.mission;
+        if (!estAuSol(u) || !m || !['patrouille', 'escorte', 'axe', 'appui'].includes(m.type)) continue;
+        const menacants = [m.lieu, ...(m.vers ? [m.vers] : [])].flatMap(c => voisinsCarte(C, c)).filter(v => L[v].controle === 'ennemi' && L[v].activite >= 30);
+        if (!menacants.length) continue;
+        const pire = Math.max(...menacants.map(v => L[v].activite));
+        const p = borner(0.06 + pire / 400 - (reco ? 0.04 : 0) - (escorte && m.type !== 'escorte' ? 0.02 : 0) - (e.posture === 'defensive' ? 0.02 : 0), 0.01, 0.3);
+        if (alea(s) < p) perte(u, 'embuscade près de ' + nomLieuCarte(T.id, m.lieu));
+      }
+      const cible = C.lieux.find(l => L[l.id].controle === 'allie' && !unites.some(u => s.unites[u.id].lieu === l.id) &&
+        voisinsCarte(C, l.id).some(v => L[v].controle === 'ennemi' && L[v].activite >= 45));
+      if (cible && alea(s) < 0.12) {
+        th.partenaire = borner(th.partenaire - 2, 0, 60);
+        rapport.push('Harcèlement adverse contre ' + cible.nom + ' : les partenaires reculent (capacité partenaire −2).');
+      }
     }
 
     // 4. L'action sur les lieux réduit la menace principale du théâtre

@@ -43,7 +43,8 @@ export function VueRegionale({ theatre }: { theatre: string }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const cadre: Cadre = useMemo(() => ({ L: taille.L, H: taille.H, marges: { haut: 100, droite: 500, bas: 170, gauche: 80 } }), [taille]);
+  const droite = ui.ficheRepliee ? 90 : 500;
+  const cadre: Cadre = useMemo(() => ({ L: taille.L, H: taille.H, marges: { haut: 100, droite, bas: 170, gauche: 80 } }), [taille, droite]);
   const projection = useMemo(() => projectionRegionale(C, cadre), [C, cadre]);
   const pos = useMemo(() => Object.fromEntries(C.lieux.map(l => [l.id, projection([l.lon, l.lat]) as [number, number]])), [C, projection]);
   const etiquettes = useMemo(() => placerEtiquettes(C.lieux, pos, 13), [C, pos]);
@@ -74,7 +75,7 @@ export function VueRegionale({ theatre }: { theatre: string }) {
   };
 
   return (
-    <div className="vue-regionale" ref={boite}>
+    <div className={'vue-regionale' + (ui.ficheRepliee ? ' fiche-repliee' : '')} ref={boite}>
       <svg width={L} height={H} viewBox={`0 0 ${L} ${H}`} className="calque" aria-hidden="true"><FondRegional C={C} cadre={cadre} projection={projection} /></svg>
       <svg width={L} height={H} viewBox={`0 0 ${L} ${H}`} className="calque" aria-hidden="true"><EffetSaison visuel={saison.visuel} L={L} H={H} prefixe={'vr-' + C.id} /></svg>
       <svg width={L} height={H} viewBox={`0 0 ${L} ${H}`} className="calque vue-regionale-svg" onClick={() => majUi({ uniteRegion: null })}>

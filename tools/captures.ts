@@ -1,14 +1,14 @@
 // Captures d'écran automatiques de l'interface, pour vérifier le rendu sans intervention humaine.
 // Usage : npm run dev (dans un autre terminal), puis npm run screens [url]
 import { chromium, type Page } from '@playwright/test';
+import { navigateurInstalle } from './navigateur.ts';
 import { mkdirSync } from 'node:fs';
 
 const URL_JEU = process.argv[2] || 'http://localhost:5173/';
 const DOSSIER = new URL('../captures/', import.meta.url);
 mkdirSync(DOSSIER, { recursive: true });
 
-// CHROMIUM : chemin d’un navigateur déjà installé, quand la version de Playwright n’a pas le sien
-const navigateur = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const navigateur = await chromium.launch(navigateurInstalle());
 const page = await navigateur.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
 const erreurs: string[] = [];
 page.on('pageerror', e => erreurs.push(e.message));
@@ -119,6 +119,18 @@ await jeu(page, `window.__jeu.majUi({ selection: { kind: 'unite', id: 'RAFALE' }
 await capture('17-fiche-unite');
 await jeu(page, `window.__jeu.majUi({ selection: { kind: 'unite', id: 'GTIA1' } })`);
 await capture('17-fiche-unite-gtia');
+
+// Crise hors carte (Europe de l'Est) : réponses propres au théâtre
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); const m = s.menaces.find(x => x.theatre === 'EST');
+  s.theatres.EST.crise = { titre: 'Manœuvres massives près de la trouée de Suwałki', texte: 'Des dizaines de milliers de soldats manœuvrent de part et d’autre du couloir.', menaceId: m.id, scenario: 'MANOEUVRES', statut: 'ouverte', toursLibres: 0 };
+  s.phase = 'crise'; s.criseCourante = 'EST'; s.file = []; j.remplacer(s); j.majUi({ selection: null }); })()`);
+await capture('18-crise-hors-carte');
+await page.keyboard.press('2');
+await page.waitForTimeout(300);
+// Fiche repliée : la carte régionale occupe toute la largeur
+await jeu(page, `window.__jeu.majUi({ selection: { kind: 'theatre', id: 'LEVANT' }, ficheRepliee: true })`);
+await capture('19-fiche-repliee');
+await jeu(page, `window.__jeu.majUi({ ficheRepliee: false })`);
 
 // Catalogue : insignes et symboles, puis matériels illustrés
 await jeu(page, `window.__jeu.majUi({ selection: null, catalogue: true })`);

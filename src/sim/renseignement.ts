@@ -3,6 +3,7 @@ import { MT, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, TH, THEATRES, TYPES_CAPT
 import type { Etat, Menace } from './types';
 import { alea, aleaEntre, borner } from './outils';
 import { bonusTheatre, fiabilite, mods, nbCapteurs, unitesDans } from './acces';
+import { plancherConnaissance } from './tactique';
 
 export function calculerRens(s: Etat): void {
   const md = mods(s);
@@ -17,6 +18,7 @@ export function calculerRens(s: Etat): void {
     for (const u of unitesDans(s, T.id)) r += u.cap.renseignement * 1.5 * (1 - s.unites[u.id].fatigue / 300) * POSTURES[s.unites[u.id].posture].rens;
     r += bonusTheatre(s, T.id).rens;
     th.rens = Math.round(borner(r, 0, 95));
+    plancherConnaissance(s, T.id);
   }
 }
 export function rensMenace(s: Etat, m: Menace): number {

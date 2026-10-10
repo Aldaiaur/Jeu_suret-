@@ -35,12 +35,13 @@ export interface UiEtat {
   ongletGauche: OngletGauche;
   ongletDroit: OngletDroit;
   transition: TransitionMois | null;
-  retour: { cle: number; texte: string; unite: string | null } | null;   // confirmation brève du dernier ordre
+  retour: { cle: number; texte: string; unite: string | null } | null;
+  ficheRepliee: boolean;           // fiche de droite réduite à un onglet, pour dégager la carte   // confirmation brève du dernier ordre
 }
 
 const UI_INITIAL: UiEtat = {
   ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, catalogue: false, debug: false, refMois: null,
-  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null, retour: null
+  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null, retour: null, ficheRepliee: false
 };
 
 interface Contexte {

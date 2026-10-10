@@ -9,7 +9,7 @@ import {
 import { calculerRens } from './renseignement';
 import { evaluerAppui, evaluerOperation, moyensCrise, participantsOperation } from './evaluation';
 import { actChoix, appliquerEffets, nettoyerMenaces } from './evenements';
-import { actCrise } from './crises';
+import { actCrise, reponsePossible, reponsesCrise } from './crises';
 import { actZoom, actionsZoom } from './zoom';
 import { evaluerFin, terminer } from './tour';
 import { actTactique, actionsTactiques, carteDuTheatre, estAuSol } from './tactique';
@@ -25,7 +25,9 @@ export function actionsPossibles(s: Etat): Action[] {
     return L;
   }
   if (s.phase === 'crise') {
-    if (moyensCrise(s, s.criseCourante!).possible) L.push({ type: 'CRISE', intervenir: true });
+    const rep = reponsesCrise(s.criseCourante!);
+    if (rep.length) rep.forEach((r, i) => { if (reponsePossible(s, s.criseCourante!, r)) L.push({ type: 'CRISE_REPONSE', index: i }); });
+    else if (moyensCrise(s, s.criseCourante!).possible) L.push({ type: 'CRISE', intervenir: true });
     L.push({ type: 'CRISE', intervenir: false });
     return L;
   }
@@ -55,6 +57,10 @@ export function actionsPossibles(s: Etat): Action[] {
       if (op.cibles === null) L.push({ type: 'OPERATION', op: op.id, theatre: T.id, cible: null });
       else for (const m of menacesDans(s, T.id)) if (m.detectee && op.cibles.includes(m.type)) L.push({ type: 'OPERATION', op: op.id, theatre: T.id, cible: m.id });
     }
+  }
+  for (const T of THEATRES) {
+    const th = s.theatres[T.id];
+    if (T.exterieur && !T.basePermanente && !th.voteFait && !th.debat && th.toursIntervention > 0 && R.capital > PARAMS.capitalDebat) L.push({ type: 'DEBAT', theatre: T.id });
   }
   if (R.capital > 8) L.push({ type: 'BUDGET', sens: 'hausse' });
   if (R.enveloppe > 20) L.push({ type: 'BUDGET', sens: 'baisse' });
@@ -88,7 +94,8 @@ export function appliquerAction(s: Etat, a: Action): Etat {
     case 'BUDGET': actBudget(n, a); break;
     case 'ALLIE': actAllie(n, a); break;
     case 'CHOIX': actChoix(n, a); break;
-    case 'CRISE': actCrise(n, a); break;
+    case 'DEBAT': actDebat(n, a); break;
+    case 'CRISE': case 'CRISE_REPONSE': actCrise(n, a); break;
     case 'POSITIONNER': case 'POSTURE': case 'MISSION': case 'ANNULER_MISSION': actTactique(n, a); break;
     default: actZoom(n, a);
   }
@@ -199,6 +206,13 @@ function transformerEffetOp(e: OperationDef['effetSucces'], theatre: string): Ef
     else r[c] = e[c];
   }
   return r;
+}
+function actDebat(s: Etat, a: ActionDe<'DEBAT'>): void {
+  s.theatres[a.theatre].debat = true;
+  s.ressources.capital -= PARAMS.capitalDebat;
+  s.actionsRestantes--;
+  const t = 'Débat au Parlement sur l’intervention (' + TH[a.theatre].nom + ') : le gouvernement expose ses objectifs avant le vote.';
+  decider(s, t); journaliser(s, t, 'decision');
 }
 function actBudget(s: Etat, a: ActionDe<'BUDGET'>): void {
   const R = s.ressources;

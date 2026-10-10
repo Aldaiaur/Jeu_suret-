@@ -1,5 +1,5 @@
 // Fin de tour mensuelle, fin de partie et score.
-import { ALLIES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
+import { ALLIES, CARTES_REGIONALES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
 import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
 import { actionsParTour, appuiDef, dateDuTour, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
@@ -61,7 +61,7 @@ export function finDeTour(s: Etat): Etat {
     if (unitesDans(n, T.id, ['deployee', 'projection']).length) {
       th.toursIntervention++;
       if (th.toursIntervention > PARAMS.dureeAvantVote && !th.voteFait) {
-        const p = probaVote(n);
+        const p = probaVote(n, T.id);
         n.stats.votes++;
         if (alea(n) < p) {
           th.voteFait = true; R.capital = borner(R.capital + 3, 0, 100);
@@ -71,12 +71,12 @@ export function finDeTour(s: Etat): Etat {
           n.stats.votesPerdus++;
           for (const u of unitesDans(n, T.id, ['deployee', 'projection'])) rapatrier(n, u.id, 'vote négatif du Parlement');
           R.capital = borner(R.capital - 10, 0, 100); R.credibilite = borner(R.credibilite - 5, 0, 100);
-          th.toursIntervention = 0;
+          th.toursIntervention = 0; th.debat = false;
           const t = 'Article 35 : le Parlement refuse la prolongation (' + T.nom + '). Retrait des forces.';
           journaliser(n, t, 'alerte'); decider(n, t);
         }
       }
-    } else { th.toursIntervention = 0; th.voteFait = false; }
+    } else { th.toursIntervention = 0; th.voteFait = false; th.debat = false; }
   }
 
   // 3 bis. Tactique : implantations, postures et missions de chaque théâtre
@@ -219,11 +219,18 @@ export function calculerScore(s: Etat): Score {
   const ext = s.menaces.filter(m => TH[m.theatre].exterieur);
   const extFinal = ext.length ? ext.reduce((a, m) => a + m.force, 0) / ext.length : 0;
   const crises = s.stats.crisesInterv ? s.stats.crisesReussies / s.stats.crisesInterv : 0.5;
+  // Terrain : part des lieux non tenus par l'adversaire sur les théâtres d'intervention (cartes de crise)
+  const terrains = THEATRES.filter(T => T.exterieur && CARTES_REGIONALES[T.carteRegionale].zoomCrise).map(T => {
+    const L = Object.values(s.theatres[T.id].lieux);
+    return L.filter(x => x.controle !== 'ennemi').length / L.length;
+  });
+  const terrain = terrains.length ? terrains.reduce((a, x) => a + x, 0) / terrains.length : 0.5;
   const domaines = [
-    { nom: 'Sécurité intérieure', valeur: Math.round(100 - moy('menaceInt')), poids: 0.25 },
-    { nom: 'Opérations extérieures', valeur: Math.round(borner(100 - extFinal + (crises - 0.5) * 20, 0, 100)), poids: 0.25 },
-    { nom: 'Renseignement', valeur: Math.round(moy('rens')), poids: 0.15 },
-    { nom: 'Politique intérieure', valeur: Math.round((moy('opinion') + s.ressources.capital) / 2), poids: 0.15 },
+    { nom: 'Sécurité intérieure', valeur: Math.round(100 - moy('menaceInt')), poids: 0.22 },
+    { nom: 'Opérations extérieures', valeur: Math.round(borner(100 - extFinal + (crises - 0.5) * 20, 0, 100)), poids: 0.22 },
+    { nom: 'Contrôle du terrain', valeur: Math.round(terrain * 100), poids: 0.1 },
+    { nom: 'Renseignement', valeur: Math.round(moy('rens')), poids: 0.13 },
+    { nom: 'Politique intérieure', valeur: Math.round((moy('opinion') + s.ressources.capital) / 2), poids: 0.13 },
     { nom: 'Crédibilité et alliances', valeur: Math.round(moy('credibilite') * 0.7 + ALLIES.reduce((a, A) => a + s.allies[A.id].relation, 0) / ALLIES.length * 0.3), poids: 0.1 },
     { nom: 'Maîtrise budgétaire', valeur: Math.round(borner(100 - s.ressources.surcout / 5, 0, 100)), poids: 0.1 }
   ];
