@@ -118,6 +118,68 @@ function courbe(p: [number, number][]): string {
   return d;
 }
 
+// ---------- Relief ombré : bruit de valeur à graine fixe, éclairage du nord-ouest, courbes de niveau ----------
+// Amplitude et échelle du relief par biome (choix esthétiques)
+const RELIEF_BIOME: Record<string, { amplitude: number; echelle: number }> = {
+  urbain_bocage: { amplitude: 0.45, echelle: 170 }, foret_plaine: { amplitude: 0.35, echelle: 190 }, littoral_desert: { amplitude: 0.6, echelle: 150 },
+  steppe_fluviale: { amplitude: 0.55, echelle: 160 }, desert_reg: { amplitude: 0.7, echelle: 120 }, mangrove_littoral: { amplitude: 0.25, echelle: 200 },
+  littoral_aride: { amplitude: 0.75, echelle: 140 }, archipel_ocean: { amplitude: 0.5, echelle: 110 }, collines_levant: { amplitude: 1, echelle: 120 }
+};
+function hacheur(graine: string): (x: number, y: number) => number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < graine.length; i++) { h ^= graine.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return (x, y) => {
+    let k = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ h;
+    k = Math.imul(k ^ (k >>> 13), 1274126177);
+    return ((k ^ (k >>> 16)) >>> 0) / 4294967296;
+  };
+}
+function bruitFbm(graine: string): (x: number, y: number) => number {
+  const hash = hacheur(graine), lisse = (t: number) => t * t * (3 - 2 * t);
+  const valeur = (x: number, y: number) => {
+    const xi = Math.floor(x), yi = Math.floor(y), fx = lisse(x - xi), fy = lisse(y - yi);
+    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+  return (x, y) => { let v = 0, amp = 0.5, f = 1; for (let o = 0; o < 5; o++) { v += valeur(x * f, y * f) * amp; amp *= 0.5; f *= 2.03; } return v / 0.97; };
+}
+function rgb(hex: string): [number, number, number] { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+const melange = (a: [number, number, number], b: [number, number, number], t: number): [number, number, number] => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+
+// Peint le relief ombré (basse résolution, lissé à l'agrandissement) et renvoie les courbes de niveau
+function peindreRelief(ctx: CanvasRenderingContext2D, C: CarteRegionaleDef, b: BiomeDef, L: number, H: number): Path2D {
+  const pas = 3, w = Math.ceil(L / pas) + 1, h = Math.ceil(H / pas) + 1;
+  const { amplitude, echelle } = RELIEF_BIOME[C.biome] || { amplitude: 0.5, echelle: 150 };
+  const fbm = bruitFbm(C.id), alt = new Float32Array(w * h);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) alt[j * w + i] = fbm(i * pas / echelle, j * pas / echelle);
+  const bas = rgb(b.palette.terre), milieu = rgb(b.palette.terre2), haut = rgb(b.palette.relief);
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const c2 = cv.getContext('2d')!, img = c2.createImageData(w, h);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const k = j * w + i, z = alt[k];
+    const dx = (alt[j * w + Math.min(w - 1, i + 1)] - alt[j * w + Math.max(0, i - 1)]) * amplitude * 14;
+    const dy = (alt[Math.min(h - 1, j + 1) * w + i] - alt[Math.max(0, j - 1) * w + i]) * amplitude * 14;
+    const ombre = Math.max(0.55, Math.min(1.35, 1 + (-dx - dy) * 0.7));          // lumière venue du nord-ouest
+    const couleur = z < 0.5 ? melange(bas, milieu, Math.max(0, (z - 0.25) / 0.25)) : melange(milieu, haut, Math.min(1, (z - 0.5) / 0.3 * amplitude));
+    img.data[k * 4] = couleur[0] * ombre; img.data[k * 4 + 1] = couleur[1] * ombre; img.data[k * 4 + 2] = couleur[2] * ombre; img.data[k * 4 + 3] = 255;
+  }
+  c2.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(cv, 0, 0, w * pas, h * pas);
+  // Courbes de niveau (carrés marchants) sur quelques altitudes
+  const courbes = new Path2D(), niveaux = amplitude >= 0.5 ? [0.42, 0.52, 0.62, 0.72] : [0.5, 0.65];
+  for (const nv of niveaux) for (let j = 0; j < h - 1; j++) for (let i = 0; i < w - 1; i++) {
+    const a = alt[j * w + i], bb = alt[j * w + i + 1], c = alt[(j + 1) * w + i + 1], d = alt[(j + 1) * w + i];
+    const pts: [number, number][] = [];
+    const bord = (v0: number, v1: number, x0: number, y0: number, x1: number, y1: number) => {
+      if ((v0 < nv) !== (v1 < nv)) { const f = (nv - v0) / (v1 - v0); pts.push([(x0 + (x1 - x0) * f) * pas, (y0 + (y1 - y0) * f) * pas]); }
+    };
+    bord(a, bb, i, j, i + 1, j); bord(bb, c, i + 1, j, i + 1, j + 1); bord(c, d, i + 1, j + 1, i, j + 1); bord(d, a, i, j + 1, i, j);
+    for (let q = 0; q + 1 < pts.length; q += 2) { courbes.moveTo(pts[q][0], pts[q][1]); courbes.lineTo(pts[q + 1][0], pts[q + 1][1]); }
+  }
+  return courbes;
+}
+
 // Peint le décor complet sur un canvas
 function peindre(cv: HTMLCanvasElement, C: CarteRegionaleDef, cadre: Cadre, projection: GeoProjection, dpr: number): void {
   const b = BIOMES[C.biome], { L, H } = cadre;
@@ -144,23 +206,38 @@ function peindre(cv: HTMLCanvasElement, C: CarteRegionaleDef, cadre: Cadre, proj
   const gm = ctx.createLinearGradient(0, 0, L * 0.3, H);
   gm.addColorStop(0, b.palette.mer); gm.addColorStop(1, b.palette.merProfonde);
   ctx.fillStyle = gm; ctx.fillRect(0, 0, L, H);
-  if (b.textures.includes('houle')) { const p = motif(ctx, 'houle', b, C.id + 'houle', dpr); if (p) { ctx.fillStyle = p; ctx.fillRect(0, 0, L, H); } }
+  if (b.textures.includes('houle')) { const p = motif(ctx, 'houle', b, C.id + 'houle', dpr); if (p) { ctx.globalAlpha = 0.4; ctx.fillStyle = p; ctx.fillRect(0, 0, L, H); ctx.globalAlpha = 1; } }
 
-  // Terres : découpe par les côtes, couleur de fond puis textures
+  // Terres : découpe par les côtes
   const terres = new Path2D();
   const chemin = geoPath(projection);
   for (const i of indices) { const d = chemin(pays.features[i]); if (d) terres.addPath(new Path2D(d)); }
+
+  // Hauts-fonds et isobathes : anneaux clairs de plus en plus larges le long des côtes
+  ctx.save();
+  ctx.strokeStyle = '#6fb6d6';
+  for (const [ep, op] of [[46, 0.035], [26, 0.05], [12, 0.08]] as const) { ctx.globalAlpha = op; ctx.lineWidth = ep; ctx.stroke(terres); }
+  ctx.globalAlpha = 0.12; ctx.lineWidth = 1; ctx.setLineDash([2, 6]);
+  for (const ep of [30, 60]) { ctx.lineWidth = ep; ctx.globalAlpha = 0.03; ctx.stroke(terres); }
+  ctx.setLineDash([]); ctx.restore();
+
+  // Relief ombré, textures du biome atténuées, courbes de niveau
   ctx.save();
   ctx.clip(terres);
-  ctx.fillStyle = b.palette.terre; ctx.fillRect(0, 0, L, H);
+  const courbes = peindreRelief(ctx, C, b, L, H);
+  ctx.globalAlpha = 0.45;
   for (const t of b.textures) if (t !== 'houle') { const p = motif(ctx, t, b, C.id + t, dpr); if (p) { ctx.fillStyle = p; ctx.fillRect(0, 0, L, H); } }
+  ctx.globalAlpha = 0.22; ctx.strokeStyle = b.palette.trait; ctx.lineWidth = 0.8; ctx.stroke(courbes);
   ctx.restore();
-  ctx.globalAlpha = 0.55; ctx.strokeStyle = b.palette.trait; ctx.lineWidth = 0.9; ctx.stroke(terres); ctx.globalAlpha = 1;
+  // Côte : liseré sombre puis trait clair
+  ctx.globalAlpha = 0.7; ctx.strokeStyle = '#05080b'; ctx.lineWidth = 2.4; ctx.stroke(terres);
+  ctx.globalAlpha = 0.8; ctx.strokeStyle = b.palette.trait; ctx.lineWidth = 1; ctx.stroke(terres); ctx.globalAlpha = 1;
 
-  // Fleuves
+  // Fleuves : halo puis lit
   for (const f of C.fleuves || []) {
-    ctx.globalAlpha = 0.75; ctx.strokeStyle = '#2f6b86'; ctx.lineWidth = 2.2;
-    ctx.stroke(new Path2D(courbe(f.points.map(p => projection(p) as [number, number]))));
+    const lit = new Path2D(courbe(f.points.map(p => projection(p) as [number, number])));
+    ctx.globalAlpha = 0.25; ctx.strokeStyle = '#4aa3c8'; ctx.lineWidth = 6; ctx.stroke(lit);
+    ctx.globalAlpha = 0.9; ctx.strokeStyle = '#3d86a8'; ctx.lineWidth = 2; ctx.stroke(lit);
     ctx.globalAlpha = 1;
   }
 
@@ -168,7 +245,9 @@ function peindre(cv: HTMLCanvasElement, C: CarteRegionaleDef, cadre: Cadre, proj
   const g = generateur(C.id), lieux = C.lieux.map(l => projection([l.lon, l.lat])!);
   const terrestres = b.relief.filter(x => TERRESTRES.includes(x)), maritimes = b.relief.filter(x => MARITIMES.includes(x));
   let places = 0;
-  for (let i = 0; i < b.densite * 1.6 && places < b.densite; i++) {
+  const densite = Math.round(b.densite * 0.5);   // le relief ombré porte l'essentiel ; les symboles ponctuent
+  ctx.globalAlpha = 0.7;
+  for (let i = 0; i < densite * 1.6 && places < densite; i++) {
     const x = g() * L, y = g() * H, r = g(), t = 0.8 + g() * 0.7, choix = g();
     if (lieux.some(p => Math.hypot(p[0] - x, p[1] - y) < 26)) continue;
     const ll = projection.invert!([x, y]);
@@ -182,6 +261,19 @@ function peindre(cv: HTMLCanvasElement, C: CarteRegionaleDef, cadre: Cadre, proj
     ctx.restore();
     places++;
   }
+
+  ctx.globalAlpha = 1;
+
+  // Carroyage militaire discret, avec repères de colonnes et de lignes
+  ctx.save();
+  ctx.strokeStyle = 'rgba(200, 215, 225, 0.05)'; ctx.lineWidth = 1;
+  const maille = 80;
+  for (let x = maille; x < L; x += maille) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = maille; y < H; y += maille) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(L, y); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(200, 215, 225, 0.22)'; ctx.font = '600 9px monospace';
+  for (let x = 0, k = 0; x < L; x += maille, k++) ctx.fillText(String.fromCharCode(65 + k), x + 4, 11);
+  for (let y = maille, k = 1; y < H; y += maille, k++) ctx.fillText(String(k), 3, y - 4);
+  ctx.restore();
 
   // Vignettage
   const gv = ctx.createRadialGradient(L * 0.45, H * 0.45, Math.min(L, H) * 0.35, L * 0.45, H * 0.45, Math.max(L, H) * 0.75);
