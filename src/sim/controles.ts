@@ -1,6 +1,6 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
-  AL, ALLIES, BIOMES, CARTES_REGIONALES, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
+  AL, ALLIES, BIOMES, CARTES_REGIONALES, PERS, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
   OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
 } from '../data';
 import type { Effets, Etat } from './types';
@@ -67,6 +67,7 @@ export function verifierDonnees(): string[] {
     if (!E.choix || E.choix.length < 2 || E.choix.length > 3) err.push('Événement ' + E.id + ' : 2 ou 3 choix attendus');
     if (E.choix.every(c => c.requiert)) err.push('Événement ' + E.id + ' : au moins un choix doit être toujours possible');
     for (const c of E.choix) { verifEffets(c.effets, 'Événement ' + E.id); if (c.suite && !EV[c.suite]) err.push('Événement ' + E.id + ' : suite inconnue ' + c.suite); }
+    if (E.auteur && !PERS[E.auteur]) err.push('Événement ' + E.id + ' : auteur inconnu ' + E.auteur);
     const k = E.cond || {};
     if (k.menace && !MT[k.menace.type]) err.push('Événement ' + E.id + ' : condition sur menace inconnue');
     for (const r of [k.relationMin, k.relationMax]) if (r && !AL[r.allie]) err.push('Événement ' + E.id + ' : condition sur allié inconnu');

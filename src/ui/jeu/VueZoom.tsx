@@ -7,6 +7,7 @@ import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../comp
 import { usePartie } from '../contexte';
 import { pct } from '../format';
 import { placerEtiquettes } from '../composants/etiquettes';
+import { activable } from '../composants/activable';
 import { SymboleHtml, SymboleSvg } from '../composants/SymboleOtan';
 
 const L = 900, H = 640;
@@ -109,7 +110,7 @@ export function VueZoom() {
             const forme = Ld.type === 'base' ? <rect x={-13} y={-13} width={26} height={26} rx={4} /> : Ld.type === 'zone' ? <polygon points="0,-17 17,0 0,17 -17,0" /> : <circle r={14} />;
             return (
               <g key={Ld.id} transform={`translate(${x},${y})`} className={'lieu ctrl-' + l.controle + (sel ? ' sel' : '')} data-tip={tip}
-                onClick={ev => { ev.stopPropagation(); majUi({ zoomLieu: Ld.id, zoomUnite: null }); }}>
+                onClick={ev => { ev.stopPropagation(); majUi({ zoomLieu: Ld.id, zoomUnite: null }); }} {...activable(() => majUi({ zoomLieu: Ld.id, zoomUnite: null }), Ld.nom)}>
                 {cible && <circle r={26} className="lieu-cible" />}
                 {obj && <circle r={22} className="lieu-objectif" />}
                 <g className="lieu-forme">{forme}</g>
@@ -124,7 +125,8 @@ export function VueZoom() {
             const [x, y] = pos[u.lieu], n = z.unites.filter(v => v.lieu === u.lieu).indexOf(u);
             return (
               <g key={u.id} transform={`translate(${x - 16 + n * 20},${y + 20})`} className={'detachement' + (selU === u.id ? ' sel' : '') + (u.blesse ? ' blesse' : '')}
-                onClick={ev => { ev.stopPropagation(); majUi({ zoomUnite: u.id, zoomLieu: null }); }} data-tip={UN[u.id].nom + (u.blesse ? ' (diminué)' : '')} data-i={i}>
+                onClick={ev => { ev.stopPropagation(); majUi({ zoomUnite: u.id, zoomLieu: null }); }} data-tip={UN[u.id].nom + (u.blesse ? ' (diminué)' : '')} data-i={i}
+                {...activable(() => majUi({ zoomUnite: u.id, zoomLieu: null }), UN[u.id].nom)}>
                 <rect x={-3} y={-5} width={24} height={22} rx={3} className="jeton-fond" />
                 <g transform="translate(9,6)"><SymboleSvg unite={u.id} taille={14} /></g>
               </g>

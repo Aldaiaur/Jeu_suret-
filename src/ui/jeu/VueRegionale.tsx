@@ -14,6 +14,7 @@ import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../comp
 import { COULEURS_CATEGORIE, couleurNiveau, pct } from '../format';
 import { placerEtiquettes } from '../composants/etiquettes';
 import { ordreParDefaut, ordresUnite, type Ordre } from './ordres';
+import { activable } from '../composants/activable';
 
 const LIBELLE_CONTROLE = { allie: 'tenu par nos partenaires', ennemi: 'présence adverse', neutre: 'contesté ou neutre' } as const;
 const CIVILS = ['nulle', 'faible', 'moyenne', 'dense'];
@@ -95,7 +96,7 @@ export function VueRegionale({ theatre }: { theatre: string }) {
             (d ? '\n\nClic : ' + d.libelle + (d.ev ? '\n' + decrireEval(d) : '') : '');
           return (
             <g key={l.id} transform={`translate(${x},${y})`} className={'lieu petit ctrl-' + x0.controle + (d ? ' ordonnable' : '')} data-tip={tip}
-              onClick={ev => { ev.stopPropagation(); if (d) jouer(d.action); }}>
+              onClick={ev => { ev.stopPropagation(); if (d) jouer(d.action); }} {...(d ? activable(() => jouer(d.action), l.nom + ' : ' + d.libelle) : {})}>
               {d && <circle r={20} className="lieu-cible" />}
               {x0.controle === 'ennemi' && connu && <circle r={16} className="lieu-identifie" />}
               <g className="lieu-forme">{forme}</g>
@@ -109,9 +110,10 @@ export function VueRegionale({ theatre }: { theatre: string }) {
         {presentes.map(u => {
           const [x, y] = posJeton(u), e = s.unites[u.id];
           return (
-            <g key={u.id} transform={`translate(${x},${y})`} className={'jeton' + (sel === u.id ? ' sel' : '') + (e.etat !== 'deployee' ? ' en-route' : '')}
+            <g key={u.id + (ui.retour?.unite === u.id ? ui.retour.cle : '')} transform={`translate(${x},${y})`} className={'jeton' + (sel === u.id ? ' sel' : '') + (e.etat !== 'deployee' ? ' en-route' : '') + (ui.retour?.unite === u.id ? ' vient-de-recevoir' : '')}
               data-tip={u.nom + '\n' + POSTURES[e.posture].nom + (e.mission ? '\n' + libelleMission(theatre, e.mission) : '') + (e.etat !== 'deployee' ? '\nEn projection : arrivée sous ' + e.compteur + ' mois' : '') + '\nFatigue ' + Math.round(e.fatigue)}
-              onClick={ev => { ev.stopPropagation(); majUi({ uniteRegion: sel === u.id ? null : u.id }); }} data-tuto={'jeton-' + u.id}>
+              onClick={ev => { ev.stopPropagation(); majUi({ uniteRegion: sel === u.id ? null : u.id }); }} data-tuto={'jeton-' + u.id}
+              {...activable(() => majUi({ uniteRegion: sel === u.id ? null : u.id }), u.nom + ', ' + POSTURES[e.posture].nom.toLowerCase())}>
               <rect x={-14} y={-12} width={28} height={27} rx={3} className="jeton-fond" />
               <SymboleSvg unite={u.id} taille={15} />
               <rect x={-11} y={12} width={22 * (1 - e.fatigue / 100)} height={2.5} style={{ fill: couleurNiveau(e.fatigue) }} />

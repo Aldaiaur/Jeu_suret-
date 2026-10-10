@@ -11,6 +11,7 @@ import { COULEUR_SAISON } from '../composants/Saison';
 import { AL } from '../../data';
 import { usePartie } from '../contexte';
 import { couleurNiveau } from '../format';
+import { activable } from '../composants/activable';
 
 // Pays rattachés à chaque théâtre (codes ISO 3166 numériques de Natural Earth)
 const PAYS_THEATRE: Record<string, string[]> = {
@@ -193,7 +194,7 @@ function Marqueur({ id, pos, k }: { id: string; pos: [number, number]; k: number
   const sa = saisonDu(id, s.tour);
   return (
     <g transform={`translate(${pos[0]},${pos[1]}) scale(${1 / k})`} className={'marqueur' + (sel ? ' sel' : '')} data-tip={tip} data-tuto={ui.selection?.kind === 'theatre' ? undefined : 'theatre-' + id}
-      onClick={ev => { ev.stopPropagation(); majUi({ selection: { kind: 'theatre', id } }); }}>
+      onClick={ev => { ev.stopPropagation(); majUi({ selection: { kind: 'theatre', id } }); }} {...activable(() => majUi({ selection: { kind: 'theatre', id } }), T.nom + ', menace estimée ' + (m ? m.estimation : 'inconnue'))}>
       {th.crise && <circle r={R + 4} className="onde" style={{ stroke: 'var(--rouge)' }} />}
       {sel && <circle r={R + 10} fill={col} opacity={0.25} filter="url(#lueur)" />}
       <circle r={R + 3} className="marqueur-fond" />

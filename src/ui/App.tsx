@@ -16,6 +16,7 @@ import { Debug } from './jeu/Debug';
 import { TransitionMois } from './jeu/TransitionMois';
 import { Infobulle } from './composants/Infobulle';
 import { Toasts } from './composants/Toasts';
+import { Retour } from './composants/Retour';
 import { Tutoriel } from './tutoriel/Tutoriel';
 
 export function App() {
@@ -24,6 +25,7 @@ export function App() {
       <Ecrans />
       <Infobulle />
       <Toasts />
+      <Retour />
     </FournisseurJeu>
   );
 }
@@ -64,7 +66,10 @@ function useRaccourcis() {
   const { etat: s, ui, majUi, jouer, terminerTour } = useJeu();
   useEffect(() => {
     const touche = (ev: KeyboardEvent) => {
-      if (!s || (ev.target as HTMLElement).closest('input, select, textarea')) return;
+      if (!s) return;
+      // Entrée sur un élément actif (bouton, lieu, jeton) l'active lui-même, sans clore le mois
+      if ((ev.target as HTMLElement).closest('input, select, textarea') || (ev.key === 'Enter' && (ev.target as HTMLElement).closest('button, a, [role="button"]'))) return;
+      if (ui.transition && (ev.key === 'Escape' || ev.key === 'Enter')) { ev.preventDefault(); majUi({ transition: null }); return; }
       if (ev.key === 'Escape') {
         if (ui.aide) majUi({ aide: false });
         else if (ui.catalogue) majUi({ catalogue: false });

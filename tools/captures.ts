@@ -46,8 +46,9 @@ await capture('08-renseignement-rapports');
 await page.keyboard.press('Escape');
 await page.click('[data-tuto="fin-tour"]');
 await page.waitForTimeout(300);
-await capture('09-transition');
-await page.waitForTimeout(2600);
+await capture('09-compte-rendu');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(300);
 
 // Événement forcé
 await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.phase = 'evenement'; s.evenementCourant = 'OTAGES_SAHEL'; s.file = []; j.remplacer(s); })()`);
@@ -104,7 +105,8 @@ await capture('24-missions');
 await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.file = []; s.phase = 'jeu'; j.remplacer(s); })()`);
 await page.waitForTimeout(200);
 await jeu(page, `window.__jeu.terminerTour()`);
-await page.waitForTimeout(3200);
+await capture('26-compte-rendu-mois');
+await jeu(page, `window.__jeu.majUi({ transition: null })`);
 await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.file = []; s.phase = 'jeu'; s.evenementCourant = null; j.remplacer(s); j.majUi({ selection: { kind: 'theatre', id: 'SAHEL' }, uniteRegion: null }); })()`);
 await capture('25-compte-rendu-tactique');
 

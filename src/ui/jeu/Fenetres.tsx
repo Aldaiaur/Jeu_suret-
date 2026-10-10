@@ -1,5 +1,6 @@
 // Fenêtres de décision et de bilan. Une seule à la fois, par ordre de priorité.
-import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, TH, UN, UNITES } from '../../data';
+import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, PERS, TH, UN, UNITES } from '../../data';
+import { Portrait } from '../composants/Portrait';
 import { Insigne } from '../composants/Insigne';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
 import {
@@ -15,6 +16,7 @@ import { FenetreCatalogue } from './Catalogue';
 
 export function Fenetres() {
   const { etat: s, ui } = usePartie();
+  if (ui.transition) return null;
   if (ui.aide) return <FenetreAide />;
   if (ui.catalogue) return <FenetreCatalogue />;
   if (ui.bilan) return <FenetreBilanZoom b={ui.bilan} />;
@@ -52,9 +54,20 @@ function FenetreEvenement() {
   const { etat: s, jouer } = usePartie();
   const E = EV[s.evenementCourant!];
   const concernees = unitesConcernees(s, E);
+  const A = E.auteur ? PERS[E.auteur] : null;
   return (
     <Fenetre tampon="Événement" ton="ambre" titre={E.titre} sousTitre={dateDuTour(s.tour)}>
-      <p className="texte-dossier">{E.texte}</p>
+      {A ? (
+        <div className="dossier-auteur">
+          <Portrait id={A.id} taille={68} />
+          <div className="dossier-auteur-texte">
+            <div className="dossier-auteur-nom">{A.nom}<span className="discret"> · {A.fonction}</span></div>
+            {A.ouverture && <p className="dossier-ouverture">« {A.ouverture} »</p>}
+            <p className="texte-dossier">{E.texte}</p>
+            <div className="dossier-signature">— {A.signature}</div>
+          </div>
+        </div>
+      ) : <p className="texte-dossier">{E.texte}</p>}
       {concernees.length > 0 && (
         <div className="moyens-concernes">
           {concernees.map(id => (

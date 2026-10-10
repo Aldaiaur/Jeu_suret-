@@ -3,9 +3,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   appliquerAction, finDeTour, migrerEtat, nouvellePartie, actionsPossibles, cleAction, dateDuTour,
-  type Action, type BilanZoom, type Etat, type Ressources
+  type Action, type BilanZoom, type EntreeJournal, type Etat, type Ressources
 } from '../sim';
 import { NB_TOURS } from '../data';
+import { jouerSon, sonAction } from './sons';
 
 export type Selection = { kind: 'theatre' | 'unite' | 'service' | 'allie'; id: string };
 export type Ecran = 'accueil' | 'briefing' | 'jeu';
@@ -13,7 +14,11 @@ export type OngletGauche = 'forces' | 'renseignement' | 'allies';
 export type OngletDroit = 'situation' | 'rapports' | 'journal';
 
 export interface Toast { id: number; titre: string; texte: string; genre: 'info' | 'succes' | 'alerte' }
-export interface TransitionMois { date: string; avant: Ressources; apres: Ressources; evenements: number }
+export interface TransitionMois {
+  date: string; moisEcoule: string; avant: Ressources; apres: Ressources; evenements: number;
+  faits: EntreeJournal[];                        // entrées du journal produites par la fin du mois
+  theatres: { theatre: string; lignes: string[] }[];
+}
 
 export interface UiEtat {
   ecran: Ecran;
@@ -30,11 +35,12 @@ export interface UiEtat {
   ongletGauche: OngletGauche;
   ongletDroit: OngletDroit;
   transition: TransitionMois | null;
+  retour: { cle: number; texte: string; unite: string | null } | null;   // confirmation brève du dernier ordre
 }
 
 const UI_INITIAL: UiEtat = {
   ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, catalogue: false, debug: false, refMois: null,
-  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null
+  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null, retour: null
 };
 
 interface Contexte {
@@ -103,17 +109,28 @@ export function FournisseurJeu({ children }: { children: ReactNode }) {
       notifier(n.dernierResultat.titre, n.dernierResultat.texte, g === 'alerte' ? 'alerte' : g === 'succes' ? 'succes' : 'info');
     }
     setEtat(n);
-    setUi(u => ({ ...u, apercu: null, bilan: bilan || u.bilan, ...(n.zoom ? {} : { zoomLieu: null, zoomUnite: null }) }));
+    // Retour immédiat : son et confirmation brève pour les ordres qui n'ouvrent pas de notification
+    const derniere = n.decisions.length > etat.decisions.length ? n.decisions[n.decisions.length - 1].texte : null;
+    const unite = 'unite' in a ? a.unite : null;
+    const retour = derniere && (!n.dernierResultat || n.dernierResultat === etat.dernierResultat) ? { cle: Date.now(), texte: derniere, unite } : null;
+    jouerSon(sonAction(a, n));
+    setUi(u => ({ ...u, apercu: null, bilan: bilan || u.bilan, retour: retour || (unite ? { cle: Date.now(), texte: '', unite } : u.retour), ...(n.zoom ? {} : { zoomLieu: null, zoomUnite: null }) }));
   }, [etat, notifier]);
 
   const terminerTour = useCallback(() => {
     if (!etat || etat.phase !== 'jeu') return;
     const n = finDeTour(etat);
+    jouerSon('mois');
     setEtat(n);
     const nouveaux = n.journal.filter(j => j.tour === n.tour && j.genre === 'evenement').length;
+    // Entrées ajoutées au journal par la fin du mois : celles qui précèdent l'ancienne entrée la plus récente
+    const ancienne = etat.journal[0];
+    const fin = ancienne ? n.journal.findIndex(j => j.texte === ancienne.texte && j.tour === ancienne.tour && j.genre === ancienne.genre) : n.journal.length;
+    const faits = n.journal.slice(0, fin < 0 ? 12 : fin).filter(j => j.genre !== 'tour').reverse();
+    const theatres = Object.entries(n.theatres).filter(([, th]) => th.rapportTactique.length).map(([t, th]) => ({ theatre: t, lignes: th.rapportTactique }));
     setUi(u => ({
       ...u, refMois: { ...etat.ressources },
-      transition: n.fin ? null : { date: dateDuTour(Math.min(n.tour, NB_TOURS - 1)), avant: { ...etat.ressources }, apres: { ...n.ressources }, evenements: nouveaux + n.file.length }
+      transition: n.fin ? null : { date: dateDuTour(Math.min(n.tour, NB_TOURS - 1)), moisEcoule: dateDuTour(etat.tour), avant: { ...etat.ressources }, apres: { ...n.ressources }, evenements: nouveaux + n.file.length, faits, theatres }
     }));
   }, [etat]);
 

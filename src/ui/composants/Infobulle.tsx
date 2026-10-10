@@ -29,10 +29,25 @@ export function Infobulle() {
     };
     const mouvement = (ev: MouseEvent) => { souris.current = { x: ev.clientX, y: ev.clientY }; placer(); };
     const cacher = () => { cible.current = null; clearTimeout(minuteur.current); setTexte(null); };
+    // Clavier : l'infobulle suit l'élément qui reçoit le focus
+    const focus = (ev: FocusEvent) => {
+      if (!(ev.target as Element).matches?.(':focus-visible')) return;   // pas au clic de souris
+      const el = (ev.target as Element).closest?.('[data-tip]') || null;
+      cible.current = el;
+      clearTimeout(minuteur.current);
+      if (!el) { setTexte(null); return; }
+      const r = el.getBoundingClientRect();
+      souris.current = { x: r.left, y: r.bottom };
+      setTexte(el.getAttribute('data-tip'));
+    };
+    document.addEventListener('focusin', focus);
+    document.addEventListener('focusout', cacher);
     document.addEventListener('mouseover', survol);
     document.addEventListener('mousemove', mouvement);
     document.addEventListener('mousedown', cacher);
     return () => {
+      document.removeEventListener('focusin', focus);
+      document.removeEventListener('focusout', cacher);
       document.removeEventListener('mouseover', survol);
       document.removeEventListener('mousemove', mouvement);
       document.removeEventListener('mousedown', cacher);

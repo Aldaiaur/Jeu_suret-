@@ -24,6 +24,10 @@ Par ordre de priorité pour une page Steam et l’immersion :
 6. **Fenêtres d’événement** : vignettes illustrées par grand type d’événement (attentat déjoué, crise navale, cyberattaque, otages…), en restant génériques sur les attentats.
 7. **Icônes de saison** et pictogrammes d’ordres tactiques : à harmoniser avec la charte finale.
 
+## Sons à prévoir
+
+Les points d’accroche existent dans `src/ui/sons.ts` (aucun fichier son pour l’instant) : clic, ordre tactique, déploiement, rapatriement, opération (succès ou échec), alerte, passage de mois, crise, événement. À produire : sons courts et sobres (radio, téléscripteur, impulsion), avec un réglage de volume et une option muette.
+
 ## Règles
 
 - **Toute image générée par IA devra être déclarée à Steam** (questionnaire de contenu généré par IA), et listée ici avec l’outil utilisé et la date.

@@ -167,7 +167,7 @@ export interface ChoixDef {
   suite?: string; suiteDelai?: number; suiteP?: number;
 }
 
-export interface EvenementDef { id: string; titre: string; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
+export interface EvenementDef { id: string; titre: string; auteur?: string; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
 
 export type Controle = 'allie' | 'ennemi' | 'neutre';
 

@@ -17,7 +17,7 @@
 
   --texte: #dde5ea;
   --texte-2: #a3b1bc;
-  --texte-3: #6f7f8c;
+  --texte-3: #7d8d9a;   /* contraste ≥ 4,5:1 sur les surfaces (WCAG AA) */
 
   --rouge: #e5484d;
   --rouge-vif: #ff6369;
@@ -150,3 +150,10 @@ input, select, textarea { font-family: inherit; user-select: text; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+
+/* Navigation au clavier : focus toujours visible */
+:focus-visible { outline: 2px solid var(--turquoise); outline-offset: 2px; }
+svg [role="button"]:focus { outline: none; }
+.lieu:focus-visible .lieu-forme > * { stroke: var(--turquoise) !important; stroke-width: 3.5 !important; }
+.jeton:focus-visible > .jeton-fond, .detachement:focus-visible > .jeton-fond { stroke: var(--turquoise); stroke-width: 2.5; }
+.marqueur:focus-visible .marqueur-fond { stroke: var(--turquoise); stroke-width: 3; }
