@@ -2,7 +2,7 @@
 import { ALLIES, CARTES_REGIONALES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
 import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
-import { actionsParTour, appuiDef, dateDuTour, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
+import { actionsParTour, appuiDef, dateDuTour, procedure, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
 import { coutMissions, coutMensuelUnite, resoudreTactique } from './tactique';
 import { POSTURES } from '../data';
 import { calculerRens, estimerMenaces, rensMenace } from './renseignement';
@@ -54,25 +54,25 @@ export function finDeTour(s: Etat): Etat {
     if (e.etat === 'disponible') e.fatigue = borner(e.fatigue - PARAMS.fatigueRepos, 0, 100);
   }
 
-  // 3. Article 35 de la Constitution
+  // 3. Procédure d'emploi de la force (France : article 35 de la Constitution)
   for (const T of THEATRES) {
     if (!T.exterieur || T.basePermanente) continue;
     const th = n.theatres[T.id];
     if (unitesDans(n, T.id, ['deployee', 'projection']).length) {
       th.toursIntervention++;
-      if (th.toursIntervention > PARAMS.dureeAvantVote && !th.voteFait) {
+      if (th.toursIntervention > procedure(n).dureeAvantVote && !th.voteFait) {
         const p = probaVote(n, T.id);
         n.stats.votes++;
         if (alea(n) < p) {
-          th.voteFait = true; R.capital = borner(R.capital + 3, 0, 100);
-          const t = 'Article 35 : le Parlement autorise la prolongation de l’intervention (' + T.nom + ').';
+          th.voteFait = true; R.capital = borner(R.capital + procedure(n).succes.capital, 0, 100);
+          const t = procedure(n).texteAutorise.replace('{theatre}', T.nom);
           journaliser(n, t, 'succes'); decider(n, t);
         } else {
           n.stats.votesPerdus++;
           for (const u of unitesDans(n, T.id, ['deployee', 'projection'])) rapatrier(n, u.id, 'vote négatif du Parlement');
-          R.capital = borner(R.capital - 10, 0, 100); R.credibilite = borner(R.credibilite - 5, 0, 100);
+          R.capital = borner(R.capital + procedure(n).refus.capital, 0, 100); R.credibilite = borner(R.credibilite + procedure(n).refus.credibilite, 0, 100);
           th.toursIntervention = 0; th.debat = false;
-          const t = 'Article 35 : le Parlement refuse la prolongation (' + T.nom + '). Retrait des forces.';
+          const t = procedure(n).texteRefus.replace('{theatre}', T.nom);
           journaliser(n, t, 'alerte'); decider(n, t);
         }
       }

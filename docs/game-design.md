@@ -120,6 +120,11 @@ Le prototype est écrit pour la France. Il faut le généraliser :
 - **Théâtres mondiaux :** le graphe actuel de 8 théâtres passe à environ 25-30 théâtres. Les cartes régionales de zoom sont réutilisées.
 - **Traductions :** tous les textes dans des fichiers de langue (français et anglais au lancement).
 
+### 7 bis. Avancement du modèle `nation` (phase 1)
+
+- `src/data/nations.ts` décrit chaque nation jouable et sa **procédure d’emploi de la force** (`ProcedureDef` : durée avant vote, poids du vote, débat préalable, effets d’une autorisation ou d’un refus, textes). Le moteur (`procedure(s)` dans `src/sim/acces.ts`) l’interprète ; l’état de partie porte `nation`.
+- Reste à faire : rattacher unités, services, alliés, doctrines et personnages à la nation (aujourd’hui ceux de la France), puis écrire `GBR` à partir de `nation-GBR.md` (convention parlementaire, vote préalable).
+
 ## 8. Feuille de route
 
 | Phase | Contenu | Critère de sortie |

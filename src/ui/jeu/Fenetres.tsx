@@ -7,6 +7,7 @@ import {
   choixPermis, dateDuTour, porteurReponse, probaReponse, reponsePossible, reponsesCrise, evaluerCriseAbstraite, evaluerOperation, menaceDeCrise, menaceParId, moyensCrise,
   type BilanZoom, type Categorie, type Etat, type EvenementDef
 } from '../../sim';
+import { procedure } from '../../sim';
 import { usePartie } from '../contexte';
 import { pct, pucesEffets } from '../format';
 import { Fenetre } from '../composants/Fenetre';
@@ -232,7 +233,7 @@ function FenetreFin() {
 }
 
 function FenetreAide() {
-  const { majUi } = usePartie();
+  const { etat: s, majUi } = usePartie();
   const fermer = () => majUi({ aide: false });
   return (
     <Fenetre tampon="Aide" titre="Règles essentielles" largeur={760} onFermer={fermer} pied={<button className="btn principal" onClick={fermer}>Fermer</button>}>
@@ -242,7 +243,7 @@ function FenetreAide() {
         <p><b>Renseignement.</b> Chaque menace a une force réelle cachée. Vous n’en voyez qu’une estimation avec une marge. Plus le renseignement est élevé, plus l’estimation est précise. Sous {PARAMS.rensFauxRapport}, les rapports peuvent être faux.</p>
         <p><b>Menaces.</b> Une menace négligée grandit, peut s’étendre vers un théâtre voisin et passer à l’action. La pression (forces, capteurs, partenaires, alliés) freine sa croissance.</p>
         <p><b>Unités.</b> Disponible, en projection, déployée (la fatigue monte), puis en régénération après rapatriement. À 100 de fatigue, l’unité est relevée d’office.</p>
-        <p><b>Article 35.</b> Au-delà de {PARAMS.dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. L’adoption dépend de l’opinion, du capital et de la crédibilité ; un débat préalable (+{Math.round(PARAMS.bonusDebat * 100)} %) la facilite. Un vote négatif impose le retrait.</p>
+        <p><b>{procedure(s).nom}.</b> Au-delà de {procedure(s).dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. L’adoption dépend de l’opinion, du capital et de la crédibilité ; un débat préalable (+{Math.round(procedure(s).debat.bonus * 100)} %) la facilite. Un vote négatif impose le retrait.</p>
         <p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût et coûte du capital politique.</p>
         <p><b>Théâtres.</b> Cliquez sur un théâtre pour ouvrir sa carte régionale : lieux, liaisons, biome et saison du mois. Les saisons modifient la pression exercée par chaque type de force, la fatigue, les coûts et la croissance de certaines menaces.</p>
         <p><b>Tactique.</b> Sur la carte régionale, cliquez une unité déployée puis un lieu marqué : l’ordre proposé s’exécute (deux clics). Le panneau de l’unité règle sa posture (offensive, défensive, reconnaissance, formation, réserve) et liste toutes ses missions avec leurs risques. Ces ordres sont gratuits et se résolvent à la fin du mois. Frappes et raids exigent une position identifiée ; les drones et la reconnaissance identifient, l’aviation frappe, les forces au sol exploitent. Le soutien logistique limite ce qu’un théâtre peut porter.</p>

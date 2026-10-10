@@ -125,6 +125,21 @@ export interface Mods {
   voteBonus: number; opinion: number; credibilite: number;
 }
 
+// Nation jouable. Phase 1 du modèle générique : la procédure d'emploi de la force est décrite en données
+// et interprétée par un moteur commun (tour.ts, acces.ts). Forces, services et alliés restent ceux de la France.
+export interface ProcedureDef {
+  nom: string;                    // « Article 35 »
+  institution: string;            // « le Parlement »
+  description: string;
+  dureeAvantVote: number;         // mois d'intervention avant le vote
+  poids: { base: number; opinion: number; capital: number; credibilite: number; crise: number };
+  debat: { nom: string; description: string; bonus: number; capital: number };
+  succes: { capital: number };
+  refus: { capital: number; credibilite: number };
+  texteAutorise: string; texteRefus: string;   // {theatre} est remplacé par le nom du théâtre
+}
+export interface NationDef { id: string; nom: string; role: string; signature: string; procedure: ProcedureDef }
+
 export interface DoctrineDef { id: string; nom: string; texte: string; bonus: string; malus: string; mods: Mods }
 
 export interface DifficulteDef {
@@ -319,6 +334,7 @@ export interface Stats {
 
 export interface Etat {
   version: number; graine: string; rngState: number; difficulte: string; doctrine: string | null;
+  nation: string;
   tour: number; phase: Phase;
   ressources: Ressources;
   actionsRestantes: number;

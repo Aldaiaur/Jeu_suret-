@@ -1,6 +1,6 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
-  AL, ALLIES, BIOMES, CARTES_REGIONALES, PERS, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
+  AL, ALLIES, BIOMES, CARTES_REGIONALES, NATIONS, PERS, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
   OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
 } from '../data';
 import type { Effets, Etat } from './types';
@@ -78,6 +78,12 @@ export function verifierDonnees(): string[] {
   for (const u of MOBILITE_HELICO) if (!UN[u]) err.push('Mobilité : unité inconnue ' + u);
   for (const u of UNITES) if (!Object.values(POSTURES).some(P => P.categories.includes(u.categorie))) err.push('Unité ' + u.id + ' : aucune posture possible');
   ids(MATERIELS, 'MATERIELS');
+  for (const N of Object.values(NATIONS)) {
+    const P = N.procedure;
+    if (!(P.dureeAvantVote >= 1)) err.push('Nation ' + N.id + ' : durée avant vote invalide');
+    if (!P.texteAutorise.includes('{theatre}') || !P.texteRefus.includes('{theatre}')) err.push('Nation ' + N.id + ' : textes du vote sans {theatre}');
+    if (P.debat.bonus < 0 || P.debat.capital < 0) err.push('Nation ' + N.id + ' : débat invalide');
+  }
   for (const u of UNITES) {
     const I = IDENTITES[u.id];
     if (!I) { err.push('Unité ' + u.id + ' : identité (sigle, symbole, insigne) manquante'); continue; }

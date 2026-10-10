@@ -10,7 +10,7 @@ export function nouvellePartie(graine: string | number, difficulte: string): Eta
   const d = DIFFICULTES[difficulte] ? difficulte : 'normal';
   const D = DIFFICULTES[d];
   const s: Etat = {
-    version: 1, graine: String(graine), rngState: graineVersEntier(graine), difficulte: d, doctrine: null,
+    version: 1, graine: String(graine), rngState: graineVersEntier(graine), difficulte: d, doctrine: null, nation: 'FRA',
     tour: 0, phase: 'doctrine',
     ressources: { budget: D.budgetInitial, enveloppe: D.enveloppe, surcout: 0, capital: D.capital, opinion: D.opinion, menaceInt: D.menaceInt, credibilite: D.credibilite },
     actionsRestantes: 0, unites: {}, services: {}, theatres: {}, allies: {}, menaces: [], prochainIdMenace: 1,
@@ -50,6 +50,7 @@ export function ajouterMenace(s: Etat, type: string, theatre: string, force: num
 // Complète une sauvegarde issue d'une version antérieure ou d'un jeu de données enrichi (fonction pure)
 export function migrerEtat(s0: Etat): Etat {
   const s = cloner(s0);
+  if (!s.nation) s.nation = 'FRA';
   if (!s.allies) s.allies = {};
   for (const A of ALLIES) if (!s.allies[A.id]) s.allies[A.id] = { relation: A.relation, cooldown: 0 };
   for (const T of THEATRES) {

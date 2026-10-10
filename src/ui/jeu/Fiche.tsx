@@ -1,10 +1,11 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
 import type { ReactNode } from 'react';
-import { AL, ALLIES, CATEGORIES, ETATS_UNITE, IDENTITES, MAT, MT, OP, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
+import { AL, ALLIES, CATEGORIES, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
   facteursVote, libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
+import { procedure } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
 import { PanneauOrdres } from './VueRegionale';
 import { FicheMateriel } from './Catalogue';
@@ -89,7 +90,7 @@ function FicheTheatre({ id }: { id: string }) {
   const offres: [AllieDef, AppuiDef][] = [];
   for (const A of ALLIES) for (const ap of A.appuis) if (ap.theatres.includes(id) && !th.appuis.some(x => x.allie === A.id && x.appui === ap.id)) offres.push([A, ap]);
   const sansAction = s.actionsRestantes <= 0;
-  const voteDans = T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0 ? Math.max(1, PARAMS.dureeAvantVote + 1 - th.toursIntervention) : null;
+  const voteDans = T.exterieur && !T.basePermanente && !th.voteFait && th.toursIntervention > 0 ? Math.max(1, procedure(s).dureeAvantVote + 1 - th.toursIntervention) : null;
 
   return (
     <>
@@ -109,12 +110,12 @@ function FicheTheatre({ id }: { id: string }) {
         {voteDans !== null && (
           <div className="encart ambre" data-tuto="article35">
             <span data-tip={'Facteurs du vote\n' + facteursVote(s, id).map(f => f.lib + ' : ' + (f.val >= 0 ? '+' : '−') + Math.round(Math.abs(f.val) * 100) + ' %').join('\n') + '\nUn refus impose le retrait des forces du théâtre.'}>
-              <b>Article 35</b> — intervention depuis {th.toursIntervention} mois. Vote du Parlement dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s, id))}</b>.
+              <b>{procedure(s).nom}</b> — intervention depuis {th.toursIntervention} mois. Vote du Parlement dans {voteDans} mois, adoption estimée <b>{pct(probaVote(s, id))}</b>.
             </span>
             {!th.debat ? (
               <div className="encart-action">
                 <button className="btn petit" disabled={!estPossible({ type: 'DEBAT', theatre: id })} onClick={() => jouer({ type: 'DEBAT', theatre: id })}
-                  data-tip={'Exposer les objectifs de l’intervention devant les assemblées.\nVote +' + Math.round(PARAMS.bonusDebat * 100) + ' % · capital −' + PARAMS.capitalDebat + ' · 1 action'}>Organiser un débat au Parlement</button>
+                  data-tip={procedure(s).debat.description + '\nVote +' + Math.round(procedure(s).debat.bonus * 100) + ' % · capital −' + procedure(s).debat.capital + ' · 1 action'}>Organiser : {procedure(s).debat.nom.toLowerCase()}</button>
               </div>
             ) : <div className="petit c-vert">Débat organisé : adoption facilitée.</div>}
           </div>

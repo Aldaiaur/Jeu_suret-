@@ -113,9 +113,7 @@ export const PARAMS = {
   actionsBase:2, actionsParCapital:25, actionsMax:6,
   capitalMensuel:2, opinionRappel:0.05,
   regenerationTours:2, fatigueRepos:15, fatigueDeploiement:6,
-  dureeAvantVote:4,  // article 35, al. 3 : autorisation du Parlement au-delà de 4 mois (Constitution, S1)
-   probaEvenement:0.65, toursCriseLibre:2,
+  probaEvenement:0.65, toursCriseLibre:2,
   margeMin:4, rensFauxRapport:30,
-  plafondProtection:0.5,  // part maximale de la menace intérieure que la protection peut absorber
-  bonusDebat:0.15, capitalDebat:2   // débat au Parlement avant un vote de l’article 35
+  plafondProtection:0.5   // part maximale de la menace intérieure que la protection peut absorber
 };

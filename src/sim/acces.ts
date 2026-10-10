@@ -1,6 +1,6 @@
 // Accesseurs et petites règles dérivées de l'état.
-import { AL, ANNEE_DEPART, DOC, MOIS, PARAMS, TH, TYPES_CAPTEURS, UN, UNITES } from '../data';
-import type { AppuiDef, Categorie, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, SaisonDef, UniteDef } from './types';
+import { AL, ANNEE_DEPART, DOC, MOIS, NATIONS, PARAMS, TH, TYPES_CAPTEURS, UN, UNITES } from '../data';
+import type { AppuiDef, Categorie, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, NationDef, ProcedureDef, SaisonDef, UniteDef } from './types';
 import { borner } from './outils';
 
 export function dateDuTour(t: number): string { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
@@ -42,17 +42,19 @@ export function enIndisponibilite(u: UniteDef, tour: number): boolean {
 export function coutMult(s: Etat): number { return mods(s).coutMult; }
 // Article 35 : la jouabilité prime. Le vote reste incertain, mais le joueur voit ce qui le détermine
 // et peut le préparer (débat au Parlement). Dans la réalité 2015-2018, tous les votes ont été quasi unanimes.
+export function nation(s: Etat): NationDef { return NATIONS[s.nation] || NATIONS.FRA; }
+export function procedure(s: Etat): ProcedureDef { return nation(s).procedure; }
 export function facteursVote(s: Etat, theatre?: string): { lib: string; val: number }[] {
-  const R = s.ressources, th = theatre ? s.theatres[theatre] : null;
+  const R = s.ressources, th = theatre ? s.theatres[theatre] : null, P = procedure(s), w = P.poids;
   const f = [
-    { lib: 'Base', val: 0.25 },
-    { lib: 'Opinion', val: R.opinion / 100 * 0.45 },
-    { lib: 'Capital politique', val: R.capital / 100 * 0.35 },
-    { lib: 'Crédibilité', val: (R.credibilite - 50) / 250 }
+    { lib: 'Base', val: w.base },
+    { lib: 'Opinion', val: R.opinion / 100 * w.opinion },
+    { lib: 'Capital politique', val: R.capital / 100 * w.capital },
+    { lib: 'Crédibilité', val: (R.credibilite - 50) * w.credibilite }
   ];
   if (mods(s).voteBonus) f.push({ lib: 'Doctrine', val: mods(s).voteBonus });
-  if (th?.debat) f.push({ lib: 'Débat au Parlement', val: PARAMS.bonusDebat });
-  if (th?.crise) f.push({ lib: 'Crise en cours sur le théâtre', val: 0.05 });
+  if (th?.debat) f.push({ lib: P.debat.nom, val: P.debat.bonus });
+  if (th?.crise) f.push({ lib: 'Crise en cours sur le théâtre', val: w.crise });
   return f;
 }
 export function probaVote(s: Etat, theatre?: string): number {

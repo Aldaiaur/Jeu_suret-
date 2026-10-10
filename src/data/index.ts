@@ -16,6 +16,7 @@ export * from './biomes';
 export * from './tactique';
 export * from './materiels';
 export * from './identite-unites';
+export * from './nations';
 export * from './personnages';
 export * from './briefing';
 

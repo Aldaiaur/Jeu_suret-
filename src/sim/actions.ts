@@ -4,7 +4,7 @@ import type { Action, ChoixDef, Effets, Etat, OperationDef } from './types';
 import { alea, borner, cleAction, cloner } from './outils';
 import {
   BONUS_PERIODIQUES, actionsParTour, appuiDef, capteursLibres, coutMult, decider, delaiProjection,
-  enIndisponibilite, journaliser, menaceParId, menacesDans, nbCapteurs
+  enIndisponibilite, journaliser, menaceParId, menacesDans, nbCapteurs, procedure
 } from './acces';
 import { calculerRens } from './renseignement';
 import { evaluerAppui, evaluerOperation, moyensCrise, participantsOperation } from './evaluation';
@@ -60,7 +60,7 @@ export function actionsPossibles(s: Etat): Action[] {
   }
   for (const T of THEATRES) {
     const th = s.theatres[T.id];
-    if (T.exterieur && !T.basePermanente && !th.voteFait && !th.debat && th.toursIntervention > 0 && R.capital > PARAMS.capitalDebat) L.push({ type: 'DEBAT', theatre: T.id });
+    if (T.exterieur && !T.basePermanente && !th.voteFait && !th.debat && th.toursIntervention > 0 && R.capital > procedure(s).debat.capital) L.push({ type: 'DEBAT', theatre: T.id });
   }
   if (R.capital > 8) L.push({ type: 'BUDGET', sens: 'hausse' });
   if (R.enveloppe > 20) L.push({ type: 'BUDGET', sens: 'baisse' });
@@ -209,9 +209,9 @@ function transformerEffetOp(e: OperationDef['effetSucces'], theatre: string): Ef
 }
 function actDebat(s: Etat, a: ActionDe<'DEBAT'>): void {
   s.theatres[a.theatre].debat = true;
-  s.ressources.capital -= PARAMS.capitalDebat;
+  s.ressources.capital -= procedure(s).debat.capital;
   s.actionsRestantes--;
-  const t = 'Débat au Parlement sur l’intervention (' + TH[a.theatre].nom + ') : le gouvernement expose ses objectifs avant le vote.';
+  const t = procedure(s).debat.nom + ' sur l’intervention (' + TH[a.theatre].nom + ') : le gouvernement expose ses objectifs avant le vote.';
   decider(s, t); journaliser(s, t, 'decision');
 }
 function actBudget(s: Etat, a: ActionDe<'BUDGET'>): void {
