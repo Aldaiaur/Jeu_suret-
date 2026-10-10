@@ -1,10 +1,10 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { AL, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SV, TH, TYPES_CAPTEURS, UN } from '../../data';
 import { alliesDe, devise, presents, estBasePermanente, nation, relationReference, servicesDe, soumisProcedure, theatresDe, unitesDe } from '../../sim';
 import {
-  appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
-  facteursVote, libelleMission, soutienTheatre, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
+  appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, evaluerOperation, fiabilite, menaceParId,
+  apportUnite, facteursVote, libelleMission, soutienTheatre, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
 import { procedure } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
@@ -13,7 +13,7 @@ import { FicheMateriel } from './Catalogue';
 import { Insigne } from '../composants/Insigne';
 import { SymboleHtml } from '../composants/SymboleOtan';
 import { usePartie } from '../contexte';
-import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct } from '../format';
+import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct, specialite } from '../format';
 
 export function Fiche() {
   const { etat: s, ui, majUi } = usePartie();
@@ -82,7 +82,7 @@ function Capteurs({ service, theatre }: { service: string; theatre: string }) {
 }
 
 function FicheTheatre({ id }: { id: string }) {
-  const { etat: s, possibles, majUi, estPossible, jouer } = usePartie();
+  const { etat: s, ui, possibles, majUi, estPossible, jouer } = usePartie();
   const T = TH[id], th = s.theatres[id];
   const ms = s.menaces.filter(m => m.theatre === id && m.detectee);
   const sur = unitesDe(s).filter(u => s.unites[u.id].theatre === id);
@@ -90,7 +90,7 @@ function FicheTheatre({ id }: { id: string }) {
   const ops = possibles.filter((a): a is Extract<Action, { type: 'OPERATION' }> => a.type === 'OPERATION' && a.theatre === id);
   const offres: [AllieDef, AppuiDef][] = [];
   for (const A of alliesDe(s)) for (const ap of A.appuis) if (ap.theatres.includes(id) && !th.appuis.some(x => x.allie === A.id && x.appui === ap.id)) offres.push([A, ap]);
-  const sansAction = s.actionsRestantes <= 0;
+  const sansAction = s.actionsRestantes <= 0, onglet = ui.ongletFiche;
   const voteDans = soumisProcedure(s, T.id) && !th.voteFait && th.toursIntervention > 0 ? Math.max(1, procedure(s).dureeAvantVote + 1 - th.toursIntervention) : null;
 
   return (
@@ -123,6 +123,15 @@ function FicheTheatre({ id }: { id: string }) {
         )}
       </div>
 
+      <div className="onglets fiche-onglets" role="tablist">
+        {([['situation', 'Situation', 0], ['engager', 'Engager', engager.length], ['operations', 'Opérations', ops.length + offres.length], ['renseignement', 'Renseignement', 0]] as const).map(([o, lib, n]) => (
+          <button key={o} role="tab" aria-selected={onglet === o} className={'onglet' + (onglet === o ? ' actif' : '')} onClick={() => majUi({ ongletFiche: o })} data-tuto={'fiche-onglet-' + o}>
+            {lib}{n ? <span className="compte">{n}</span> : null}
+          </button>
+        ))}
+      </div>
+
+      {onglet === 'situation' && <>
       <Section titre="Menaces identifiées" tuto="fiche-menaces">
         {!ms.length && <p className="discret">Aucune menace identifiée. Le brouillard peut masquer une activité : renforcez le renseignement.</p>}
         {ms.map(m => {
@@ -143,11 +152,6 @@ function FicheTheatre({ id }: { id: string }) {
         })}
       </Section>
 
-      <Section titre="Capteurs de renseignement" tuto="fiche-capteurs">
-        <div className="capteurs-entete"><span /><span>HUMINT</span><span>SIGINT</span><span>IMINT</span></div>
-        {servicesDe(s).filter(x => x.theatres.includes(id)).map(sv => <Capteurs key={sv.id} service={sv.id} theatre={id} />)}
-        <p className="discret petit">Le chiffre grisé indique les capteurs encore libres. Réaffecter est gratuit.</p>
-      </Section>
 
       <Section titre={'Forces sur le théâtre (' + sur.length + ')'}>
         {!sur.length && <p className="discret">Aucune.</p>}
@@ -161,28 +165,20 @@ function FicheTheatre({ id }: { id: string }) {
         })}
       </Section>
 
-      <Section titre="Engager des forces" tuto="fiche-engager">
-        {!engager.length && <p className="discret">{sansAction ? 'Plus d’action disponible ce mois-ci.' : 'Aucune unité disponible pour ce théâtre.'}</p>}
-        {engager.map(a => {
-          const u = UN[a.unite], dl = delaiProjection(s, u.id, id), cm = coutMult(s);
-          // Conséquence logistique de l'engagement, visible avant de décider
-          const sout = soutienTheatre(s, id), demande = sout.demande + SOUTIEN_CATEGORIE[u.categorie], capacite = sout.capacite + (SOUTIEN_UNITE[u.id] || 0);
-          const penurie = demande > capacite && sout.demande <= sout.capacite;
-          return (
-            <LigneAction key={a.unite} titre={<><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{u.nom}</>}
-              meta={<>{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} {devise(s)} puis {(u.coutMensuel * cm).toFixed(1)} {devise(s)}/mois{T.exterieur && <span className={penurie ? 'c-rouge' : ''}> · soutien {demande}/{capacite}{penurie ? ' : pénurie' : ''}</span>}</>}
-              tip={u.type + '\nAssaut ' + u.cap.assaut + ' · Rens. ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance}
-              bouton="Engager" action={a} tuto={'engager-' + u.id} />
-          );
-        })}
-      </Section>
+      </>}
+
+      {onglet === 'engager' && <EngagerForces id={id} engager={engager} sansAction={sansAction} />}
+
+      {onglet === 'operations' && <>
 
       <Section titre="Opérations" tuto="fiche-operations">
         {!ops.length && <p className="discret">{sansAction ? 'Plus d’action disponible ce mois-ci.' : 'Aucune opération possible : il faut des moyens adaptés sur place.'}</p>}
+        {ops.length > 0 && <p className="discret petit">Une opération est une action ponctuelle menée avec les moyens déjà sur place. Elle frappe tout de suite la menace visée, au prix d’un risque. « Évaluer » détaille chances, risques et coûts avant de décider.</p>}
         {ops.map(a => {
-          const m = a.cible ? menaceParId(s, a.cible) : null;
-          return <LigneAction key={a.op + (a.cible || '')} titre={OP[a.op].nom} meta={m ? 'Cible : ' + MT[m.type].nom : OP[a.op].description} tip={OP[a.op].description}
-            bouton="Évaluer" ton="principal" onClick={() => majUi({ apercu: a })} />;
+          const m = a.cible ? menaceParId(s, a.cible) : null, ev = evaluerOperation(s, a.op, a.theatre, a.cible, false);
+          return <LigneAction key={a.op + (a.cible || '')} titre={<><b>{OP[a.op].nom}</b>{m && <span className="discret">&nbsp;· contre {MT[m.type].nom}</span>}</>}
+            meta={<>{OP[a.op].description}<br /><span className={ev.pSucces >= 0.6 ? 'c-vert' : ev.pSucces >= 0.4 ? 'c-ambre' : 'c-rouge'}>succès ≈ {pct(ev.pSucces)}</span>{ev.risqueCollat > 0.05 && <span className="c-rouge"> · risque civil {pct(ev.risqueCollat)}</span>} · {ev.cout} {devise(s)}{ev.capital ? ' · capital −' + ev.capital : ''}</>}
+            tip={OP[a.op].description} bouton="Évaluer" ton="principal" onClick={() => majUi({ apercu: a })} />;
         })}
       </Section>
 
@@ -192,8 +188,83 @@ function FicheTheatre({ id }: { id: string }) {
           {offres.map(([A, ap]) => <LigneAppui key={A.id + ap.id} allie={A} appui={ap} theatre={id} avecNom />)}
         </Section>
       )}
+      </>}
+
+      {onglet === 'renseignement' && <>
+      <Section titre="Capteurs de renseignement" tuto="fiche-capteurs">
+        <div className="capteurs-entete"><span /><span>HUMINT</span><span>SIGINT</span><span>IMINT</span></div>
+        {servicesDe(s).filter(x => x.theatres.includes(id)).map(sv => <Capteurs key={sv.id} service={sv.id} theatre={id} />)}
+        <p className="discret petit">Le chiffre grisé indique les capteurs encore libres. Réaffecter est gratuit.</p>
+      </Section>
+      <p className="discret petit">Plus le renseignement d’un théâtre est élevé, plus les estimations de menace sont précises, plus les positions adverses sont identifiées (frappes et raids possibles) et moins les frappes touchent de civils.</p>
+      </>}
     </>
   );
+}
+
+// Engager des forces : recommandations pour ce théâtre, puis sous-catégories repliables.
+// Chaque ligne dit ce que fait l’unité (spécialité) et ce qu’elle apporterait ici (pression sur chaque menace).
+type ActionDeployer = Extract<Action, { type: 'DEPLOYER' }>;
+function EngagerForces({ id, engager, sansAction }: { id: string; engager: ActionDeployer[]; sansAction: boolean }) {
+  const { etat: s } = usePartie();
+  const [replies, setReplies] = useState<Record<string, boolean>>({});
+  const T = TH[id], cm = coutMult(s);
+  const apports = Object.fromEntries(engager.map(a => [a.unite, apportUnite(s, a.unite, id)]));
+  const recommandees = engager.filter(a => apports[a.unite].total > 0).sort((a, b) => apports[b.unite].total - apports[a.unite].total).slice(0, 3);
+  const maxApport = Math.max(1, ...engager.map(a => apports[a.unite].total));
+  const ligne = (a: ActionDeployer, tuto: boolean) => {
+    const u = UN[a.unite], dl = delaiProjection(s, u.id, id), ap = apports[a.unite];
+    const sout = soutienTheatre(s, id), demande = sout.demande + SOUTIEN_CATEGORIE[u.categorie], capacite = sout.capacite + (SOUTIEN_UNITE[u.id] || 0);
+    const penurie = demande > capacite && sout.demande <= sout.capacite;
+    const effet = ap.parMenace.filter(x => x.valeur > 0).map(x => MT[x.type].nom + ' +' + x.valeur).concat(ap.protection ? ['protection intérieure +' + ap.protection] : []);
+    return (
+      <div key={a.unite} className="engager-ligne">
+        <div className="ligne-action-texte">
+          <div><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} /><b>{u.nom}</b></div>
+          <div className="engager-specialite">{specialite(u)}</div>
+          <div className="engager-effet" data-tip={'Pression mensuelle estimée sur les menaces identifiées du théâtre (capacités de l’unité × sensibilité de la menace × saison). Une menace sous forte pression décroît.\n' + (effet.join('\n') || 'Aucun effet direct sur les menaces identifiées.')}>
+            <span className="engager-barre"><i style={{ width: Math.round(ap.total / maxApport * 100) + '%' }} /></span>
+            {effet.length ? effet.join(' · ') : <span className="discret">peu d’effet direct ici</span>}
+          </div>
+          <div className="ligne-action-meta">{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} {devise(s)} puis {(u.coutMensuel * cm).toFixed(1)} {devise(s)}/mois{T.exterieur && <span className={penurie ? 'c-rouge' : ''}> · soutien {demande}/{capacite}{penurie ? ' : pénurie' : ''}</span>}</div>
+        </div>
+        <BoutonAction action={a} libelle="Engager" tuto={tuto ? 'engager-' + u.id : undefined}
+          tip={u.type + '\nAssaut ' + u.cap.assaut + ' · Renseignement ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance + '\nConsomme une action.'} />
+      </div>
+    );
+  };
+  const categories = Object.keys(nation(s).categories) as (keyof ReturnType<typeof nation>['categories'])[];
+  return (
+    <Section titre="Engager des forces" tuto="fiche-engager">
+      <p className="discret petit">Une unité engagée pèse chaque mois sur les menaces du théâtre, selon ses capacités. Engager consomme une action ; l’unité coûte ensuite chaque mois.</p>
+      {!engager.length && <p className="discret">{sansAction ? 'Plus d’action disponible ce mois-ci.' : 'Aucune unité disponible pour ce théâtre.'}</p>}
+      {recommandees.length > 0 && (
+        <div className="engager-groupe recommande">
+          <div className="engager-groupe-titre"><span>Recommandées ici</span><span className="discret petit">les plus efficaces contre les menaces identifiées</span></div>
+          {recommandees.map(a => ligne(a, false))}
+        </div>
+      )}
+      {categories.map(c => {
+        const L = engager.filter(a => UN[a.unite].categorie === c);
+        if (!L.length) return null;
+        const ferme = replies[c];
+        return (
+          <div key={c} className="engager-groupe">
+            <button className="engager-groupe-titre" onClick={() => setReplies(r => ({ ...r, [c]: !ferme }))} aria-expanded={!ferme}>
+              <span><i className="point" style={{ background: COULEURS_CATEGORIE[c] }} />{nation(s).categories[c]} <span className="discret">({L.length})</span></span>
+              <span className="discret">{ferme ? '▸' : '▾'}</span>
+            </button>
+            {!ferme && L.map(a => ligne(a, true))}
+          </div>
+        );
+      })}
+    </Section>
+  );
+}
+
+function BoutonAction({ action, libelle, tuto, tip, ton }: { action: Action; libelle: string; tuto?: string; tip?: string; ton?: string }) {
+  const { estPossible, jouer } = usePartie();
+  return <button className={'btn petit' + (ton ? ' ' + ton : '')} disabled={!estPossible(action)} data-tuto={tuto} data-tip={tip} onClick={() => jouer(action)}>{libelle}</button>;
 }
 
 function LigneAppui({ allie: A, appui: ap, theatre, avecNom }: { allie: AllieDef; appui: AppuiDef; theatre: string; avecNom: boolean }) {

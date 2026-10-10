@@ -2,7 +2,7 @@
 import { AL, CARTES_REGIONALES, MT, OP, TH, UN } from '../data';
 import type { Capacite, Etat, Menace, OperationDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
-import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, nation, nbCapteurs, unitesDans, unitesDe } from './acces';
+import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, multPression, nation, nbCapteurs, unitesDans, unitesDe } from './acces';
 import { multiplicateurUnite } from './tactique';
 import { rensMenace } from './renseignement';
 import { menaceDeCrise } from './crises';
@@ -76,4 +76,19 @@ export function evaluerAppui(s: Etat, allieId: string, appuiId: string, theatre:
   const lv = nation(s).levier?.allie === allieId ? nation(s).levier! : null;
   const p = borner(ap.base * (0.35 + rel / 100 * 0.65) * (0.75 + s.ressources.credibilite / 100 * 0.25) + interet + (lv ? lv.base : 0), 0.05, 0.95);
   return { pSucces: p, capital: Math.max(0, ap.capital - (lv ? lv.capital : 0)), relation: Math.max(0, ap.relation - (lv ? lv.relation : 0)), duree: ap.duree, levier: !!lv };
+}
+
+// ---------- Apport d'une unité à un théâtre (aide à la décision avant de l'engager) ----------
+// Même calcul que la pression mensuelle (capacités × sensibilité de chaque menace × saison), sans fatigue.
+export interface ApportUnite { total: number; parMenace: { type: string; valeur: number }[]; protection: number }
+export function apportUnite(s: Etat, uniteId: string, theatre: string): ApportUnite {
+  const u = UN[uniteId], k = multPression(theatre, s.tour, u.categorie);
+  const parMenace = s.menaces.filter(m => m.theatre === theatre && m.detectee).map(m => {
+    const sens = MT[m.type].sensibilite;
+    let p = 0;
+    for (const c in sens) p += u.cap[c as Capacite] * sens[c as Capacite]!;
+    return { type: m.type, valeur: arrondi(p * k) };
+  });
+  const protection = !TH[theatre].exterieur ? (u.protection || 0) : 0;
+  return { total: arrondi(parMenace.reduce((a, x) => a + x.valeur, 0) + protection), parMenace, protection };
 }

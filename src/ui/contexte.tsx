@@ -12,6 +12,7 @@ export type Selection = { kind: 'theatre' | 'unite' | 'service' | 'allie'; id: s
 export type Ecran = 'accueil' | 'briefing' | 'jeu';
 export type OngletGauche = 'forces' | 'renseignement' | 'allies';
 export type OngletDroit = 'situation' | 'rapports' | 'journal';
+export type OngletFiche = 'situation' | 'engager' | 'operations' | 'renseignement';
 
 export interface Toast { id: number; titre: string; texte: string; genre: 'info' | 'succes' | 'alerte' }
 export interface TransitionMois {
@@ -34,6 +35,7 @@ export interface UiEtat {
   uniteRegion: string | null;   // unité sélectionnée sur la carte régionale (ordres tactiques)
   ongletGauche: OngletGauche;
   ongletDroit: OngletDroit;
+  ongletFiche: OngletFiche;        // onglet de la fiche d'un théâtre : situation, engager, opérations, renseignement
   transition: TransitionMois | null;
   retour: { cle: number; texte: string; unite: string | null } | null;
   ficheRepliee: boolean;           // fiche de droite réduite à un onglet, pour dégager la carte   // confirmation brève du dernier ordre
@@ -41,7 +43,7 @@ export interface UiEtat {
 
 const UI_INITIAL: UiEtat = {
   ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, catalogue: false, debug: false, refMois: null,
-  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null, retour: null, ficheRepliee: false
+  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', ongletFiche: 'situation', transition: null, retour: null, ficheRepliee: false
 };
 
 interface Contexte {

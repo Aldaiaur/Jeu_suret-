@@ -38,6 +38,11 @@ await page.click('text=Passer le tutoriel');
 
 await page.click('[data-tuto="theatre-SAHEL"]', { force: true });
 await capture('07-fiche-sahel');
+for (const o of ['engager', 'operations', 'renseignement']) {
+  await jeu(page, `window.__jeu.majUi({ ongletFiche: '${o}' })`);
+  await capture('07-fiche-sahel-' + o);
+}
+await jeu(page, `window.__jeu.majUi({ ongletFiche: 'situation' })`);
 await page.click('[data-tuto="onglet-renseignement"]');
 await page.click('[data-tuto="onglet-rapports"]');
 await capture('08-renseignement-rapports');

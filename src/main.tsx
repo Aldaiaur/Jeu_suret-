@@ -12,6 +12,7 @@ import './ui/styles/base.css';
 import './ui/styles/jeu.css';
 import './ui/styles/ecrans.css';
 import { App } from './ui/App';
+import { appliquerEchelle } from './ui/echelle';
 import { verifierDonnees } from './sim';
 
 const Galerie = lazy(() => import('./ui/ecrans/Galerie').then(m => ({ default: m.Galerie })));
@@ -21,6 +22,8 @@ if (import.meta.env.DEV) {
   const erreurs = verifierDonnees();
   if (erreurs.length) console.warn('Incohérences dans les données :\n' + erreurs.join('\n'));
 }
+
+appliquerEchelle();
 
 const galerie = import.meta.env.DEV && new URLSearchParams(location.search).has('galerie');
 createRoot(document.getElementById('racine')!).render(<StrictMode>{galerie ? <Suspense fallback={null}><Galerie /></Suspense> : <App />}</StrictMode>);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DOC, NB_TOURS, PARAMS } from '../../data';
 import { actionsParTour, coutsMensuels, dateDuTour, devise, nation, procedure } from '../../sim';
 import { jouerSon, reglageSon, regler } from '../sons';
+import { echelleInterface, reglerEchelle as regler_echelle } from '../echelle';
 import { usePartie } from '../contexte';
 import { tonNiveau } from '../format';
 import { Drapeau, type NationJouable } from '../composants/Drapeau';
@@ -90,6 +91,7 @@ function MenuJeu() {
         <div className="menu-liste">
           {item('Catalogue des forces et matériels', () => majUi({ catalogue: true }))}
           {item(reglageSon().actif ? 'Son : activé (couper)' : 'Son : coupé (activer)', () => { regler({ actif: !reglageSon().actif }); if (reglageSon().actif) jouerSon('clic'); })}
+          {item('Taille de l’interface : ' + Math.round(echelleInterface() * 100) + ' % (changer)', () => { const e = echelleInterface(); regler_echelle(e < 1.05 ? 1.15 : e < 1.25 ? 1.3 : 1); })}
           {reglageSon().actif && item('Volume : ' + Math.round(reglageSon().volume * 100) + ' % (changer)', () => { const v = reglageSon().volume; regler({ volume: v < 0.3 ? 0.35 : v < 0.6 ? 0.7 : 0.15 }); jouerSon('ordre'); })}
           {item('Exporter la partie', () => exporter(etat))}
           {item('Importer une partie', () => importerFichier(charger, m => notifier('Import impossible', m, 'alerte')))}

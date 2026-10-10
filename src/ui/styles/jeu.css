@@ -356,7 +356,7 @@
 .zoom-gauche { padding: 14px; border-right: 1px solid var(--trait); overflow-y: auto; }
 .zoom-droite { padding: 14px; border-left: 1px solid var(--trait); overflow-y: auto; }
 .zoom-carte { position: relative; min-height: 0; overflow: hidden; }
-.zoom-carte svg { width: 100%; height: 100%; display: block; }
+.zoom-carte > svg { width: 100%; height: 100%; display: block; }
 .zoom-pays { fill: none; stroke: rgba(160, 180, 195, 0.25); stroke-width: 1; }
 .zoom-lien { stroke: rgba(170, 190, 205, 0.28); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
 .lieu { cursor: pointer; }
@@ -439,7 +439,7 @@
 /* ---------- Vue régionale ---------- */
 .vue-regionale { position: absolute; inset: 0; z-index: 0; isolation: isolate; animation: fondu 220ms ease-out; }
 .calque { position: absolute; left: 0; top: 0; display: block; }
-.zoom-carte .calque { width: 100%; height: 100%; }
+.zoom-carte > .calque { width: 100%; height: 100%; }
 .anim-pluie, .anim-neige, .anim-poussiere, .anim-houle, .anim-brouillard { will-change: transform; }
 .route { stroke-width: 2.2; stroke-dasharray: 7 4; stroke-linecap: round; opacity: 0.75; }
 .lieu.petit .lieu-nom { font-size: 12px; }
@@ -556,3 +556,27 @@
 .fiche-onglet span { writing-mode: vertical-rl; transform: rotate(180deg); font: 600 13px var(--police-titre); letter-spacing: 0.08em; color: var(--texte-2); }
 .fiche-onglet:hover { border-color: var(--turquoise); }
 .vue-regionale.fiche-repliee .vr-entete { right: 64px; }
+
+/* ---------- Engager des forces : recommandations et sous-catégories ---------- */
+.engager-groupe { margin: 10px 0 4px; border: 1px solid var(--trait); border-radius: var(--rayon-l); overflow: hidden; }
+.engager-groupe.recommande { border-color: rgba(64, 196, 170, 0.45); background: rgba(64, 196, 170, 0.05); }
+.engager-groupe-titre {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;
+  padding: 9px 12px; background: var(--surface-2); border: 0; color: var(--texte); font: 600 13.5px var(--police); text-align: left; cursor: pointer;
+}
+.engager-groupe.recommande .engager-groupe-titre { cursor: default; background: transparent; color: var(--turquoise); flex-wrap: wrap; }
+.engager-ligne { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--trait); }
+.engager-specialite { font-size: 12.5px; color: var(--texte-2); margin-top: 1px; }
+.engager-effet { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--turquoise); margin: 3px 0 1px; cursor: help; }
+.engager-barre { flex: none; width: 46px; height: 5px; border-radius: 3px; background: var(--trait-2); overflow: hidden; }
+.engager-barre i { display: block; height: 100%; background: var(--turquoise); }
+
+/* Barre du haut : tient en 1 280 px malgré les tailles relevées */
+.barre-haute { gap: 16px; }
+.date-bloc { min-width: 128px; }
+.jauges { gap: 12px; }
+.jauge { width: 112px; }
+.budget, .actions-bloc { padding-left: 14px; }
+.barre-haute-fin .pastille { max-width: 170px; overflow: hidden; text-overflow: ellipsis; display: inline-block; line-height: 20px; }
+.fiche-onglets { margin: 2px 0 14px; position: sticky; top: -1px; z-index: 2; background: var(--surface); }
+.ligne-action-texte > div:first-child { flex-wrap: wrap; column-gap: 2px; }

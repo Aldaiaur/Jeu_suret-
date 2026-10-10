@@ -1,6 +1,6 @@
 // Mise en forme partagée par les composants.
-import { AL, CATEGORIES, MT, TH, UN } from '../data';
-import { appuiDef, type AppuiDef, type Effets } from '../sim';
+import { AL, CATEGORIES, MOBILITE_HELICO, MT, SOUTIEN_UNITE, TH, UN } from '../data';
+import { appuiDef, type AppuiDef, type Capacite, type Effets, type UniteDef } from '../sim';
 
 export const pct = (p: number) => Math.round(p * 100) + ' %';
 export const signe = (v: number) => (v > 0 ? '+' : '') + v;
@@ -59,3 +59,15 @@ export function decrireAppui(ap: AppuiDef): string {
 export const COULEURS_CATEGORIE: Record<string, string> = {
   FS: 'var(--rouge-vif)', INT: 'var(--ambre)', TERRE: 'var(--vert)', AIR: 'var(--turquoise)', MER: 'var(--violet)'
 };
+
+// Spécialité d'une unité en mots simples : ses points forts (capacités de 7 et plus) et ses rôles particuliers
+const LIB_CAPACITE: Record<Capacite, string> = { assaut: 'combat au sol', renseignement: 'renseignement', frappe: 'frappes', discretion: 'actions discrètes', endurance: 'présence durable' };
+export function specialite(u: UniteDef): string {
+  const roles: string[] = [];
+  if (u.protection) roles.push('protection du territoire');
+  if (SOUTIEN_UNITE[u.id]) roles.push('soutien logistique');
+  if (MOBILITE_HELICO.includes(u.id)) roles.push('mobilité');
+  const forts = (Object.keys(u.cap) as Capacite[]).filter(c => c !== 'endurance' && u.cap[c] >= 7).sort((a, b) => u.cap[b] - u.cap[a]).map(c => LIB_CAPACITE[c]);
+  const r = [...roles, ...forts].slice(0, 3);
+  return r.length ? r.join(', ') : u.cap.endurance >= 7 ? LIB_CAPACITE.endurance : 'polyvalente';
+}
