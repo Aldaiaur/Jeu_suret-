@@ -1,9 +1,9 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
 import type { ReactNode } from 'react';
-import { AL, ALLIES, CATEGORIES, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
+import { AL, ALLIES, CATEGORIES, SOUTIEN_CATEGORIE, SOUTIEN_UNITE, ETATS_UNITE, IDENTITES, MAT, MT, OP, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
-  facteursVote, libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
+  facteursVote, libelleMission, soutienTheatre, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
 import { procedure } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
@@ -164,9 +164,12 @@ function FicheTheatre({ id }: { id: string }) {
         {!engager.length && <p className="discret">{sansAction ? 'Plus d’action disponible ce mois-ci.' : 'Aucune unité disponible pour ce théâtre.'}</p>}
         {engager.map(a => {
           const u = UN[a.unite], dl = delaiProjection(s, u.id, id), cm = coutMult(s);
+          // Conséquence logistique de l'engagement, visible avant de décider
+          const sout = soutienTheatre(s, id), demande = sout.demande + SOUTIEN_CATEGORIE[u.categorie], capacite = sout.capacite + (SOUTIEN_UNITE[u.id] || 0);
+          const penurie = demande > capacite && sout.demande <= sout.capacite;
           return (
             <LigneAction key={a.unite} titre={<><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{u.nom}</>}
-              meta={<>{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} M€ puis {(u.coutMensuel * cm).toFixed(1)} M€/mois</>}
+              meta={<>{dl ? 'arrivée sous ' + dl + ' mois' : 'immédiat'} · {(u.coutDeploiement * cm).toFixed(1)} M€ puis {(u.coutMensuel * cm).toFixed(1)} M€/mois{T.exterieur && <span className={penurie ? 'c-rouge' : ''}> · soutien {demande}/{capacite}{penurie ? ' : pénurie' : ''}</span>}</>}
               tip={u.type + '\nAssaut ' + u.cap.assaut + ' · Rens. ' + u.cap.renseignement + ' · Frappe ' + u.cap.frappe + ' · Discrétion ' + u.cap.discretion + ' · Endurance ' + u.cap.endurance}
               bouton="Engager" action={a} tuto={'engager-' + u.id} />
           );
