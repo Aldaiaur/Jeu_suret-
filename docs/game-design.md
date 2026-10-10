@@ -194,6 +194,46 @@ Une fois déployée, une unité se commande sur la carte régionale (`src/sim/ta
 6. **Score** : un domaine « Contrôle du terrain » (part des lieux non tenus par l’adversaire sur les théâtres d’intervention) récompense le travail tactique.
 7. Les autres décisions de la première session (cinq théâtres à crises sur carte, lieux russes et chinois en lecture seule, coefficients saisonniers, capacités de soutien, devises fictives, caractéristiques « À VÉRIFIER ») sont maintenues.
 
+## Pistes pour rendre le jeu prenant (session 4, à arbitrer)
+
+Classées par effet attendu sur l’intérêt, à coût comparable. ★ = recommandé en priorité.
+
+**Boucle mensuelle et tension**
+1. ★ **Horloges de menace visibles** : chaque menace forte affiche un compte à rebours (« Daech prépare une offensive : 3/6 »). Le joueur voit venir les crises et choisit lesquelles laisser filer.
+2. ★ **Objectifs de mandat** : le chef de l’exécutif fixe chaque année deux ou trois objectifs (aucun attentat majeur, Daech sous 40, budget tenu) ; les tenir rapporte du capital, les rater en coûte.
+3. **Priorité du mois** : une carte de politique à choisir chaque mois (sécurité, diplomatie, économies, communication) qui oriente les bonus.
+4. **Arcs narratifs par théâtre**, comme « La route du Fezzan » : trois à cinq dossiers enchaînés, avec une fin qui marque la partie.
+5. **Désinformation adverse** : faux rapports délibérés, à recouper par un second service.
+
+**Interventions de crise (six semaines)**
+6. ★ **Terrain par lieu** (ville : défense +, désert : frappes efficaces, montagne : raids difficiles), lisible d’un coup d’œil.
+7. ★ **Objectifs secondaires optionnels** (sauver un journaliste, capturer un chef) avec une récompense stratégique.
+8. **Adversaires à personnalité** (prudent, agressif, terroriste qui vise les civils), annoncée au début de l’intervention.
+9. **Cartes d’ordres** : quelques ordres spéciaux par intervention (coup de main, ruse, appui feu massif), à jouer au bon moment.
+
+**Politique, monde et diplomatie**
+10. ★ **Monde partagé** (phase 3) : les autres nations jouent avec la même simulation ; coalitions, rivalités, demandes croisées.
+11. **Médias** : conférence de presse après chaque crise (choisir le ton : transparence, fermeté, silence), fuites, enquêtes.
+12. **Échéances électorales** propres à chaque nation, qui changent les règles du jeu (présidentielle, référendum, élections anticipées).
+13. **Prises d’otages et négociations** comme mini-jeu de décision en plusieurs étapes.
+
+**Ergonomie et compréhension**
+14. ★ **Conseiller du mois** : « Que faire ce mois-ci ? » liste trois priorités argumentées, désactivable.
+15. **Projection** : courbe prévue d’une menace si l’on ne fait rien, à côté de la courbe passée.
+16. **Glisser-déposer** d’une unité de la liste vers un théâtre ou un lieu.
+17. **Mode daltonien** et contraste élevé.
+
+**Présentation et rétention**
+18. **Musique et ambiance sonore** qui suivent la tension (calme, alerte, crise).
+19. **Succès Steam**, mode Ironman (une seule sauvegarde), partie du jour (graine commune, classement).
+20. **Éditeur et mods** : les données sont déjà en fichiers typés ; un format JSON ouvert permettrait aux joueurs de créer des théâtres et des campagnes.
+
+**Fonds de carte : aller plus loin**
+- Code (fait) : relief ombré, courbes de niveau, côtes, carroyage. Suite possible : taches urbaines et routes réelles (Natural Earth, domaine public), symboles de terrain plus fins.
+- Relief réel : ombrage pré-calculé depuis un modèle numérique de terrain public (SRTM, Natural Earth), en images légères (une centaine de kilo-octets par carte). Demande d’assouplir la règle « aucun fichier image ».
+- Artiste : un fond peint par carte (15 cartes), le plus beau résultat, à budgéter.
+- Images générées par IA : rapides, mais à déclarer à Steam et à retoucher pour la cohérence.
+
 ## Décisions de la troisième session (10 octobre 2026, « prendre la meilleure décision »)
 
 1. **Modèle nation** : catalogue mondial partagé, identifiants uniques, listes de la partie tirées de la nation. Préféré à une copie des données par nation (doublons) et à un état global mutable (rejouabilité). Il prépare le monde partagé de la phase 3.
