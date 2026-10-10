@@ -9,6 +9,8 @@ export * from './france';
 export * from './menaces';
 export * from './evenements';
 export * from './cartes-regionales';
+export * from './personnages';
+export * from './briefing';
 
 function indexer<T extends { id: string }>(liste: T[]): Record<string, T> {
   const o: Record<string, T> = {};

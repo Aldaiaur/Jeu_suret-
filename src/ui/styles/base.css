@@ -1,0 +1,152 @@
+/* ==========================================================================
+   Red Lines — système visuel
+   Une seule ambiance sombre (salle de crise). Le rouge est réservé à la marque
+   et au danger ; l'ambre signale ce qui demande attention ; le turquoise, le renseignement.
+   ========================================================================== */
+
+:root {
+  --fond: #090c10;
+  --fond-2: #0d1217;
+  --surface: #121920;
+  --surface-2: #172029;
+  --surface-3: #1d2833;
+  --surface-survol: #213040;
+  --trait: #222d38;
+  --trait-2: #2f3d4b;
+  --trait-fort: #42566a;
+
+  --texte: #dde5ea;
+  --texte-2: #a3b1bc;
+  --texte-3: #6f7f8c;
+
+  --rouge: #e5484d;
+  --rouge-vif: #ff6369;
+  --rouge-fond: rgba(229, 72, 77, 0.13);
+  --ambre: #f2b43a;
+  --ambre-fond: rgba(242, 180, 58, 0.12);
+  --vert: #3dbb84;
+  --vert-fond: rgba(61, 187, 132, 0.12);
+  --turquoise: #4cc6dc;
+  --turquoise-fond: rgba(76, 198, 220, 0.11);
+  --violet: #ac90ff;
+  --violet-fond: rgba(172, 144, 255, 0.12);
+
+  --police: 'IBM Plex Sans', system-ui, sans-serif;
+  --police-titre: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+  --police-chiffres: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --rayon: 6px;
+  --rayon-l: 10px;
+  --ombre: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --ombre-l: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --transition: 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+html, body, #racine { margin: 0; height: 100%; }
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+p { margin: 0 0 8px; }
+input, select, textarea { font-family: inherit; user-select: text; }
+::selection { background: var(--rouge-fond); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--trait-2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--trait-fort); }
+
+.chiffres { font-family: var(--police-chiffres); font-variant-numeric: tabular-nums; }
+.titre-section {
+  font-family: var(--police-titre); font-weight: 600; font-size: 13px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--texte-3); margin: 0 0 8px;
+}
+.discret { color: var(--texte-3); }
+.second { color: var(--texte-2); }
+.c-rouge { color: var(--rouge-vif); } .c-ambre { color: var(--ambre); } .c-vert { color: var(--vert); }
+.c-turquoise { color: var(--turquoise); } .c-violet { color: var(--violet); }
+
+/* ---------- Boutons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 30px; padding: 0 12px;
+  font: 500 12.5px var(--police); color: var(--texte);
+  background: var(--surface-3); border: 1px solid var(--trait-2); border-radius: var(--rayon);
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), transform 80ms;
+}
+.btn:hover:not(:disabled) { background: var(--surface-survol); border-color: var(--trait-fort); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--turquoise); outline-offset: 2px; }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn.principal { background: var(--rouge); border-color: var(--rouge); color: #fff; font-weight: 600; }
+.btn.principal:hover:not(:disabled) { background: var(--rouge-vif); border-color: var(--rouge-vif); }
+.btn.fantome { background: transparent; border-color: transparent; color: var(--texte-2); }
+.btn.fantome:hover:not(:disabled) { background: var(--surface-2); color: var(--texte); border-color: var(--trait); }
+.btn.danger { background: transparent; border-color: rgba(229, 72, 77, 0.55); color: var(--rouge-vif); }
+.btn.danger:hover:not(:disabled) { background: var(--rouge-fond); border-color: var(--rouge); }
+.btn.petit { height: 24px; padding: 0 8px; font-size: 11.5px; }
+.btn.carre { width: 24px; padding: 0; }
+.btn.grand { height: 40px; padding: 0 20px; font-size: 14px; }
+.touche {
+  font: 500 10px var(--police-chiffres); color: inherit; opacity: 0.7;
+  border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; line-height: 14px;
+}
+
+/* ---------- Pastilles et étiquettes ---------- */
+.pastille {
+  display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 7px;
+  border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap;
+  background: var(--surface-3); color: var(--texte-2); border: 1px solid transparent;
+}
+.pastille.rouge { background: var(--rouge-fond); color: var(--rouge-vif); }
+.pastille.ambre { background: var(--ambre-fond); color: var(--ambre); }
+.pastille.vert { background: var(--vert-fond); color: var(--vert); }
+.pastille.turquoise { background: var(--turquoise-fond); color: var(--turquoise); }
+.pastille.violet { background: var(--violet-fond); color: var(--violet); }
+.pastille.contour { background: transparent; border-color: var(--trait-2); }
+
+/* ---------- Champs ---------- */
+.champ {
+  height: 34px; padding: 0 10px; width: 100%;
+  background: var(--fond-2); color: var(--texte);
+  border: 1px solid var(--trait-2); border-radius: var(--rayon); font-size: 13px;
+  transition: border-color var(--transition);
+}
+.champ:focus { outline: none; border-color: var(--turquoise); }
+
+/* ---------- Barres de niveau ---------- */
+.barre { height: 4px; border-radius: 4px; background: var(--trait); overflow: hidden; }
+.barre > i { display: block; height: 100%; border-radius: 4px; transition: width 400ms ease, background 400ms; }
+
+/* ---------- Onglets ---------- */
+.onglets { display: flex; gap: 2px; padding: 4px; background: var(--fond-2); border-radius: var(--rayon); border: 1px solid var(--trait); }
+.onglet {
+  flex: 1; height: 28px; border: 0; border-radius: 4px; background: transparent;
+  font: 500 12px var(--police); color: var(--texte-3); cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.onglet:hover { color: var(--texte); }
+.onglet.actif { background: var(--surface-3); color: var(--texte); box-shadow: 0 1px 0 var(--trait-2) inset; }
+.onglet .compte { font: 500 10px var(--police-chiffres); color: var(--texte-3); }
+
+/* ---------- Animations ---------- */
+@keyframes apparition { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes apparition-echelle { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+@keyframes glissement-droite { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes pulsation { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes onde { from { r: 16; opacity: 0.9; } to { r: 40; opacity: 0; } }
+.pulse { animation: pulsation 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+}

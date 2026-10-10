@@ -13,6 +13,7 @@ export type Capacite = keyof Capacites;
 
 export interface TheatreDef {
   id: string; nom: string; court: string;
+  lon: number; lat: number;
   x: number; y: number;
   voisins: string[];
   exterieur: boolean; maritime: boolean;
@@ -135,6 +136,7 @@ export type Controle = 'allie' | 'ennemi' | 'neutre';
 
 export interface LieuDef {
   id: string; nom: string; x: number; y: number;
+  lon: number; lat: number;
   type: 'ville' | 'base' | 'zone';
   controle: Controle; defense: number; force: [number, number] | null; civils: number;
 }

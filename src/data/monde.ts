@@ -30,14 +30,14 @@ export const ETATS_UNITE: Record<EtatUniteId, string> = {
 // THÉÂTRES : nœuds du graphe stratégique (coordonnées schématiques)
 // ---------------------------------------------------------------------
 export const THEATRES: TheatreDef[] = [
-  { id:'METRO',   nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, basePermanente:true,  carteRegionale:null },
-  { id:'EST',     nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO'],                exterieur:true,  maritime:true,  rensBase:15, basePermanente:false, carteRegionale:null },
-  { id:'LIBYE',   nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT'], exterieur:true, maritime:true,  rensBase:5,  basePermanente:false, carteRegionale:null },
-  { id:'LEVANT',  nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE'], exterieur:true,  maritime:true,  rensBase:10, basePermanente:false, carteRegionale:'IRAK_NORD' },
-  { id:'SAHEL',   nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, basePermanente:false, carteRegionale:'SAHEL' },
-  { id:'GUINEE',  nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null },
-  { id:'CORNE',   nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18, basePermanente:true,  carteRegionale:null },
-  { id:'INDOPAC', nom:'Indo-Pacifique',            court:'INDO-PAC',  x:920, y:470, voisins:['CORNE'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null }
+  { id:'METRO',   lon:2.35, lat:48.86, nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, basePermanente:true,  carteRegionale:null },
+  { id:'EST',     lon:24.5, lat:55, nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO'],                exterieur:true,  maritime:true,  rensBase:15, basePermanente:false, carteRegionale:null },
+  { id:'LIBYE',   lon:15.5, lat:32, nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT'], exterieur:true, maritime:true,  rensBase:5,  basePermanente:false, carteRegionale:null },
+  { id:'LEVANT',  lon:40.5, lat:35.3, nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE'], exterieur:true,  maritime:true,  rensBase:10, basePermanente:false, carteRegionale:'IRAK_NORD' },
+  { id:'SAHEL',   lon:-0.5, lat:16.3, nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, basePermanente:false, carteRegionale:'SAHEL' },
+  { id:'GUINEE',  lon:3.5, lat:3, nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null },
+  { id:'CORNE',   lon:43.1, lat:11.6, nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18, basePermanente:true,  carteRegionale:null },
+  { id:'INDOPAC', lon:110, lat:10, nom:'Indo-Pacifique',            court:'INDO-PAC',  x:920, y:470, voisins:['CORNE'],                 exterieur:true,  maritime:true,  rensBase:10, basePermanente:true,  carteRegionale:null }
 ];
 
 // Groupes de théâtres réutilisés par les unités et les opérations

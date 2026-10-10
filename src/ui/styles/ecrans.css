@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Écrans d'accueil et de briefing
+   ========================================================================== */
+
+.accueil { position: relative; height: 100vh; overflow: auto; display: flex; align-items: center; justify-content: center; }
+.accueil-fond {
+  position: fixed; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 75% 30%, rgba(229, 72, 77, 0.10), transparent 70%),
+    radial-gradient(ellipse 50% 60% at 15% 80%, rgba(76, 198, 220, 0.06), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 48px),
+    var(--fond);
+}
+.accueil-contenu { position: relative; display: grid; grid-template-columns: 1fr 520px; gap: 64px; align-items: center; max-width: 1180px; width: 100%; padding: 48px; }
+.accueil-marque { animation: apparition 500ms ease both; }
+.logo { font: 700 104px/0.9 var(--police-titre); letter-spacing: 0.04em; margin: 0; color: var(--texte); }
+.logo b { display: block; color: var(--rouge); font-weight: 700; }
+.logo-trait { width: 220px; height: 3px; background: linear-gradient(90deg, var(--rouge), transparent); margin: 22px 0 18px; }
+.accueil-accroche { font-size: 18px; color: var(--texte-2); max-width: 420px; line-height: 1.5; }
+.accueil-avertissement { grid-column: 1 / -1; font-size: 11.5px; color: var(--texte-3); text-align: center; margin: 0; }
+
+.accueil-panneau {
+  padding: 24px; background: rgba(18, 25, 32, 0.92); border: 1px solid var(--trait-2); border-radius: 14px;
+  box-shadow: var(--ombre-l); backdrop-filter: blur(8px); animation: apparition-echelle 400ms 100ms ease both;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.accueil-panneau .titre-section { margin: 6px 0 0; }
+.reprise {
+  display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; margin-bottom: 6px;
+  background: var(--surface-3); border: 1px solid var(--trait-fort); border-radius: var(--rayon-l);
+  color: var(--texte); font: 14px var(--police); cursor: pointer; text-align: left;
+}
+.reprise > span:first-child { display: flex; flex-direction: column; gap: 2px; text-transform: capitalize; }
+.reprise:hover { border-color: var(--rouge); }
+.nations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.nation {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px;
+  background: var(--surface-2); border: 1px solid var(--trait); border-radius: var(--rayon-l);
+  color: var(--texte); font: 13px var(--police); cursor: pointer; text-align: left;
+  transition: border-color var(--transition), background var(--transition);
+}
+.nation:hover:not(:disabled) { border-color: var(--trait-fort); }
+.nation.sel { border-color: var(--rouge); background: var(--surface-3); box-shadow: 0 0 0 1px var(--rouge) inset; }
+.nation.verrou { opacity: 0.45; cursor: not-allowed; }
+.nation-nom { font-weight: 600; }
+.nation-sig { font-size: 11px; color: var(--texte-3); line-height: 1.35; }
+.case { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--texte-2); margin-top: 6px; cursor: pointer; }
+.case input { accent-color: var(--rouge); width: 15px; height: 15px; }
+.lien-avance { align-self: flex-start; background: none; border: 0; padding: 0; color: var(--texte-3); font: 12px var(--police); cursor: pointer; }
+.lien-avance:hover { color: var(--texte); }
+.avance { display: flex; flex-direction: column; gap: 4px; }
+.champ-lib { font-size: 11.5px; color: var(--texte-3); }
+.accueil-boutons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--trait); }
+
+/* ---------- Briefing ---------- */
+.briefing { height: 100vh; overflow-y: auto; display: flex; justify-content: center; padding: 48px 24px; background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(229, 72, 77, 0.07), transparent 70%), var(--fond); }
+.note {
+  width: 780px; max-width: 100%; align-self: flex-start; padding: 36px 44px 30px;
+  background: var(--surface); border: 1px solid var(--trait-2); border-radius: 14px; box-shadow: var(--ombre-l);
+  animation: apparition 400ms ease both; user-select: text;
+}
+.note-entete { display: flex; justify-content: space-between; align-items: center; }
+.note-titre { font: 600 40px/1.1 var(--police-titre); letter-spacing: 0.02em; margin: 18px 0 10px; }
+.note-meta { display: flex; flex-direction: column; gap: 2px; font-size: 13px; padding-bottom: 16px; border-bottom: 1px solid var(--trait); }
+.note-meta .discret { display: inline-block; width: 28px; }
+.note-intro { font-size: 15px; line-height: 1.65; margin: 18px 0 10px; }
+.note-paragraphes { display: flex; flex-direction: column; }
+.note-paragraphe { padding: 12px 0 12px 16px; border-left: 2px solid var(--trait-2); margin: 4px 0; animation: apparition 400ms ease both; }
+.note-paragraphe:hover { border-left-color: var(--rouge); }
+.note-paragraphe h3 { font: 600 15px var(--police-titre); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 4px; }
+.note-paragraphe p { font-size: 14px; line-height: 1.6; color: var(--texte-2); margin: 0; }
+.note-conclusion { font-size: 15px; line-height: 1.6; margin: 20px 0 8px; font-weight: 500; }
+.note-signature { font: italic 15px var(--police); color: var(--texte-2); text-align: right; margin-bottom: 18px; }
+.note-pied { display: flex; justify-content: flex-end; padding-top: 18px; border-top: 1px solid var(--trait); }
+
+.doctrines { width: 1080px; max-width: 100%; align-self: center; display: flex; flex-direction: column; gap: 12px; animation: apparition 300ms ease both; }
+.doctrines .note-titre { margin-top: 0; }
+.doctrines-grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+.doctrine {
+  display: flex; flex-direction: column; gap: 10px; padding: 22px; min-height: 340px; text-align: left;
+  background: var(--surface); border: 1px solid var(--trait-2); border-radius: 14px;
+  color: var(--texte); font: 13.5px var(--police); cursor: pointer;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  animation: apparition-echelle 350ms ease both;
+}
+.doctrine:hover { border-color: var(--rouge); transform: translateY(-3px); box-shadow: var(--ombre-l); }
+.doctrine-num { font: 600 14px var(--police-chiffres); color: var(--rouge); }
+.doctrine-nom { font: 600 26px/1.1 var(--police-titre); }
+.doctrine-texte { color: var(--texte-2); line-height: 1.55; flex: 1; }
+.doctrine-effet { font-size: 12.5px; line-height: 1.45; }
+.doctrine-choisir { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--trait); font-weight: 600; color: var(--texte-3); transition: color var(--transition); }
+.doctrine:hover .doctrine-choisir { color: var(--rouge-vif); }
+.doctrines > .btn { align-self: flex-start; }
