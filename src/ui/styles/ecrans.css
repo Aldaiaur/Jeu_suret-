@@ -99,3 +99,4 @@
 .galerie-grille { display: grid; grid-template-columns: repeat(5, 300px); gap: 10px; }
 .galerie-insignes { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; margin-top: 16px; }
 .galerie figure { margin: 0; } .galerie figcaption { font-size: 12px; color: var(--texte-2); margin-top: 4px; }
+.chargement { position: fixed; inset: 0; display: grid; place-items: center; color: var(--texte-2); font-size: 14px; letter-spacing: 0.06em; background: var(--fond, #0b1015); }
