@@ -2,7 +2,8 @@
 import { AL, CARTES_REGIONALES, MT, OP, TH, UN, UNITES } from '../data';
 import type { Capacite, Etat, Menace, OperationDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
-import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, multPression, nbCapteurs, unitesDans } from './acces';
+import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, nbCapteurs, unitesDans } from './acces';
+import { multiplicateurUnite } from './tactique';
 import { rensMenace } from './renseignement';
 import { menaceDeCrise } from './crises';
 
@@ -11,7 +12,7 @@ export function pressionMenace(s: Etat, m: Menace): number {
   const T = MT[m.type], th = s.theatres[m.theatre];
   let p = 0;
   for (const u of unitesDans(s, m.theatre)) {
-    const f = (1 - s.unites[u.id].fatigue / 200) * multPression(m.theatre, s.tour, u.categorie);
+    const f = (1 - s.unites[u.id].fatigue / 200) * multiplicateurUnite(s, u);
     for (const c in T.sensibilite) p += u.cap[c as Capacite] * T.sensibilite[c as Capacite]! * f;
   }
   p += (T.sensibilite.renseignement || 0) * th.rens / 10;

@@ -12,6 +12,7 @@ export * from './france';
 export * from './menaces';
 export * from './cartes-regionales';
 export * from './biomes';
+export * from './tactique';
 export * from './personnages';
 export * from './briefing';
 

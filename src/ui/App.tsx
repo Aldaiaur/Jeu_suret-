@@ -69,6 +69,7 @@ function useRaccourcis() {
         if (ui.aide) majUi({ aide: false });
         else if (ui.apercu) majUi({ apercu: null });
         else if (ui.zoomLieu || ui.zoomUnite) majUi({ zoomLieu: null, zoomUnite: null });
+        else if (ui.uniteRegion) majUi({ uniteRegion: null });
         else if (ui.selection) majUi({ selection: null });
         return;
       }

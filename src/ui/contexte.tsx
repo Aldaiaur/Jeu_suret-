@@ -25,6 +25,7 @@ export interface UiEtat {
   refMois: Ressources | null;
   zoomLieu: string | null;
   zoomUnite: string | null;
+  uniteRegion: string | null;   // unité sélectionnée sur la carte régionale (ordres tactiques)
   ongletGauche: OngletGauche;
   ongletDroit: OngletDroit;
   transition: TransitionMois | null;
@@ -32,7 +33,7 @@ export interface UiEtat {
 
 const UI_INITIAL: UiEtat = {
   ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, debug: false, refMois: null,
-  zoomLieu: null, zoomUnite: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null
+  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', transition: null
 };
 
 interface Contexte {

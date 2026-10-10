@@ -12,6 +12,7 @@ import { actChoix, appliquerEffets, nettoyerMenaces } from './evenements';
 import { actCrise } from './crises';
 import { actZoom, actionsZoom } from './zoom';
 import { evaluerFin, terminer } from './tour';
+import { actTactique, actionsTactiques, carteDuTheatre, estAuSol } from './tactique';
 
 // ---------- Actions possibles ----------
 export function actionsPossibles(s: Etat): Action[] {
@@ -38,6 +39,7 @@ export function actionsPossibles(s: Etat): Action[] {
     const a = s.services[sv.id].affectations[t];
     if (a && a[ty] > 0) L.push({ type: 'CAPTEUR', service: sv.id, theatre: t, capteur: ty, delta: -1 });
   }
+  L.push(...actionsTactiques(s));
   if (s.actionsRestantes <= 0) return L;
   for (const u of UNITES) {
     const e = s.unites[u.id];
@@ -87,6 +89,7 @@ export function appliquerAction(s: Etat, a: Action): Etat {
     case 'ALLIE': actAllie(n, a); break;
     case 'CHOIX': actChoix(n, a); break;
     case 'CRISE': actCrise(n, a); break;
+    case 'POSITIONNER': case 'POSTURE': case 'MISSION': case 'ANNULER_MISSION': actTactique(n, a); break;
     default: actZoom(n, a);
   }
   const f = evaluerFin(n);
@@ -123,6 +126,8 @@ function actDeployer(s: Etat, a: ActionDe<'DEPLOYER'>): void {
   const u = UN[a.unite], e = s.unites[a.unite];
   const delai = delaiProjection(s, a.unite, a.theatre);
   e.theatre = a.theatre;
+  e.lieu = estAuSol(u) ? carteDuTheatre(a.theatre).depart : null;
+  e.posture = 'defensive'; e.mission = null;
   e.etat = delai === 0 ? 'deployee' : 'projection';
   e.compteur = delai;
   s.ressources.budget -= u.coutDeploiement * coutMult(s);
@@ -135,7 +140,7 @@ export function rapatrier(s: Etat, id: string, motif: string | null): void {
   const u = UN[id], e = s.unites[id];
   e.etat = 'regeneration';
   e.compteur = u.categorie === 'INT' ? 1 : PARAMS.regenerationTours;
-  e.theatre = null;
+  e.theatre = null; e.lieu = null; e.mission = null; e.posture = 'defensive';
   journaliser(s, u.nom + ' rapatrié' + (motif ? ' (' + motif + ')' : '') + '.', motif ? 'alerte' : 'decision');
 }
 function actRapatrier(s: Etat, a: ActionDe<'RAPATRIER'>): void {

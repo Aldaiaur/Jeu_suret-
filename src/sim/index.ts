@@ -8,5 +8,6 @@ export * from './evaluation';
 export { actionsPossibles, appliquerAction, choixPermis } from './actions';
 export { menaceDeCrise } from './crises';
 export { evaluerActionZoom, nomLieu, objectifsZoom, voisinsLieu } from './zoom';
+export * from './tactique';
 export { finDeTour, instantane, evaluerFin, calculerScore } from './tour';
 export { forcerEvenement, changerGraine, verifierDonnees, verifierInvariants } from './controles';

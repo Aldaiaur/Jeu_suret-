@@ -7,6 +7,7 @@ import { calculerRens } from './renseignement';
 import { evaluerCriseAbstraite, moyensCrise } from './evaluation';
 import { appliquerEffets, avancerFile, nettoyerMenaces } from './evenements';
 import { ouvrirZoom } from './zoom';
+import { deployerUrgence } from './tactique';
 
 export function creerCrise(s: Etat, theatre: string, menaceId: string): boolean {
   const th = s.theatres[theatre];
@@ -56,7 +57,7 @@ export function actCrise(s: Etat, a: Extract<Action, { type: 'CRISE' }>): void {
   const evc = evaluerCriseAbstraite(s, theatre, true), ids = evc.unites, p = evc.pSucces;
   if (evc.urgence) {
     const u = UN[evc.urgence];
-    s.unites[u.id].etat = 'deployee'; s.unites[u.id].theatre = theatre;
+    deployerUrgence(s, u.id, theatre);
     s.ressources.budget -= u.coutDeploiement * coutMult(s);
     journaliser(s, u.nom + ' projeté en urgence vers ' + T.nom + '.', 'decision');
   }

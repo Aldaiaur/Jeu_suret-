@@ -1,7 +1,7 @@
 // Accesseurs et petites règles dérivées de l'état.
 import { AL, ANNEE_DEPART, DOC, MOIS, PARAMS, TH, TYPES_CAPTEURS, UN, UNITES } from '../data';
 import type { AppuiDef, Categorie, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, SaisonDef, UniteDef } from './types';
-import { arrondi, borner } from './outils';
+import { borner } from './outils';
 
 export function dateDuTour(t: number): string { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
 
@@ -44,15 +44,6 @@ export function probaVote(s: Etat): number {
   const R = s.ressources;
   return borner(0.25 + R.opinion / 100 * 0.45 + R.capital / 100 * 0.35 + mods(s).voteBonus, 0.05, 0.97);
 }
-export function coutsMensuels(s: Etat): number {
-  let c = 0;
-  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += coutMensuelUnite(s, u); }
-  return arrondi(c);
-}
-export function coutMensuelUnite(s: Etat, u: UniteDef): number {
-  const e = s.unites[u.id];
-  return u.coutMensuel * coutMult(s) * (e.theatre ? multCout(e.theatre, s.tour) : 1);
-}
 export function fiabilite(r: number): string { return r >= 75 ? 'A' : r >= 55 ? 'B' : r >= 35 ? 'C' : r >= 20 ? 'D' : 'E'; }
 export function journaliser(s: Etat, texte: string, genre?: GenreJournal): void {
   s.journal.unshift({ tour: s.tour, texte, genre: genre || 'info' });
@@ -61,10 +52,10 @@ export function journaliser(s: Etat, texte: string, genre?: GenreJournal): void 
 export function decider(s: Etat, texte: string): void { s.decisions.push({ tour: s.tour, texte }); }
 
 export function appuiDef(allie: string, appui: string): AppuiDef { return AL[allie].appuis.find(a => a.id === appui)!; }
-export const BONUS_PERIODIQUES = ['rens', 'pression', 'frappesZoom', 'recosZoom', 'opBonus', 'delai'] as const;
+export const BONUS_PERIODIQUES = ['rens', 'pression', 'frappesZoom', 'recosZoom', 'opBonus', 'delai', 'soutien'] as const;
 export type BonusTheatre = Record<(typeof BONUS_PERIODIQUES)[number], number>;
 export function bonusTheatre(s: Etat, t: string): BonusTheatre {
-  const th = s.theatres[t], b: BonusTheatre = { rens: 0, pression: 0, frappesZoom: 0, recosZoom: 0, opBonus: 0, delai: 0 };
+  const th = s.theatres[t], b: BonusTheatre = { rens: 0, pression: 0, frappesZoom: 0, recosZoom: 0, opBonus: 0, delai: 0, soutien: 0 };
   if (th.allie > 0) { b.rens += 10; b.pression += 6; b.frappesZoom += 1; b.opBonus += 0.05; }
   for (const a of th.appuis) { const ef: EffetsAppui = appuiDef(a.allie, a.appui).effets; for (const k of BONUS_PERIODIQUES) if (ef[k]) b[k] += ef[k]!; }
   b.delai = Math.max(-1, b.delai);

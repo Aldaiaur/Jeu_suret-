@@ -63,7 +63,7 @@ export interface ServiceDef {
   affectationInitiale: Record<string, Partial<Record<TypeCapteur, number>>>;
 }
 
-export interface EffetsAppui { rens?: number; pression?: number; frappesZoom?: number; recosZoom?: number; opBonus?: number; delai?: number; partenaire?: number }
+export interface EffetsAppui { rens?: number; pression?: number; frappesZoom?: number; recosZoom?: number; opBonus?: number; delai?: number; partenaire?: number; soutien?: number }
 
 export interface AppuiDef {
   id: string; nom: string; theatres: string[];
@@ -160,6 +160,7 @@ export type Controle = 'allie' | 'ennemi' | 'neutre';
 export interface LieuDef {
   id: string; nom: string; x?: number; y?: number;
   lon: number; lat: number;
+  littoral?: boolean;               // accessible à la Marine (côte ou zone maritime)
   type: 'ville' | 'base' | 'zone';
   controle: Controle; defense: number; force: [number, number] | null; civils: number;
 }
@@ -180,6 +181,7 @@ export interface CarteRegionaleDef {
   zoomCrise: boolean;
   forcesCrise: Categorie[];       // catégories engageables en crise sur la carte
   frappes: boolean;               // règles d’engagement : frappes aériennes autorisées
+  soutien: number;                // capacité logistique du théâtre (bases, ports, routes) ; voir POSTURES et MISSIONS
   fleuves?: { nom: string; points: [number, number][] }[];   // tracés schématiques (décor)
   forceLocale: { nom: string; force: number };
   reserveEnnemie: [number, number];
@@ -197,7 +199,37 @@ export type GenreJournal = 'info' | 'alerte' | 'succes' | 'crise' | 'evenement' 
 
 export interface Ressources { budget: number; enveloppe: number; surcout: number; capital: number; opinion: number; menaceInt: number; credibilite: number }
 
-export interface EtatUnite { etat: EtatUniteId; theatre: string | null; fatigue: number; compteur: number; indispo: number }
+export interface EtatUnite {
+  etat: EtatUniteId; theatre: string | null; fatigue: number; compteur: number; indispo: number;
+  lieu: string | null;              // implantation sur la carte régionale (forces au sol), sinon hors carte
+  posture: Posture;
+  mission: OrdreMission | null;
+}
+
+// ---------- Tactique ----------
+export type Posture = 'offensive' | 'defensive' | 'reconnaissance' | 'formation' | 'reserve';
+export type TypeMission = 'patrouille' | 'escorte' | 'axe' | 'raid' | 'frappe' | 'appui' | 'evacuation';
+export interface OrdreMission { type: TypeMission; lieu: string; vers?: string }
+export interface PostureDef {
+  id: Posture; nom: string; description: string;
+  pression: number; fatigue: number; rens: number;
+  risquePertes: number;          // probabilité mensuelle de pertes (avant discrétion)
+  partenaire?: number;           // gain mensuel de capacité partenaire
+  connu?: number;                // gain de connaissance des lieux voisins
+  categories: Categorie[];
+}
+export interface MissionDef {
+  id: TypeMission; nom: string; verbe: string; description: string;
+  cible: 'lieu' | 'liaison';
+  categories: Categorie[];
+  capaciteMin?: Partial<Capacites>;
+  identifie?: boolean;           // la cible doit être identifiée (renseignement)
+  frappe?: boolean;              // soumise aux règles d’engagement sur les frappes
+  ponctuelle?: boolean;          // exécutée une fois, puis la mission s’arrête
+  soutien: number;               // consommation logistique (négatif : apport)
+  cout: number;                  // M€ par mois
+}
+export interface EtatLieu { controle: Controle; activite: number; connu: number }
 
 export interface EtatService { capteurs: Record<TypeCapteur, number>; affectations: Record<string, Record<TypeCapteur, number>> }
 
@@ -210,6 +242,8 @@ export interface EtatTheatre {
   pressionBonus: number; pressionOps: number;
   toursIntervention: number; voteFait: boolean;
   allie: number; appuis: AppuiActif[]; crise: Crise | null;
+  lieux: Record<string, EtatLieu>;
+  rapportTactique: string[];        // comptes rendus de la dernière résolution mensuelle
 }
 
 export interface Menace { id: string; type: string; theatre: string; force: number; detectee: boolean; estimation: number | null; marge: number; rapportFaux: boolean }
@@ -293,6 +327,10 @@ export type Action =
   | { type: 'BUDGET'; sens: 'hausse' | 'baisse' }
   | { type: 'ALLIE'; allie: string; appui: string; theatre: string }
   | { type: 'CHOIX'; index: number }
+  | { type: 'POSITIONNER'; unite: string; lieu: string }
+  | { type: 'POSTURE'; unite: string; posture: Posture }
+  | { type: 'MISSION'; unite: string; mission: TypeMission; lieu: string; vers?: string }
+  | { type: 'ANNULER_MISSION'; unite: string }
   | { type: 'CRISE'; intervenir: boolean }
   | ActionZoom;
 

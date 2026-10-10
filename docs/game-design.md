@@ -154,6 +154,18 @@ Chaque théâtre a une **carte régionale** (`src/data/cartes-regionales.ts`) : 
 - **Biomes** (`src/data/biomes.ts`) : palette, textures et éléments de relief. Le décor est peint par code sur un canvas à partir de Natural Earth, puis affiché comme une image : aucun fichier lourd, aucune dépendance réseau.
 - **Saisons** : déclarées dans la définition de chaque théâtre (`SAISONS` dans `src/data/monde.ts`). Chaque mois appartient à une seule saison, ce que `verifierDonnees()` contrôle. Effets possibles : pression par catégorie de force, fatigue, coûts mensuels, croissance d’une menace, frappes et reconnaissances disponibles en crise. L’indicateur de saison apparaît dans la fiche, la vue régionale, l’intervention et sur la carte du monde (pastille colorée).
 
+## 11. Profondeur tactique
+
+Une fois déployée, une unité se commande sur la carte régionale (`src/sim/tactique.ts`, données dans `src/data/tactique.ts`). La vue stratégique reste mensuelle : la tactique s’agrège en effets du mois.
+
+- **Implantation** : les forces au sol (Terre, forces spéciales, sécurité intérieure) occupent un lieu non tenu par l’adversaire, relié à leur position ; avec des hélicoptères sur le théâtre, n’importe quel lieu libre. Aviation et Marine opèrent « hors carte » (bases aériennes, mer).
+- **Postures** : offensive (pression ×1,4, fatigue ×1,5, risque de pertes), défensive (protège le lieu tenu, renforce sa défense en crise), reconnaissance (renseignement ×2, identifie les positions voisines), formation des partenaires, réserve (repos sur place).
+- **Missions** : patrouille de zone, escorte de convoi, contrôle d’un axe, raid sur un lieu identifié, frappe, appui à une unité partenaire, sauvetage et évacuation.
+- **Coordination interarmes** : chaque lieu adverse a un niveau de connaissance ; au-delà de 50, il est identifié. Drones, reconnaissance et patrouilles identifient ; seules les positions identifiées peuvent être frappées ou attaquées ; un raid sur une position frappée le même mois réussit mieux ; les hélicoptères donnent l’allonge (raids à deux liaisons).
+- **Contraintes** : soutien logistique par théâtre (capacité de la carte, A400M, ravitailleurs, BPC, escortes, transport allié) ; en pénurie, efficacité réduite jusqu’à −50 % et coûts +25 % ; règles d’engagement (aucune frappe sur le territoire national, à l’est ni en mer de Chine) ; risques de pertes et de dommages collatéraux affichés avant chaque ordre.
+- **Ergonomie** : deux clics pour un ordre courant (l’unité, puis le lieu marqué ; ou l’unité, puis un ordre du panneau).
+- **Lien avec les crises** : l’intervention de six semaines part de la situation du théâtre (contrôle des lieux, activité adverse, garnisons) et la met à jour à la fin.
+
 ## Décisions en attente de validation
 
 Décisions prises pendant la session autonome du 10 octobre 2026, avec l’option la plus prudente. À confirmer ou corriger.
@@ -163,3 +175,7 @@ Décisions prises pendant la session autonome du 10 octobre 2026, avec l’optio
 3. **Coefficients saisonniers** choisis à dire d’expert (par exemple −30 % de pression terrestre au Sahel pendant les pluies, +35 % de fatigue au Levant l’été). Ils sont marqués « À VÉRIFIER » et devraient être calés sur des retours d’expérience.
 4. **Vote de l’article 35** : la recherche montre que tous les votes de 2015-2018 ont été quasi unanimes ; le jeu garde un vote incertain (probabilité selon l’opinion et le capital) pour préserver la tension. À trancher : rendre le refus beaucoup plus rare ?
 5. **Mesure de l’équilibre** : le robot aléatoire des parties de référence a une forte variance (un changement mineur de carte fait varier la part de défaites de plus de 10 points). Les chiffres d’équilibre des commits doivent être lus avec prudence ; un robot heuristique est prévu.
+6. **Ordres tactiques gratuits** : implantation, posture et mission ne consomment pas d’action du mois ; ils sont limités par le soutien logistique, les coûts des missions et les risques. Alternative possible : un nombre d’ordres par théâtre.
+7. **Posture par défaut « défensive »** à chaque déploiement, pour conserver l’équilibre antérieur (même pression qu’avant).
+8. **Capacités de soutien des théâtres** (Sahel 8, Djibouti et pays baltes 6, golfe de Guinée 5, Levant 4, Libye et mer de Chine 3) : valeurs de conception, à confronter aux élongations réelles.
+9. **Difficulté** : le robot prudent (`tests/bot-prudent.ts`) ne perd que 4 à 7 % de ses parties, même en difficile. Le jeu est sans doute trop clément pour un joueur méthodique ; à rééquilibrer après les retours de parties humaines.

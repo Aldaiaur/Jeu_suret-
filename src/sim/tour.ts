@@ -2,7 +2,9 @@
 import { ALLIES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
 import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
-import { actionsParTour, appuiDef, coutMensuelUnite, dateDuTour, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
+import { actionsParTour, appuiDef, dateDuTour, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
+import { coutMissions, coutMensuelUnite, resoudreTactique } from './tactique';
+import { POSTURES } from '../data';
 import { calculerRens, estimerMenaces, rensMenace } from './renseignement';
 import { pressionMenace } from './evaluation';
 import { rapatrier } from './actions';
@@ -20,6 +22,7 @@ export function finDeTour(s: Etat): Etat {
   // 1. Budget
   let depenses = 0;
   for (const u of UNITES) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += coutMensuelUnite(n, u); }
+  depenses += coutMissions(n);
   R.budget = arrondi(R.budget + R.enveloppe - depenses);
   if (R.budget < 0) {
     R.surcout = arrondi(R.surcout - R.budget);
@@ -43,7 +46,7 @@ export function finDeTour(s: Etat): Etat {
     }
     if (e.etat === 'projection') { e.compteur--; if (e.compteur <= 0) { e.etat = 'deployee'; journaliser(n, u.nom + ' opérationnel sur le théâtre ' + TH[e.theatre!].nom + '.', 'info'); } continue; }
     if (e.etat === 'deployee') {
-      e.fatigue = borner(e.fatigue + (PARAMS.fatigueDeploiement * (10 - u.cap.endurance) / 5 + 1) * multFatigue(e.theatre!, mois), 0, 100);
+      e.fatigue = borner(e.fatigue + (PARAMS.fatigueDeploiement * (10 - u.cap.endurance) / 5 + 1) * multFatigue(e.theatre!, mois) * POSTURES[e.posture].fatigue, 0, 100);
       if (e.fatigue >= 100) rapatrier(n, u.id, 'usure, relève impérative');
       continue;
     }
@@ -75,6 +78,9 @@ export function finDeTour(s: Etat): Etat {
       }
     } else { th.toursIntervention = 0; th.voteFait = false; }
   }
+
+  // 3 bis. Tactique : implantations, postures et missions de chaque théâtre
+  resoudreTactique(n);
 
   // 4. Évolution des menaces
   const forcesParType: Record<string, number> = {};

@@ -1,6 +1,6 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
-  AL, ALLIES, BIOMES, CARTES_REGIONALES, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
+  AL, ALLIES, BIOMES, CARTES_REGIONALES, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
   OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
 } from '../data';
 import type { Effets, Etat } from './types';
@@ -71,6 +71,11 @@ export function verifierDonnees(): string[] {
     if (k.menace && !MT[k.menace.type]) err.push('Événement ' + E.id + ' : condition sur menace inconnue');
     for (const r of [k.relationMin, k.relationMax]) if (r && !AL[r.allie]) err.push('Événement ' + E.id + ' : condition sur allié inconnu');
   }
+  for (const P of Object.values(POSTURES)) for (const c of P.categories) if (!CATEGORIES[c]) err.push('Posture ' + P.id + ' : catégorie inconnue ' + c);
+  for (const M of Object.values(MISSIONS)) for (const c of M.categories) if (!CATEGORIES[c]) err.push('Mission ' + M.id + ' : catégorie inconnue ' + c);
+  for (const u in SOUTIEN_UNITE) if (!UN[u]) err.push('Soutien : unité inconnue ' + u);
+  for (const u of MOBILITE_HELICO) if (!UN[u]) err.push('Mobilité : unité inconnue ' + u);
+  for (const u of UNITES) if (!Object.values(POSTURES).some(P => P.categories.includes(u.categorie))) err.push('Unité ' + u.id + ' : aucune posture possible');
   for (const id in CARTES_REGIONALES) {
     const C = CARTES_REGIONALES[id], L: Record<string, unknown> = {};
     for (const l of C.lieux) L[l.id] = l;
@@ -106,6 +111,9 @@ export function verifierInvariants(s: Etat, complet: boolean): string[] {
     if (!ETATS_UNITE[e.etat]) err.push('état inconnu ' + u.id);
     if ((e.etat === 'deployee' || e.etat === 'projection') && !TH[e.theatre!]) err.push('unité sans théâtre ' + u.id);
     if (!(e.fatigue >= 0 && e.fatigue <= 100)) err.push('fatigue invalide ' + u.id);
+    if (!POSTURES[e.posture] || !POSTURES[e.posture].categories.includes(u.categorie)) err.push('posture invalide ' + u.id);
+    if (e.lieu && (!e.theatre || !s.theatres[e.theatre].lieux[e.lieu])) err.push('implantation invalide ' + u.id);
+    if (e.mission && (e.etat !== 'deployee' || !MISSIONS[e.mission.type])) err.push('mission invalide ' + u.id);
   }
   for (const sv of SERVICES) for (const ty of TYPES_CAPTEURS) if (capteursLibres(s, sv.id, ty) < 0) err.push('capteurs négatifs ' + sv.id);
   for (const A of ALLIES) if (!(s.allies[A.id].relation >= 0 && s.allies[A.id].relation <= 100)) err.push('relation invalide ' + A.id);

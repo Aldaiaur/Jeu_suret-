@@ -52,6 +52,7 @@ export function decrireAppui(ap: AppuiDef): string {
   if (e.recosZoom) r.push('reconnaissances +' + e.recosZoom);
   if (e.delai) r.push('projection ' + e.delai + ' mois');
   if (e.partenaire) r.push('partenaire +' + e.partenaire);
+  if (e.soutien) r.push('soutien +' + e.soutien);
   return r.join(', ');
 }
 

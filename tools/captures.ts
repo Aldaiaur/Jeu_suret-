@@ -88,6 +88,26 @@ for (const [t, tour, nom] of [['SAHEL', 6, 'sahel-pluies'], ['EST', 3, 'est-rasp
   await capture('21-saison-' + nom);
 }
 
+// Commandement tactique au Sahel : sélection d'une unité, ordre par défaut, compte rendu du mois
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.tour = 1; s.theatres.SAHEL.lieux.GOURMA.connu = 90; s.theatres.SAHEL.lieux.MENAKA.connu = 80; j.remplacer(s); j.majUi({ selection: { kind: 'theatre', id: 'SAHEL' }, uniteRegion: 'M2000D' }); })()`);
+await capture('22-ordres-aviation');
+await page.click('[data-tuto="jeton-GTIA1"]');
+await capture('23-ordres-gtia');
+await jeu(page, `(() => { const j = window.__jeu; j.jouer({ type: 'MISSION', unite: 'M2000D', mission: 'frappe', lieu: 'GOURMA' }); })()`);
+await page.waitForTimeout(200);
+await jeu(page, `(() => { const j = window.__jeu; j.jouer({ type: 'POSTURE', unite: 'REAPER', posture: 'reconnaissance' }); })()`);
+await page.waitForTimeout(200);
+await jeu(page, `(() => { const j = window.__jeu; j.jouer({ type: 'MISSION', unite: 'GTIA1', mission: 'patrouille', lieu: 'GAO' }); })()`);
+await page.waitForTimeout(200);
+await jeu(page, `window.__jeu.majUi({ uniteRegion: null })`);
+await capture('24-missions');
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.file = []; s.phase = 'jeu'; j.remplacer(s); })()`);
+await page.waitForTimeout(200);
+await jeu(page, `window.__jeu.terminerTour()`);
+await page.waitForTimeout(3200);
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.file = []; s.phase = 'jeu'; s.evenementCourant = null; j.remplacer(s); j.majUi({ selection: { kind: 'theatre', id: 'SAHEL' }, uniteRegion: null }); })()`);
+await capture('25-compte-rendu-tactique');
+
 await navigateur.close();
 if (erreurs.length) { console.error('Erreurs dans la page :\n' + erreurs.join('\n')); process.exitCode = 1; }
 else console.log('Aucune erreur dans la page.');

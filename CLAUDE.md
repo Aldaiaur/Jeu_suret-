@@ -10,6 +10,7 @@ Jeu de gestion de crise au tour par tour (1 tour = 1 mois, départ janvier 2015)
 - `npm run build` : contrôle de types + build de production dans `dist/`.
 - `npm run screens` : captures d'écran automatiques de l'interface (Playwright), dans `captures/`. `CHROMIUM=/chemin/chrome npm run screens` utilise un navigateur déjà installé.
 - `node tools/equilibre.ts` : compare l'issue des parties de référence (défaites, durée, score) avec la dernière version committée.
+- `node tools/equilibre.ts --robot` : rejoue 45 parties avec le robot prudent (`tests/bot-prudent.ts`) sur HEAD et sur l'état courant. Ce sont les chiffres d'équilibre à citer dans les commits.
 
 ## Architecture (à respecter)
 
@@ -18,7 +19,7 @@ src/data/   Données pures, typées (aucune règle). Une nouvelle unité, un év
 src/sim/    Simulation pure : aucune lecture ni écriture du DOM. Chaque fonction publique reçoit un état,
             le clone et renvoie un nouvel état. Tout l'aléatoire passe par alea(s) (graine dans s.rngState).
 src/ui/     Interface React. Lit l'état, envoie des actions. Ne modifie jamais l'état directement.
-tests/      Tests Vitest, robots joueurs.
+tests/      Tests Vitest, robots joueurs (aléatoire pour la non-régression, prudent pour l'équilibre).
 prototype/  Maquette HTML d'origine, conservée comme référence. Ne pas modifier.
 ```
 

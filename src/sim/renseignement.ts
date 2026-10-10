@@ -1,5 +1,5 @@
 // Renseignement : niveau par théâtre, connaissance des menaces, rapports bruités.
-import { MT, PARAMS, POIDS_CAPTEUR, SERVICES, TH, THEATRES, TYPES_CAPTEURS } from '../data';
+import { MT, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, TH, THEATRES, TYPES_CAPTEURS } from '../data';
 import type { Etat, Menace } from './types';
 import { alea, aleaEntre, borner } from './outils';
 import { bonusTheatre, fiabilite, mods, nbCapteurs, unitesDans } from './acces';
@@ -14,7 +14,7 @@ export function calculerRens(s: Etat): void {
       if (!a) continue;
       for (const ty of TYPES_CAPTEURS) r += (a[ty] || 0) * POIDS_CAPTEUR[ty] * sv.efficacite[ty];
     }
-    for (const u of unitesDans(s, T.id)) r += u.cap.renseignement * 1.5 * (1 - s.unites[u.id].fatigue / 300);
+    for (const u of unitesDans(s, T.id)) r += u.cap.renseignement * 1.5 * (1 - s.unites[u.id].fatigue / 300) * POSTURES[s.unites[u.id].posture].rens;
     r += bonusTheatre(s, T.id).rens;
     th.rens = Math.round(borner(r, 0, 95));
   }

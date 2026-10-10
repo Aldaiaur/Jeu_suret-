@@ -1,5 +1,5 @@
 // Zoom régional : moteur générique piloté par CARTES_REGIONALES (1 tour local = 1 semaine).
-import { CARTES_REGIONALES, TH, UN } from '../data';
+import { CARTES_REGIONALES, TH, UN, UNITES } from '../data';
 import type { ActionZoom, CarteRegionaleDef, Etat, ObjectifEtat, Zoom, ZoomLieu } from './types';
 import { alea, aleaEntre, aleaInt, borner, choisir } from './outils';
 import { bonusTheatre, coutMult, decider, journaliser, saisonDu, unitesDans } from './acces';
@@ -7,6 +7,7 @@ import { calculerRens } from './renseignement';
 import type { MoyensCrise } from './evaluation';
 import { appliquerEffets, avancerFile, nettoyerMenaces } from './evenements';
 import { menaceDeCrise } from './crises';
+import { deployerUrgence, estAuSol } from './tactique';
 
 export function voisinsLieu(C: CarteRegionaleDef, id: string): string[] {
   const r: string[] = [];
@@ -19,7 +20,7 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
   let fsIds = moy.fs.slice();
   if (fsIds.length === 0) {
     const u = UN[moy.fsDispo[0]];
-    s.unites[u.id].etat = 'deployee'; s.unites[u.id].theatre = theatre;
+    deployerUrgence(s, u.id, theatre);
     s.ressources.budget -= u.coutDeploiement * coutMult(s);
     fsIds = [u.id];
     journaliser(s, u.nom + ' projeté en urgence vers ' + T.nom + '.', 'decision');
@@ -28,12 +29,15 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
   const rens = th.rens;
   const lieux: Record<string, ZoomLieu> = {};
   let total = 0;
+  // La crise part de la situation du théâtre : contrôle des lieux, activité adverse, forces au sol en place
   for (const L of C.lieux) {
-    const md = (sc.modifs && sc.modifs[L.id]) || {};
-    const f = L.controle === 'ennemi' ? Math.round(aleaEntre(s, L.force![0], L.force![1]) + (md.force || 0)) : 0;
+    const md = (sc.modifs && sc.modifs[L.id]) || {}, x = th.lieux[L.id];
+    const f = x.controle === 'ennemi' ? Math.max(5, Math.round(x.activite * aleaEntre(s, 0.85, 1.15) + (md.force || 0))) : 0;
     total += f;
-    lieux[L.id] = { controle: L.controle, force: f, civils: L.civils, defense: L.defense, ressortissants: md.ressortissants || 0,
-      revele: L.controle !== 'ennemi' || alea(s) < rens / 100, estimee: null, marge: Math.max(5, Math.round((100 - rens) / 3)), dispersion: 0, frappe: false };
+    const garnison = UNITES.filter(u => estAuSol(u) && !C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'deployee' && s.unites[u.id].theatre === theatre && s.unites[u.id].lieu === L.id);
+    const defense = L.defense + garnison.reduce((a, u) => a + (s.unites[u.id].posture === 'defensive' ? 15 : 8), 0);
+    lieux[L.id] = { controle: x.controle, force: f, civils: L.civils, defense, ressortissants: md.ressortissants || 0,
+      revele: x.controle !== 'ennemi' || x.connu >= 50 || alea(s) < rens / 100, estimee: null, marge: Math.max(5, Math.round((100 - rens) / 3)), dispersion: 0, frappe: false };
   }
   const reserve = Math.round(aleaEntre(s, C.reserveEnnemie[0], C.reserveEnnemie[1]));
   const sa = saisonDu(theatre, s.tour).effets;
@@ -43,7 +47,7 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
   const recosMax = Math.max(1, 1 + unitesDans(s, theatre).filter(u => u.cap.renseignement >= 8).length + bonusTheatre(s, theatre).recosZoom + (sa.recosZoom || 0));
   s.zoom = {
     carte: C.id, theatre, scenario: sc.id, titre: sc.titre, semaine: 1, maxSemaines: 6, lieux,
-    unites: fsIds.map(id => ({ id, lieu: C.depart, blesse: false, aAgi: false })),
+    unites: fsIds.map(id => ({ id, lieu: s.unites[id].lieu && th.lieux[s.unites[id].lieu!].controle !== 'ennemi' ? s.unites[id].lieu! : C.depart, blesse: false, aAgi: false })),
     frappesMax, frappes: frappesMax, recosMax, recos: recosMax, appui: 1,
     forceLocale: Math.round(C.forceLocale.force + th.partenaire * 0.5), reserve,
     forceInitiale: total + reserve, rens, evacuesParLieu: {},
@@ -275,7 +279,7 @@ export function objectifsZoom(s: Etat): ObjectifEtat[] {
   });
 }
 function terminerZoom(s: Etat, anticipe: boolean): void {
-  const z = s.zoom!, th = s.theatres[z.theatre];
+  const z = s.zoom!, th = s.theatres[z.theatre], C = CARTES_REGIONALES[z.carte];
   const obj = objectifsZoom(s);
   const r = obj.filter(o => o.atteint).length / obj.length;
   const m = menaceDeCrise(s, z.theatre);
@@ -294,6 +298,14 @@ function terminerZoom(s: Etat, anticipe: boolean): void {
     stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res };
   const txt = 'Bilan — ' + z.titre + ' : ' + obj.filter(o => o.atteint).length + '/' + obj.length + ' objectifs, ' + z.stats.pertes + ' perte(s), ' + z.stats.collat + ' incident(s) collatéral(aux).';
   decider(s, txt); journaliser(s, txt, r >= 0.5 ? 'succes' : 'alerte');
+  // Retour à la situation du théâtre : contrôle et activité adverse issus de l'intervention
+  for (const id in z.lieux) {
+    const l = z.lieux[id], x = th.lieux[id];
+    x.controle = l.controle;
+    x.activite = l.controle === 'ennemi' ? Math.round(borner(l.force, 1, 100)) : 0;
+    x.connu = l.controle === 'ennemi' ? (l.revele ? 70 : Math.min(x.connu, 40)) : 100;
+  }
+  for (const u of z.unites) s.unites[u.id].lieu = z.lieux[u.lieu].controle === 'ennemi' ? C.depart : u.lieu;
   th.crise = null;
   s.zoom = null;
   s.criseCourante = null;

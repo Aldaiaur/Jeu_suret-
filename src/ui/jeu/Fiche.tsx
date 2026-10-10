@@ -1,22 +1,23 @@
 // Fiche de l'élément sélectionné : informations et décisions possibles.
 import type { ReactNode } from 'react';
-import { AL, ALLIES, CATEGORIES, ETATS_UNITE, MT, OP, PARAMS, POIDS_CAPTEUR, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
+import { AL, ALLIES, CATEGORIES, ETATS_UNITE, MT, OP, PARAMS, POIDS_CAPTEUR, POSTURES, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
-  pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
+  libelleMission, pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
 import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
+import { PanneauOrdres } from './VueRegionale';
 import { usePartie } from '../contexte';
 import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct } from '../format';
 
 export function Fiche() {
-  const { ui, majUi } = usePartie();
+  const { etat: s, ui, majUi } = usePartie();
   const sel = ui.selection;
   if (!sel) return null;
   return (
     <div className="fiche" key={sel.kind + sel.id}>
       <button className="btn fantome carre fiche-fermer" onClick={() => majUi({ selection: null })} aria-label="Fermer" data-tip="Fermer (Échap)">✕</button>
-      {sel.kind === 'theatre' && <FicheTheatre id={sel.id} />}
+      {sel.kind === 'theatre' && (ui.uniteRegion && s.unites[ui.uniteRegion]?.theatre === sel.id ? <PanneauOrdres uniteId={ui.uniteRegion} theatre={sel.id} /> : <FicheTheatre id={sel.id} />)}
       {sel.kind === 'unite' && <FicheUnite id={sel.id} />}
       {sel.kind === 'service' && <FicheService id={sel.id} />}
       {sel.kind === 'allie' && <FicheAllie id={sel.id} />}
@@ -28,14 +29,15 @@ function Section({ titre, children, tuto }: { titre: string; children: ReactNode
   return <section className="fiche-section" data-tuto={tuto}><h3 className="titre-section">{titre}</h3>{children}</section>;
 }
 
-function LigneAction({ titre, meta, tip, bouton, action, ton, onClick, tuto }: {
-  titre: ReactNode; meta?: ReactNode; tip?: string; bouton: string; action?: Action; ton?: 'principal' | 'danger'; onClick?: () => void; tuto?: string
+function LigneAction({ titre, meta, tip, bouton, action, ton, onClick, tuto, ordres }: {
+  titre: ReactNode; meta?: ReactNode; tip?: string; bouton: string; action?: Action; ton?: 'principal' | 'danger'; onClick?: () => void; tuto?: string; ordres?: () => void
 }) {
   const { estPossible, jouer } = usePartie();
   const ok = action ? estPossible(action) : true;
   return (
     <div className="ligne-action" data-tip={tip}>
       <div className="ligne-action-texte"><div>{titre}</div>{meta && <div className="ligne-action-meta">{meta}</div>}</div>
+      {ordres && <button className="btn petit" onClick={ordres} data-tip="Ordres tactiques sur la carte régionale">Ordres</button>}
       <button className={'btn petit' + (ton ? ' ' + ton : '')} disabled={!ok} data-tuto={tuto}
         onClick={() => (onClick ? onClick() : action && jouer(action))}>{bouton}</button>
     </div>
@@ -134,8 +136,8 @@ function FicheTheatre({ id }: { id: string }) {
           const e = s.unites[u.id];
           return (
             <LigneAction key={u.id} titre={<><i className="point" style={{ background: COULEURS_CATEGORIE[u.categorie] }} />{u.nom}</>}
-              meta={<><span className={'etat etat-' + e.etat}>{ETATS_UNITE[e.etat]}{e.etat === 'projection' ? ' · ' + e.compteur + ' m' : ''}</span> · fatigue {Math.round(e.fatigue)}</>}
-              bouton="Rapatrier" action={{ type: 'RAPATRIER', unite: u.id }} />
+              meta={<><span className={'etat etat-' + e.etat}>{ETATS_UNITE[e.etat]}{e.etat === 'projection' ? ' · ' + e.compteur + ' m' : ''}</span> · {POSTURES[e.posture].nom.toLowerCase()} · fatigue {Math.round(e.fatigue)}{e.mission ? <><br />{libelleMission(id, e.mission)}</> : null}</>}
+              bouton="Rapatrier" action={{ type: 'RAPATRIER', unite: u.id }} ordres={e.etat === 'deployee' ? () => majUi({ uniteRegion: u.id }) : undefined} />
           );
         })}
       </Section>
