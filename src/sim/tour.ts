@@ -4,7 +4,7 @@ import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
 import {
   actionsParTour, alliesDe, appuiDef, dateDuTour, devise, procedure, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote,
-  relationReference, soumisProcedure, theatresDe, unitesDans, unitesDe, unitesSoumises, voisinsDe
+  nation, relationReference, soumisProcedure, theatresDe, unitesDans, unitesDe, unitesSoumises, voisinsDe
 } from './acces';
 import { coutMissions, coutMensuelUnite, resoudreTactique } from './tactique';
 import { POSTURES } from '../data';
@@ -140,7 +140,7 @@ export function finDeTour(s: Etat): Etat {
 
   // 6. Opinion, crédibilité, capital
   const nbExt = theatresDe(n).filter(T => T.exterieur && unitesDans(n, T.id).length).length;
-  R.opinion = borner(Math.round((R.opinion + (50 - R.opinion) * PARAMS.opinionRappel - Math.max(0, R.menaceInt - 55) * 0.1 - Math.max(0, nbExt - 3) * 0.5) * 10) / 10, 0, 100);
+  R.opinion = borner(Math.round((R.opinion + (50 - R.opinion) * PARAMS.opinionRappel - Math.max(0, R.menaceInt - 55) * 0.1 - Math.max(0, nbExt - (nation(n).frontsToleres ?? 3)) * 0.5) * 10) / 10, 0, 100);
   R.credibilite = borner(Math.round((R.credibilite + (50 - R.credibilite) * 0.02 + nbExt * 0.3) * 10) / 10, 0, 100);
   R.capital = borner(R.capital + PARAMS.capitalMensuel + md.capitalMensuel - (R.opinion < 30 ? 1 : 0), 0, 100);
 

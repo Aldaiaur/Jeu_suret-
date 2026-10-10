@@ -1,6 +1,6 @@
 // Fenêtres de décision et de bilan. Une seule à la fois, par ordre de priorité.
 import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, PERS, TH, UN } from '../../data';
-import { devise, unitesDe } from '../../sim';
+import { devise, theatresDe, unitesDe } from '../../sim';
 import { Portrait } from '../composants/Portrait';
 import { Insigne } from '../composants/Insigne';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
@@ -249,7 +249,7 @@ function FenetreAide() {
         <p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût et coûte du capital politique.</p>
         <p><b>Théâtres.</b> Cliquez sur un théâtre pour ouvrir sa carte régionale : lieux, liaisons, biome et saison du mois. Les saisons modifient la pression exercée par chaque type de force, la fatigue, les coûts et la croissance de certaines menaces.</p>
         <p><b>Tactique.</b> Sur la carte régionale, cliquez une unité déployée puis un lieu marqué : l’ordre proposé s’exécute (deux clics). Le panneau de l’unité règle sa posture (offensive, défensive, reconnaissance, formation, réserve) et liste toutes ses missions avec leurs risques. Ces ordres sont gratuits et se résolvent à la fin du mois. Frappes et raids exigent une position identifiée ; les drones et la reconnaissance identifient, l’aviation frappe, les forces au sol exploitent. Le soutien logistique limite ce qu’un théâtre peut porter.</p>
-        <p><b>Crises.</b> Au Levant, au Sahel, en Libye, dans le golfe de Guinée et à Djibouti, intervenir ouvre une intervention de six semaines sur la carte régionale : raids, frappes, reconnaissance, appui aux forces locales, évacuation. Sur le territoire national, à l’est et en Indo-Pacifique, l’intervention est résolue globalement.</p>
+        <p><b>Crises.</b> {(() => { const T = theatresDe(s).filter(x => CARTES_REGIONALES[x.carteRegionale].zoomCrise).map(x => x.nom); return T.length ? <>Sur certains théâtres ({T.join(', ')}), intervenir ouvre une intervention de six semaines sur la carte régionale : raids, frappes, reconnaissance, appui aux forces locales, évacuation. </> : null; })()}Ailleurs, vous choisissez une réponse propre au théâtre, avec ses moyens, ses chances et ses conséquences.</p>
         <p><b>Défaite.</b> Opinion sous 10, capital à 0, ou menace intérieure à 100 pendant 3 mois.</p>
         <p><b>Raccourcis.</b> Entrée : fin du mois · Échap : fermer · H : aide · 1, 2, 3 : choix d’un événement.</p>
       </div>

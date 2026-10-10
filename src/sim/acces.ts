@@ -101,7 +101,8 @@ export function operationsDe(s: Etat): OperationDef[] { return listesDe(s).opera
 export function territoire(s: Etat): string { return nation(s).territoire; }
 export function relationReference(s: Etat, allie: string): number { return nation(s).allies[allie] ?? 50; }
 export function libelleCategorie(s: Etat, c: Categorie): string { return nation(s).categories[c]; }
-export function devise(s: Etat): string { return 'M' + nation(s).devise; }
+// « M€ », « M£ » ; un code ISO à plusieurs lettres est séparé : « M ILS »
+export function devise(s: Etat): string { const d = nation(s).devise; return 'M' + (d.length > 1 ? ' ' : '') + d; }
 // Théâtres où la procédure d'emploi de la force s'applique (hors territoire et bases prépositionnées)
 export function estBasePermanente(s: Etat, theatre: string): boolean { return nation(s).basesPermanentes.includes(theatre); }
 export function soumisProcedure(s: Etat, theatre: string): boolean { return TH[theatre].exterieur && !estBasePermanente(s, theatre); }

@@ -13,6 +13,7 @@ import { EVENEMENTS_2015 } from './evenements-2015';
 import { EVENEMENTS_MENACES } from './evenements-menaces';
 import { CAMPAGNE_TRANSSAHARIENNE } from './campagne-transsaharienne';
 import { EVENEMENTS_GBR } from './evenements-gbr';
+import { EVENEMENTS_ISR } from './evenements-isr';
 
 export * from './monde';
 export * from './menaces';
@@ -27,7 +28,7 @@ export * from './nations';
 export * from './personnages';
 
 // Tous les événements, toutes nations confondues : un événement n'est proposé qu'à la nation de son auteur
-export const EVENEMENTS: EvenementDef[] = [...EVENEMENTS_BASE, ...EVENEMENTS_2015, ...EVENEMENTS_MENACES, ...CAMPAGNE_TRANSSAHARIENNE, ...EVENEMENTS_GBR];
+export const EVENEMENTS: EvenementDef[] = [...EVENEMENTS_BASE, ...EVENEMENTS_2015, ...EVENEMENTS_MENACES, ...CAMPAGNE_TRANSSAHARIENNE, ...EVENEMENTS_GBR, ...EVENEMENTS_ISR];
 
 export const TOUTES_UNITES = Object.values(NATIONS).flatMap(N => N.unites);
 export const TOUS_SERVICES = Object.values(NATIONS).flatMap(N => N.services);

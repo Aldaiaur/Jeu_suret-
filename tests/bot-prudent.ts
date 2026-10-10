@@ -105,7 +105,7 @@ function semaineZoom(s0: Etat): Etat {
   return s.phase === 'zoom' ? M.appliquerAction(s, { type: 'Z_SEMAINE' }) : s;
 }
 
-export function jouerPrudent(nb: number, difficultes: string[], nation = 'FRA'): ResumeRobot[] {
+export function jouerPrudent(nb: number, difficultes: string[], nation = 'FRA', etatsFinaux?: Etat[]): ResumeRobot[] {
   const r: ResumeRobot[] = [];
   for (let i = 0; i < nb; i++) {
     const graine = 5000 + i, difficulte = difficultes[i % difficultes.length];
@@ -126,6 +126,7 @@ export function jouerPrudent(nb: number, difficultes: string[], nation = 'FRA'):
       } else if (s.phase === 'zoom') s = semaineZoom(s);
       else break;
     }
+    etatsFinaux?.push(s);
     r.push({ graine, difficulte, tour: s.tour, fin: s.fin ? s.fin.type : 'non terminée', score: s.fin?.score?.total ?? -1, raison: s.fin?.raison.slice(0, 50) || '' });
   }
   return r;

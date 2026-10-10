@@ -45,6 +45,42 @@ const SAISONS: Record<string, SaisonDef[]> = {
     { id:'ETE', nom:'Saison des grands événements', mois:[5,6,7], visuel:'aucun', description:'Concerts, festivals, carnavals et compétitions : davantage de sites ouverts à protéger.', effets:{ pression:{ INT:0.9 }, croissance:{ TERRO:1.1 } } },
     { id:'AUTOMNE', nom:'Automne', mois:[8,9,10], visuel:'brouillard', description:'Pluies et brouillards fréquents ; conditions habituelles pour les services.', effets:{} }
   ],
+  ISRAEL: [
+    { id:'HIVER', nom:'Saison des pluies', mois:[11,0,1,2], visuel:'pluie', description:'Pluies et plafonds bas : moins de tirs de roquettes, conditions habituelles pour les services.', effets:{} },
+    { id:'KHAMSIN', nom:'Khamsin', mois:[3,4], visuel:'poussiere', description:'Vent chaud et chargé de sable : capteurs gênés, fatigue en hausse.', effets:{ fatigue:1.1 } },
+    { id:'ETE', nom:'Été et fêtes', mois:[5,6,7,8], visuel:'chaleur', description:'Forte chaleur ; plages, festivals et fêtes de fin d’été multiplient les lieux à protéger.', effets:{ pression:{ INT:0.9 }, croissance:{ TERRO:1.1 } } },
+    { id:'AUTOMNE', nom:'Automne', mois:[9,10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
+  LIBAN: [
+    { id:'HIVER', nom:'Hiver, neige sur les hauteurs', mois:[11,0,1,2], visuel:'neige', description:'Neige sur le mont Hermon, brouillard dans les vallées : aviation gênée, fatigue accrue.', effets:{ pression:{ AIR:0.85 }, fatigue:1.15 } },
+    { id:'PRINTEMPS', nom:'Printemps', mois:[3,4], visuel:'aucun', description:'Végétation dense : postes et lanceurs plus faciles à dissimuler.', effets:{ croissance:{ HEZBOLLAH:1.05 } } },
+    { id:'ETE', nom:'Été sec', mois:[5,6,7,8,9], visuel:'chaleur', description:'Chaleur et incendies de broussailles le long de la frontière.', effets:{ fatigue:1.1 } },
+    { id:'AUTOMNE', nom:'Automne', mois:[10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
+  GAZA: [
+    { id:'HIVER', nom:'Pluies d’hiver', mois:[11,0,1,2], visuel:'pluie', description:'Pluies et inondations dans les quartiers : moins de sorties aériennes utiles.', effets:{ pression:{ AIR:0.9 } } },
+    { id:'PRINTEMPS', nom:'Printemps', mois:[3,4], visuel:'aucun', description:'Conditions habituelles ; saison des grandes mobilisations.', effets:{ croissance:{ HAMAS:1.05 } } },
+    { id:'ETE', nom:'Été torride', mois:[5,6,7,8], visuel:'chaleur', description:'Chaleur écrasante, pénuries d’eau et d’électricité : la tension monte, les troupes s’usent.', effets:{ fatigue:1.25, croissance:{ HAMAS:1.1 } } },
+    { id:'AUTOMNE', nom:'Automne', mois:[9,10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
+  SYRIE: [
+    { id:'HIVER', nom:'Hiver et brouillard', mois:[11,0,1], visuel:'brouillard', description:'Plafond bas sur le plateau : moins de frappes utiles.', effets:{ pression:{ AIR:0.85 }, frappesZoom:-1 } },
+    { id:'PRINTEMPS', nom:'Printemps', mois:[2,3,4], visuel:'aucun', description:'Conditions habituelles.', effets:{} },
+    { id:'ETE', nom:'Chaleur sèche', mois:[5,6,7,8], visuel:'chaleur', description:'Forte chaleur dans la plaine du Hauran.', effets:{ fatigue:1.15 } },
+    { id:'AUTOMNE', nom:'Automne', mois:[9,10], visuel:'poussiere', description:'Vents de poussière : capteurs gênés.', effets:{ pression:{ AIR:0.95 } } }
+  ],
+  SINAI: [
+    { id:'HIVER', nom:'Hiver', mois:[11,0,1], visuel:'aucun', description:'Températures douces : conditions favorables aux opérations.', effets:{} },
+    { id:'KHAMSIN', nom:'Khamsin', mois:[2,3,4], visuel:'poussiere', description:'Tempêtes de sable : aviation et drones gênés.', effets:{ pression:{ AIR:0.85 }, recosZoom:-1 } },
+    { id:'ETE', nom:'Été désertique', mois:[5,6,7,8,9], visuel:'chaleur', description:'Plus de 40 °C dans l’intérieur : les hommes et les matériels s’usent.', effets:{ fatigue:1.3 } },
+    { id:'AUTOMNE', nom:'Automne', mois:[10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
+  IRAN: [
+    { id:'HIVER', nom:'Hiver sur le plateau', mois:[11,0,1], visuel:'neige', description:'Froid et neige sur les sites de montagne : surveillance aérienne plus difficile.', effets:{ pression:{ AIR:0.9 } } },
+    { id:'PRINTEMPS', nom:'Printemps', mois:[2,3,4], visuel:'aucun', description:'Conditions habituelles.', effets:{} },
+    { id:'ETE', nom:'Été brûlant', mois:[5,6,7,8], visuel:'chaleur', description:'Chaleur extrême dans le golfe.', effets:{ fatigue:1.15 } },
+    { id:'AUTOMNE', nom:'Automne', mois:[9,10], visuel:'aucun', description:'Conditions habituelles.', effets:{} }
+  ],
   EST: [
     { id:'HIVER', nom:'Neige et grand froid', mois:[11,0,1], visuel:'neige', description:'Froid intense : fatigue accrue, coûts de soutien en hausse, manœuvre ralentie.', effets:{ fatigue:1.3, cout:1.1, pression:{ TERRE:0.9 } } },
     { id:'RASPOUTITSA_P', nom:'Raspoutitsa de printemps', mois:[2,3], visuel:'boue', description:'Le dégel transforme plaines et pistes en boue : les blindés restent sur les routes.', effets:{ pression:{ TERRE:0.7 }, fatigue:1.1 } },
@@ -93,9 +129,17 @@ const SAISONS: Record<string, SaisonDef[]> = {
 export const THEATRES: TheatreDef[] = [
   { id:'METRO',   lon:2.35, lat:48.86, nom:'Métropole',                court:'MÉTROPOLE', x:470, y:150, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20,  carteRegionale:'METRO', saisons:SAISONS.METRO },
   { id:'GB',      lon:-1.5, lat:52.8, nom:'Royaume-Uni',              court:'ROYAUME-UNI', x:440, y:120, voisins:['EST','LIBYE','LEVANT'], exterieur:false, maritime:true,  rensBase:20, carteRegionale:'GB', saisons:SAISONS.GB },
+  // Israël : théâtres frontaliers, à moins de 300 km des bases sauf l’Iran (nation-ISR.md, section 4).
+  // Marqueurs légèrement décalés de leur position réelle pour rester lisibles sur la carte du Proche-Orient.
+  { id:'ISRAEL',  lon:35.0, lat:31.2, nom:'Israël',                   court:'ISRAËL',    x:0, y:0, voisins:['LIBAN','GAZA','SYRIE','SINAI'], exterieur:false, maritime:true, rensBase:18, carteRegionale:'ISRAEL', saisons:SAISONS.ISRAEL },
+  { id:'LIBAN',   lon:35.7, lat:33.7, nom:'Liban-Sud (Hezbollah)',    court:'LIBAN',     x:0, y:0, voisins:['ISRAEL','SYRIE'], exterieur:true, maritime:true, rensBase:14, carteRegionale:'LIBAN_SUD', saisons:SAISONS.LIBAN },
+  { id:'GAZA',    lon:32.5, lat:31.6, nom:'Bande de Gaza',            court:'GAZA',      x:0, y:0, voisins:['ISRAEL','SINAI'], exterieur:true, maritime:true, rensBase:14, carteRegionale:'GAZA', saisons:SAISONS.GAZA },
+  { id:'SYRIE',   lon:38.3, lat:33.3, nom:'Syrie du Sud et Golan',    court:'SYRIE',     x:0, y:0, voisins:['ISRAEL','LIBAN','IRAN','LEVANT'], exterieur:true, maritime:false, rensBase:10, carteRegionale:'SYRIE_SUD', saisons:SAISONS.SYRIE },
+  { id:'SINAI',   lon:33.7, lat:29.2, nom:'Sinaï',                    court:'SINAÏ',     x:0, y:0, voisins:['ISRAEL','GAZA'], exterieur:true, maritime:true, rensBase:15, carteRegionale:'SINAI', saisons:SAISONS.SINAI },
+  { id:'IRAN',    lon:53.0, lat:32.5, nom:'Iran',                     court:'IRAN',      x:0, y:0, voisins:['SYRIE'], exterieur:true, maritime:true, rensBase:10, carteRegionale:'IRAN', saisons:SAISONS.IRAN },
   { id:'EST',     lon:24.5, lat:55, nom:'Europe de l’Est',           court:'EST',       x:650, y:110, voisins:['METRO','GB'],           exterieur:true,  maritime:true,  rensBase:15, carteRegionale:'BALTIQUE', saisons:SAISONS.EST },
   { id:'LIBYE',   lon:15.5, lat:32, nom:'Libye-Méditerranée',        court:'LIBYE',     x:520, y:285, voisins:['METRO','SAHEL','LEVANT','GB'], exterieur:true, maritime:true,  rensBase:5,  carteRegionale:'LIBYE', saisons:SAISONS.LIBYE },
-  { id:'LEVANT',  lon:40.5, lat:35.3, nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE','GB'], exterieur:true,  maritime:true,  rensBase:10, carteRegionale:'IRAK_NORD', saisons:SAISONS.LEVANT },
+  { id:'LEVANT',  lon:40.5, lat:35.3, nom:'Levant (Irak-Syrie)',       court:'LEVANT',    x:700, y:250, voisins:['METRO','LIBYE','CORNE','GB','SYRIE'], exterieur:true,  maritime:true,  rensBase:10, carteRegionale:'IRAK_NORD', saisons:SAISONS.LEVANT },
   { id:'SAHEL',   lon:-0.5, lat:16.3, nom:'Sahel',                     court:'SAHEL',     x:400, y:390, voisins:['LIBYE','GUINEE'],        exterieur:true,  maritime:false, rensBase:12, carteRegionale:'SAHEL', saisons:SAISONS.SAHEL },
   { id:'GUINEE',  lon:3.5, lat:3, nom:'Golfe de Guinée',           court:'GUINÉE',    x:330, y:500, voisins:['SAHEL'],                 exterieur:true,  maritime:true,  rensBase:10,  carteRegionale:'GUINEE', saisons:SAISONS.GUINEE },
   { id:'CORNE',   lon:43.1, lat:11.6, nom:'Corne de l’Afrique (Djibouti)', court:'DJIBOUTI', x:740, y:420, voisins:['LEVANT','INDOPAC'],     exterieur:true,  maritime:true,  rensBase:18,  carteRegionale:'DJIBOUTI', saisons:SAISONS.CORNE },

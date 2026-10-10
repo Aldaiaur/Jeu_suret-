@@ -34,7 +34,7 @@ export interface EffetsSaison {
 }
 export interface SaisonDef { id: string; nom: string; mois: number[]; visuel: VisuelSaison; description: string; effets: EffetsSaison }
 
-export type BiomeId = 'urbain_bocage' | 'foret_plaine' | 'littoral_desert' | 'steppe_fluviale' | 'desert_reg' | 'mangrove_littoral' | 'littoral_aride' | 'archipel_ocean';
+export type BiomeId = 'urbain_bocage' | 'foret_plaine' | 'littoral_desert' | 'steppe_fluviale' | 'desert_reg' | 'mangrove_littoral' | 'littoral_aride' | 'archipel_ocean' | 'collines_levant';
 export type ElementRelief = 'dune' | 'rocher' | 'arbre' | 'haie' | 'batiment' | 'palmier' | 'mangrove' | 'vague' | 'marais' | 'champ' | 'montagne' | 'ile' | 'acacia';
 export interface BiomeDef {
   id: BiomeId; nom: string;
@@ -157,6 +157,8 @@ export interface NationDef {
   procedure: ProcedureDef;
   levier?: LevierDef;
   briefing: BriefingDef;
+  frontsToleres?: number;          // théâtres extérieurs tenus sans lassitude de l’opinion (3 par défaut)
+  cadre?: [number, number, number, number];   // carte du monde : longitude et latitude minimales, puis maximales
 }
 
 export interface DoctrineDef { id: string; nom: string; texte: string; bonus: string; malus: string; mods: Mods }

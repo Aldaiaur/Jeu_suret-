@@ -1,4 +1,5 @@
 import type { CarteRegionaleDef } from '../sim/types';
+import { CARTES_ISRAEL } from './cartes-israel';
 
 // ---------------------------------------------------------------------
 // CARTES RÉGIONALES : une par théâtre, consultables à tout moment ; certaines servent aussi au zoom de crise.
@@ -313,5 +314,6 @@ export const CARTES_REGIONALES: Record<string, CarteRegionaleDef> = {
       { id:'ESCALE_ESCORTEE', titre:'Un de nos bâtiments suivi de près', texte:'Notre frégate en transit est talonnée par plusieurs navires qui exigent qu’elle quitte des eaux qu’ils revendiquent.', objectifs:[], modifs:{} },
       { id:'ZONE_TIR', titre:'Zone de tir décrétée sur une route maritime', texte:'Une zone d’exercice à tirs réels est décrétée sans préavis sur une route empruntée par le commerce mondial.', objectifs:[], modifs:{} }
     ]
-  }
+  },
+  ...CARTES_ISRAEL
 };

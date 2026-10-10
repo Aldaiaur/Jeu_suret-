@@ -6,7 +6,7 @@ import type { Topology, GeometryCollection } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import monde from 'world-atlas/countries-50m.json';
 import { CATEGORIES, MT, TH } from '../../data';
-import { theatresDe, unitesDe, voisinsDe } from '../../sim';
+import { nation, theatresDe, unitesDe, voisinsDe } from '../../sim';
 import { appuiDef, fiabilite, saisonDu, type Etat } from '../../sim';
 import { COULEUR_SAISON } from '../composants/Saison';
 import { AL } from '../../data';
@@ -24,21 +24,29 @@ const PAYS_THEATRE: Record<string, string[]> = {
   SAHEL: ['466', '562', '854', '148', '478'],
   GUINEE: ['566', '384', '288', '204', '768', '120', '266'],
   CORNE: ['262'],
-  INDOPAC: ['408']
+  INDOPAC: ['408'],
+  // Israël : Gaza et le Sinaï n’ont pas de pays propre à teinter (le Sinaï ne couvre pas toute l’Égypte)
+  ISRAEL: ['376'],
+  LIBAN: ['422'],
+  SYRIE: ['760'],
+  IRAN: ['364']
 };
-const THEATRE_DU_PAYS: Record<string, string> = {};
-for (const t in PAYS_THEATRE) for (const p of PAYS_THEATRE[t]) THEATRE_DU_PAYS[p] = t;
+// Un pays peut appartenir à plusieurs théâtres selon la nation jouée (la Syrie : Levant ou Syrie du Sud)
+const THEATRES_DU_PAYS: Record<string, string[]> = {};
+for (const t in PAYS_THEATRE) for (const p of PAYS_THEATRE[t]) (THEATRES_DU_PAYS[p] ||= []).push(t);
 
 const topo = monde as unknown as Topology<{ countries: GeometryCollection }>;
 const pays = feature(topo, topo.objects.countries) as FeatureCollection<Geometry, { name: string }>;
 
 // Cadre géographique de la campagne : Atlantique à l’ouest, mer de Chine à l’est
-const CADRE: Feature<Geometry> = { type: 'Feature', properties: {}, geometry: { type: 'MultiPoint', coordinates: [[-20, -12], [118, -12], [-20, 62], [118, 62]] } };
+// (chaque nation peut resserrer le cadre sur ses théâtres : Israël, le Proche-Orient)
+const CADRE_DEFAUT: [number, number, number, number] = [-20, -12, 118, 62];
+const cadreGeo = ([o, s, e, n]: [number, number, number, number]): Feature<Geometry> => ({ type: 'Feature', properties: {}, geometry: { type: 'MultiPoint', coordinates: [[o, s], [e, s], [o, n], [e, n]] } });
 
-interface Geo { L: number; H: number; projection: GeoProjection; chemin: GeoPath }
-function creerGeo(L: number, H: number): Geo {
-  const projection = geoNaturalEarth1().fitExtent([[24, 24], [L - 24, H - 24]], CADRE);
-  return { L, H, projection, chemin: geoPath(projection) };
+interface Geo { L: number; H: number; projection: GeoProjection; chemin: GeoPath; cadre: string }
+function creerGeo(L: number, H: number, cadre = CADRE_DEFAUT): Geo {
+  const projection = geoNaturalEarth1().fitExtent([[24, 24], [L - 24, H - 24]], cadreGeo(cadre));
+  return { L, H, projection, chemin: geoPath(projection), cadre: cadre.join(',') };
 }
 
 // Fond de carte : recalculé seulement quand la taille de la zone change
@@ -67,15 +75,16 @@ export function CarteMonde() {
   const glisse = useRef<{ x: number; y: number; vx: number; vy: number; bouge: boolean } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const boite = useRef<HTMLDivElement>(null);
-  const [geo, setGeo] = useState(() => creerGeo(1000, 640));
+  const cadre = nation(s).cadre || CADRE_DEFAUT;
+  const [geo, setGeo] = useState(() => creerGeo(1000, 640, cadre));
   useLayoutEffect(() => {
     const el = boite.current!;
-    const mesurer = () => { const l = Math.max(400, Math.round(el.clientWidth)), h = Math.max(300, Math.round(el.clientHeight)); setGeo(g => (g.L === l && g.H === h ? g : creerGeo(l, h))); };
+    const mesurer = () => { const l = Math.max(400, Math.round(el.clientWidth)), h = Math.max(300, Math.round(el.clientHeight)); setGeo(g => (g.L === l && g.H === h && g.cadre === cadre.join(',') ? g : creerGeo(l, h, cadre))); };
     mesurer();
     const ro = new ResizeObserver(mesurer);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [cadre]);
   const { L, H, projection, chemin } = geo;
 
   const positions = useMemo(() => {
@@ -98,8 +107,8 @@ export function CarteMonde() {
   const teintes = useMemo(() => {
     const r: { id: string; d: string; couleur: string; theatre: string }[] = [];
     for (const f of pays.features) {
-      const t = THEATRE_DU_PAYS[String(f.id)];
-      if (!t || !s.theatres[t]) continue;
+      const t = (THEATRES_DU_PAYS[String(f.id)] || []).find(x => s.theatres[x]);
+      if (!t) continue;
       const m = niveauAffiche(s, t);
       r.push({ id: String(f.id), d: chemin(f) || '', couleur: !TH[t].exterieur ? 'var(--turquoise)' : couleurNiveau(m ? m.estimation : null), theatre: t });
     }

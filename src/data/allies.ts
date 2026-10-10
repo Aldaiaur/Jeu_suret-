@@ -8,7 +8,7 @@ import type { AllieDef } from '../sim/types';
 // interets : théâtres où un engagement du joueur améliore la relation.
 // ---------------------------------------------------------------------
 export const ALLIES: AllieDef[] = [
-  { id:'USA', nom:'États-Unis', interets:['LEVANT','EST','SAHEL'],
+  { id:'USA', nom:'États-Unis', interets:['LEVANT','EST','SAHEL','IRAN'],
     description:'Premier partenaire militaire. Moyens de surveillance, de transport stratégique et de frappe sans équivalent, mais une attention fluctuante.',
     appuis:[
       { id:'ISR',       nom:'Drones et avions de surveillance',       theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE'], duree:4, capital:2, relation:3, base:0.8,  effets:{ rens:15, recosZoom:1 } }, // Appui américain au Sahel et au Levant : ravitaillement, ISR, C-17 (fiche FRA, S0 moyen). À VÉRIFIER (moyens par théâtre)
@@ -16,7 +16,11 @@ export const ALLIES: AllieDef[] = [
       { id:'TRANSPORT', nom:'Transport stratégique (C-17)',           theatres:['SAHEL','LEVANT','LIBYE','CORNE','GUINEE','EST'], duree:4, capital:1, relation:2, base:0.85, effets:{ delai:-1, soutien:2 } },
       { id:'RAVITO',    nom:'Ravitaillement en vol (KC-135)',         theatres:['SAHEL','LEVANT','LIBYE'],                  duree:4, capital:1, relation:2, base:0.8,  effets:{ pression:4, opBonus:0.05, soutien:1 } },
       { id:'REASSUR',   nom:'Présence renforcée de l’US Army',        theatres:['EST'],                                     duree:5, capital:2, relation:3, base:0.6,  effets:{ pression:12 } },
-      { id:'NAVAL',     nom:'Patrouilles de l’US Navy',               theatres:['INDOPAC','CORNE'],                         duree:4, capital:1, relation:2, base:0.7,  effets:{ pression:8, rens:5 } }
+      { id:'NAVAL',     nom:'Patrouilles de l’US Navy',               theatres:['INDOPAC','CORNE'],                         duree:4, capital:1, relation:2, base:0.7,  effets:{ pression:8, rens:5 } },
+      // Proche-Orient (nation-ISR.md, section 2.2 et 6.1) : aide militaire, défense antimissile, stocks prépositionnés
+      { id:'ANTIMISSILE', nom:'Renfort antimissile américain',          theatres:['ISRAEL'],                                  duree:4, capital:1, relation:2, base:0.8,  effets:{ pression:8 } },
+      { id:'MUNITIONS', nom:'Livraisons d’urgence de munitions',        theatres:['LIBAN','GAZA','SYRIE'],                    duree:3, capital:2, relation:3, base:0.7,  effets:{ opBonus:0.05, soutien:2 } },
+      { id:'RENS_SATELLITE', nom:'Renseignement satellitaire',          theatres:['IRAN','SYRIE'],                            duree:4, capital:1, relation:2, base:0.75, effets:{ rens:12 } }
     ] },
   { id:'UK', nom:'Royaume-Uni', interets:['LEVANT','EST'],
     description:'Partenaire militaire le plus proche en Europe (traités de Lancaster House).',
@@ -50,5 +54,18 @@ export const ALLIES: AllieDef[] = [
     appuis:[ { id:'NAVAL', nom:'Patrouilles conjointes', theatres:['INDOPAC'], duree:4, capital:1, relation:2, base:0.7, effets:{ pression:6, rens:6 } } ] },
   { id:'NGA', nom:'Nigeria', interets:['GUINEE','SAHEL'],
     description:'Puissance riveraine du golfe de Guinée.',
-    appuis:[ { id:'NAVAL', nom:'Patrouilles de la marine nigériane', theatres:['GUINEE'], duree:4, capital:1, relation:2, base:0.6, effets:{ pression:6 } } ] }
+    appuis:[ { id:'NAVAL', nom:'Patrouilles de la marine nigériane', theatres:['GUINEE'], duree:4, capital:1, relation:2, base:0.6, effets:{ pression:6 } } ] },
+  // Partenaires d’Israël (nation-ISR.md, section 6.1)
+  { id:'EGY', nom:'Égypte', interets:['SINAI','GAZA'],
+    description:'Traité de paix de 1979. Coopération discrète au Sinaï et médiation avec le Hamas.',
+    appuis:[
+      { id:'SINAI', nom:'Coopération secrète au Sinaï', theatres:['SINAI'], duree:4, capital:1, relation:2, base:0.7, effets:{ rens:8, pression:6, recosZoom:1 } },
+      { id:'MEDIATION', nom:'Médiation avec le Hamas', theatres:['GAZA'], duree:3, capital:2, relation:3, base:0.6, effets:{ pression:10 } }
+    ] },
+  { id:'JOR', nom:'Jordanie', interets:['SYRIE'],
+    description:'Traité de paix de 1994. Profondeur stratégique à l’est et renseignement sur le sud de la Syrie.',
+    appuis:[ { id:'RENS', nom:'Renseignement jordanien', theatres:['SYRIE'], duree:4, capital:1, relation:2, base:0.7, effets:{ rens:8 } } ] },
+  { id:'RUS', nom:'Russie', interets:[],
+    description:'Pas un allié : un partenaire de déconfliction en Syrie depuis 2015, qui tolère les frappes contre l’Iran sous conditions.',
+    appuis:[ { id:'DECONFLICTION', nom:'Déconfliction en Syrie', theatres:['SYRIE'], duree:4, capital:1, relation:2, base:0.6, effets:{ opBonus:0.08, frappesZoom:1 } } ] }
 ];

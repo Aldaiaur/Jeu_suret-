@@ -280,12 +280,59 @@ const DESSINS: Record<string, Dessin> = {
       <rect x={70} y={130} width={262} height={20} rx={10} fill="#14191e" stroke="#4a545e" strokeWidth={1.2} />
       {[94, 138, 182, 226, 270, 310].map((x, i) => <circle key={i} cx={x} cy={140} r={7} fill="#2a3138" stroke="#6b7782" strokeWidth={0.8} />)}
     </g>) }
+,
+  // ---------- Israël ----------
+  F16I: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[360, 100], [338, 97], [292, 93], [252, 92], [240, 90], [170, 30], [150, 30], [150, 90], [104, 92], [96, 60], [82, 60], [80, 94], [62, 98]])} fill={m} />
+      <path d="M314,95 Q330,100 314,105 L274,104 L274,96 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M150,94 L140,100 L150,106" fill="#2c343c" />
+      <path d="M200,86 L210,70 L230,72 L222,88 Z M200,114 L210,130 L230,128 L222,112 Z" fill="#2c343c" stroke="#8d99a3" strokeWidth={0.5} />
+    </g>) },
+  F15I: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[358, 100], [336, 96], [290, 90], [240, 86], [196, 22], [168, 22], [164, 84], [114, 86], [108, 52], [92, 52], [90, 88], [64, 92], [60, 100]])} fill={m} />
+      <path d="M318,96 Q334,100 318,104 L282,103 L282,97 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M70,92 L118,92 M70,108 L118,108" stroke="#0b0f13" strokeWidth={3} />
+    </g>) },
+  F35I: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[352, 100], [330, 94], [290, 88], [244, 84], [196, 30], [176, 30], [170, 82], [124, 84], [112, 56], [96, 56], [92, 86], [70, 90], [64, 100]])} fill={m} />
+      <path d="M310,95 Q328,100 310,105 L274,104 L274,96 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M260,86 L230,82 M260,114 L230,118" stroke="#2c343c" strokeWidth={2} />
+    </g>) },
+  HERON: { milieu: 'air', formes: m => (
+    <g>
+      <path d={symetrique([[322, 100], [314, 94], [286, 93], [226, 94], [226, 10], [210, 10], [206, 94], [150, 96], [140, 96]])} fill={m} />
+      {[66, 134].map((y, i) => <path key={i} d={`M146,${y} L96,${y} L90,${y + (i ? 8 : -8)} L132,${y + (i ? 8 : -8)}`} fill="none" stroke="#9aa6b0" strokeWidth={3} />)}
+      <path d="M206,94 L146,70 M206,106 L146,130" stroke="#9aa6b0" strokeWidth={2} />
+      <circle cx={312} cy={106} r={6} fill="#1b232a" stroke="#6fb6d6" strokeWidth={0.8} />
+      {helice(144, 100, 14, 'h')}
+    </g>) },
+  MERKAVA: { milieu: 'terre', formes: m => (
+    <g>
+      <path d="M60,132 L64,108 L92,98 L306,98 L334,110 L340,132 Z" fill={m} />
+      <path d="M136,98 L148,78 L250,76 L272,98 Z" fill={m} />
+      <path d="M250,84 L372,82" stroke="#aab4bc" strokeWidth={5} strokeLinecap="round" />
+      <rect x={60} y={130} width={282} height={22} rx={11} fill="#14191e" stroke="#4a545e" strokeWidth={1.2} />
+      {[86, 128, 170, 212, 254, 296].map((x, i) => <circle key={i} cx={x} cy={141} r={8} fill="#2a3138" stroke="#6b7782" strokeWidth={0.8} />)}
+    </g>) },
+  IRON_DOME: { milieu: 'terre', formes: m => (
+    <g>
+      <path d="M70,138 L72,118 L300,118 L304,138 Z" fill={m} />
+      <path d="M300,138 L302,104 L330,104 L346,122 L348,138 Z" fill={m} />
+      <path d="M306,108 L326,108 L338,122 L306,122 Z" fill="#0d1a24" stroke="#6fb6d6" strokeWidth={0.8} />
+      <path d="M110,118 L130,52 L250,52 L270,118 Z" fill={m} stroke="#aab4bc" strokeWidth={0.8} />
+      {[0, 1, 2, 3, 4].map(i => <rect key={i} x={140 + i * 22} y={60} width={18} height={50} rx={2} fill="#1b2228" stroke="#7a8590" strokeWidth={0.6} />)}
+      {[110, 160, 316].map((x, i) => roue(x, 146, 13, 'r' + i))}
+    </g>) }
 };
 
 // Substituts en attendant l’art : un matériel proche, de même silhouette générale (voir docs/illustrations.md)
 const ALIAS: Record<string, string> = {
   VOYAGER: 'C135FR', SENTINEL: 'C135FR', RC135W: 'C135FR', E3D: 'E3F', FOXHOUND: 'VAB',
-  TYPE45: 'HORIZON', TYPE23: 'FREMM', ASTUTE: 'RUBIS', CLASSE_ALBION: 'MISTRAL'
+  TYPE45: 'HORIZON', TYPE23: 'FREMM', ASTUTE: 'RUBIS', CLASSE_ALBION: 'MISTRAL',
+  G550: 'C135FR', B707: 'C135FR', UH60: 'CAIMAN', NAMER: 'VBCI', MISSILE_ARROW: 'IRON_DOME', SAAR5: 'FREMM', DOLPHIN: 'RUBIS'
 };
 for (const k in ALIAS) DESSINS[k] = DESSINS[ALIAS[k]];
 

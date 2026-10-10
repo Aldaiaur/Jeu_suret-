@@ -9,6 +9,8 @@ import type { IdentiteUnite } from '../sim/types';
 // Échelons SIDC (12e caractère) : D section, E compagnie ou escadron, F bataillon, G régiment.
 // ---------------------------------------------------------------------
 // Couleurs britanniques : bordeaux des parachutistes, vert fusilier, bleu de la RAF, bleu police
+// Couleurs israéliennes : bleu, brun et violet de brigade, vert de la police
+const BLEU_ISR = '#1f3f7a', BRUN_ISR = '#5a4528', VIOLET_ISR = '#4b2a5e', VERT_POLICE_ISR = '#24423a';
 const BORDEAUX = '#6b1f2a', VERT_FUSIL = '#25402c', BLEU_RAF = '#2c4a72', BLEU_POLICE = '#1f2f55', CIEL_GB = '#9cc3dd', SABLE_GB = '#b49a6a';
 const MARINE = '#16233f', OR = '#c9a54a', ARGENT = '#c8cdd2', ROUGE = '#9b2b2b', CIEL = '#3d6f9e', VERT = '#2f5b3e', NOIR = '#14181c', BLEU = '#25467a';
 
@@ -125,5 +127,50 @@ export const IDENTITES: Record<string, IdentiteUnite> = {
   ASTUTE:  { sigle:'SSN', sidc:'SFUPSNA--------', materiels:['ASTUTE'],
     insigne:{ forme:'rond', fond:NOIR, bordure:OR, symbole:'trident', couleurSymbole:OR, devise:'Silence et patience' } },
   ALBION:  { sigle:'ALBN', sidc:'SFSPCALS-------', materiels:['CLASSE_ALBION'],
-    insigne:{ forme:'ecu', fond:MARINE, bordure:OR, symbole:'ancre', couleurSymbole:OR, bande:VERT_FUSIL, devise:'Du large au rivage' } }
+    insigne:{ forme:'ecu', fond:MARINE, bordure:OR, symbole:'ancre', couleurSymbole:OR, bande:VERT_FUSIL, devise:'Du large au rivage' } },
+  // ---------- Israël (créations originales, devises fictives) ----------
+  SAYERET: { sigle:'SAYRT', sidc:'SFFPG------E---', materiels:['UH60'],
+    insigne:{ forme:'losange', fond:NOIR, bordure:ARGENT, symbole:'oeil', couleurSymbole:ARGENT, devise:'Voir avant d’agir' } },
+  S13:     { sigle:'S13', sidc:'SFFPN------E---', materiels:['EMBARCATION'],
+    insigne:{ forme:'rond', fond:MARINE, bordure:ARGENT, symbole:'trident', couleurSymbole:ARGENT, bande:BLEU_ISR, devise:'La nuit vient de la mer' } },
+  SHALDAG: { sigle:'SHLDG', sidc:'SFFPG------E---', materiels:['UH60'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_ISR, bordure:ARGENT, symbole:'cible', couleurSymbole:ARGENT, devise:'Désigner, puis disparaître' } },
+  U669:    { sigle:'U669', sidc:'SFAPMHH----D---', materiels:['UH60'],
+    insigne:{ forme:'rond', fond:BLEU_ISR, bordure:OR, symbole:'rotor', couleurSymbole:OR, devise:'Personne n’est laissé' } },
+  YAMAM:   { sigle:'YAMAM', sidc:'SFGPUULC---E---', materiels:[],
+    insigne:{ forme:'ecu_pointe', fond:VERT_POLICE_ISR, bordure:ARGENT, symbole:'cible', couleurSymbole:ARGENT, devise:'Entrer le premier' } },
+  MAGAV:   { sigle:'MAGAV', sidc:'SFGPUULF---H---', materiels:[],
+    insigne:{ forme:'ecu_pointe', fond:VERT_POLICE_ISR, bordure:OR, symbole:'bouclier', couleurSymbole:OR, devise:'Garder la ligne' } },
+  IRON_DOME:{ sigle:'DOME', sidc:'SFGPUCD----F---', materiels:['IRON_DOME'],
+    insigne:{ forme:'rond', fond:BLEU_ISR, bordure:ARGENT, symbole:'bouclier', couleurSymbole:ARGENT, bande:CIEL_GB, devise:'Un toit sur les villes' } },
+  ARROW:   { sigle:'ARROW', sidc:'SFGPUCD----F---', materiels:['MISSILE_ARROW'],
+    insigne:{ forme:'rond', fond:NOIR, bordure:ARGENT, symbole:'eclair', couleurSymbole:ARGENT, devise:'Plus haut que la menace' } },
+  GOLANI:  { sigle:'GOLNI', sidc:'SFGPUCIZ---H---', materiels:['NAMER'],
+    insigne:{ forme:'ecu', fond:BRUN_ISR, bordure:OR, symbole:'etoile', couleurSymbole:OR, devise:'Les collines d’abord' } },
+  GIVATI:  { sigle:'GIVTI', sidc:'SFGPUCIZ---H---', materiels:['NAMER'],
+    insigne:{ forme:'ecu', fond:VIOLET_ISR, bordure:ARGENT, symbole:'dague', couleurSymbole:ARGENT, devise:'Tenir la côte sud' } },
+  PARAS:   { sigle:'PARAS', sidc:'SFGPUCIA---H---', materiels:['NAMER'],
+    insigne:{ forme:'ecu', fond:ROUGE, bordure:ARGENT, symbole:'parachute', couleurSymbole:ARGENT, devise:'Toujours en tête' } },
+  OZ:      { sigle:'OZ', sidc:'SFGPUCIZ---G---', materiels:['NAMER'],
+    insigne:{ forme:'ecu', fond:NOIR, bordure:VERT, symbole:'dague', couleurSymbole:VERT, devise:'Courage et ruse' } },
+  BLINDEE: { sigle:'7BL', sidc:'SFGPUCA----H---', materiels:['MERKAVA'],
+    insigne:{ forme:'ecu', fond:NOIR, bordure:OR, symbole:'roue', couleurSymbole:OR, bande:ROUGE, devise:'Le fer en première ligne' } },
+  MLRS:    { sigle:'MLRS', sidc:'SFGPUCFRM--E---', materiels:['M270'],
+    insigne:{ forme:'ecu', fond:BRUN_ISR, bordure:ROUGE, symbole:'eclair', couleurSymbole:ROUGE, devise:'Loin et précis' } },
+  F16I:    { sigle:'F-16I', sidc:'SFAPMFF----E---', materiels:['F16I'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_ISR, bordure:ARGENT, symbole:'aile', couleurSymbole:ARGENT, devise:'Frapper et rentrer' } },
+  F15I:    { sigle:'F-15I', sidc:'SFAPMFA----E---', materiels:['F15I'],
+    insigne:{ forme:'insigne_aile', fond:BLEU_ISR, bordure:OR, symbole:'eclair', couleurSymbole:OR, devise:'Aussi loin qu’il le faut' } },
+  F35I:    { sigle:'F-35I', sidc:'SFAPMFF----E---', materiels:['F35I'],
+    insigne:{ forme:'insigne_aile', fond:NOIR, bordure:ARGENT, symbole:'etoile', couleurSymbole:ARGENT, devise:'Invisible et premier' } },
+  DRONES:  { sigle:'UAV', sidc:'SFAPMFQ----E---', materiels:['HERON'],
+    insigne:{ forme:'rond', fond:BLEU_ISR, bordure:ARGENT, symbole:'oeil', couleurSymbole:ARGENT, devise:'Le ciel ne dort pas' } },
+  SHAVIT:  { sigle:'G550', sidc:'SFAPMFRZ---D---', materiels:['G550'],
+    insigne:{ forme:'rond', fond:NOIR, bordure:BLEU_ISR, symbole:'onde', couleurSymbole:'#8fd0e8', devise:'Tout entendre' } },
+  REEM:    { sigle:'B707', sidc:'SFAPMFK----D---', materiels:['B707'],
+    insigne:{ forme:'rond', fond:BLEU_ISR, bordure:OR, symbole:'goutte', couleurSymbole:OR, devise:'L’allonge des ailes' } },
+  SAAR5:   { sigle:'SAAR5', sidc:'SFSPCLCC-------', materiels:['SAAR5'],
+    insigne:{ forme:'ecu', fond:MARINE, bordure:ARGENT, symbole:'ancre', couleurSymbole:ARGENT, bande:BLEU_ISR, devise:'Garder les eaux' } },
+  DOLPHIN: { sigle:'DLPHN', sidc:'SFUPSNA--------', materiels:['DOLPHIN'],
+    insigne:{ forme:'rond', fond:NOIR, bordure:ARGENT, symbole:'trident', couleurSymbole:ARGENT, devise:'Silence profond' } }
 };

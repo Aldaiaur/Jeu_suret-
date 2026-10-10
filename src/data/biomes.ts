@@ -26,6 +26,9 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
   littoral_aride: { id:'littoral_aride', nom:'Littoral aride',
     palette:{ mer:'#0b1b26', merProfonde:'#07121b', terre:'#2c2721', terre2:'#36302a', relief:'#574a3c', trait:'#776552', route:'#8a7a62' },
     textures:['reg','steppe'], relief:['rocher','montagne','acacia'], densite:100 },
+  collines_levant: { id:'collines_levant', nom:'Collines et plaines du Levant',
+    palette:{ mer:'#0c1b25', merProfonde:'#07121b', terre:'#29271d', terre2:'#323022', relief:'#4f4a34', trait:'#706749', route:'#877b5d' },
+    textures:['champs','reg'], relief:['montagne','arbre','rocher','batiment'], densite:120 },
   archipel_ocean: { id:'archipel_ocean', nom:'Archipels et océan',
     palette:{ mer:'#0b1c2a', merProfonde:'#06111c', terre:'#1a2a22', terre2:'#20332a', relief:'#2e4a3c', trait:'#4a6a5a', route:'#6a7a6a' },
     textures:['houle','foret'], relief:['ile','vague','vague','palmier'], densite:120 }

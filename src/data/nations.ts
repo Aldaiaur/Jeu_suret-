@@ -2,6 +2,7 @@ import type { NationDef } from '../sim/types';
 import { DOCTRINES_FRA, SERVICES_FRA, UNITES_FRA } from './france';
 import { BRIEFING_FRA } from './briefing';
 import { NATION_GBR } from './royaume-uni';
+import { NATION_ISR } from './israel';
 
 // ---------------------------------------------------------------------
 // NATIONS JOUABLES. Tout ce qui distingue une nation est décrit ici et interprété par un moteur commun :
@@ -35,5 +36,6 @@ export const NATIONS: Record<string, NationDef> = {
       motifRetrait: 'vote négatif du Parlement'
     }
   },
-  GBR: NATION_GBR
+  GBR: NATION_GBR,
+  ISR: NATION_ISR
 };

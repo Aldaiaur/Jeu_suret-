@@ -174,6 +174,36 @@ for (let i = 1; i <= 2; i++) {
 }
 await jeu(page, `window.__jeu.majUi({ catalogue: false })`);
 
+// Israël : carte recadrée sur le Proche-Orient, fronts, Gaza, Sinaï, dossiers
+await jeu(page, `window.__jeu.quitter()`);
+await page.waitForTimeout(300);
+await page.click('.nation >> text=Israël');
+await page.click('text=Nouvelle partie');
+await capture('50-isr-briefing');
+await page.click('text=Arrêter la doctrine');
+await capture('51-isr-doctrines');
+await page.click('[data-tuto="doctrine-ISR_MABAM"]');
+await capture('52-isr-carte');
+for (const t of ['ISRAEL', 'LIBAN', 'GAZA', 'SYRIE', 'SINAI', 'IRAN']) {
+  await jeu(page, `window.__jeu.majUi({ selection: { kind: 'theatre', id: '${t}' } })`);
+  await capture('53-isr-' + t.toLowerCase());
+}
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); const m = s.menaces.find(x => x.theatre === 'GAZA');
+  s.theatres.GAZA.crise = { titre: 'Tirs de roquettes depuis Gaza', texte: 'Des dizaines de roquettes visent Sdérot et Ashkelon.', menaceId: m.id, scenario: 'ROQUETTES', statut: 'ouverte', toursLibres: 0 };
+  s.phase = 'crise'; s.criseCourante = 'GAZA'; s.file = []; j.remplacer(s); j.majUi({ selection: null }); })()`);
+await capture('54-isr-crise-gaza');
+await page.keyboard.press('2');
+await page.waitForTimeout(300);
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.phase = 'evenement'; s.evenementCourant = 'ISR_MARCHE'; s.file = []; j.remplacer(s); })()`);
+await capture('55-isr-evenement');
+await page.click('.choix >> nth=0');
+await page.waitForTimeout(300);
+await jeu(page, `window.__jeu.majUi({ selection: null, catalogue: true })`);
+await capture('56-isr-catalogue');
+await page.click('.catalogue-onglets >> text=Matériels');
+await capture('57-isr-materiels');
+await jeu(page, `window.__jeu.majUi({ catalogue: false })`);
+
 await navigateur.close();
 if (erreurs.length) { console.error('Erreurs dans la page :\n' + erreurs.join('\n')); process.exitCode = 1; }
 else console.log('Aucune erreur dans la page.');

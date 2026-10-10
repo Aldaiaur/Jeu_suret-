@@ -102,7 +102,7 @@ function FicheTheatre({ id }: { id: string }) {
           <span className="pastille turquoise" data-tip={'Niveau de renseignement. Fiabilité ' + fiabilite(th.rens) + ' (A très sûre, E douteuse).'}>Renseignement {th.rens} · {fiabilite(th.rens)}</span>
           {th.partenaire > 0 && <span className="pastille" data-tip="Capacité des forces partenaires locales, formées ou soutenues.">Partenaire {th.partenaire}</span>}
           {T.exterieur && estBasePermanente(s, T.id) && <span className="pastille contour" data-tip={"Forces prépositionnées : la procédure « " + procedure(s).nom + " » ne s’applique pas."}>Base permanente</span>}
-          {th.voteFait && <span className="pastille vert">Intervention autorisée</span>}
+          {th.voteFait && soumisProcedure(s, id) && <span className="pastille vert">Intervention autorisée</span>}
           {th.crise && <span className="pastille rouge pulse">Crise</span>}
           {(() => { const sa = saisonDu(id, s.tour), ef = decrireSaison(sa.effets); return (
             <span className="pastille contour" style={{ color: COULEUR_SAISON[sa.visuel] }} data-tuto="fiche-saison"
