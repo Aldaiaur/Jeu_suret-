@@ -17,6 +17,7 @@ import { TransitionMois } from './jeu/TransitionMois';
 import { Infobulle } from './composants/Infobulle';
 import { Toasts } from './composants/Toasts';
 import { Retour } from './composants/Retour';
+import { jouerSon } from './sons';
 import { Tutoriel } from './tutoriel/Tutoriel';
 
 export function App() {
@@ -40,6 +41,9 @@ function Ecrans() {
 function Jeu() {
   const { etat: s, ui } = useJeu();
   useRaccourcis();
+  // Signal sonore à l'ouverture d'un dossier ou d'une crise (après le compte rendu du mois)
+  const dossier = !ui.transition && (s!.phase === 'evenement' || s!.phase === 'crise') ? s!.phase + (s!.evenementCourant || s!.criseCourante) : null;
+  useEffect(() => { if (dossier) jouerSon(dossier.startsWith('crise') ? 'crise' : 'evenement'); }, [dossier]);
   return (
     <div className="jeu">
       <BarreHaute />

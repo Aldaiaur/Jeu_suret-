@@ -24,9 +24,9 @@ Par ordre de priorité pour une page Steam et l’immersion :
 6. **Fenêtres d’événement** : vignettes illustrées par grand type d’événement (attentat déjoué, crise navale, cyberattaque, otages…), en restant génériques sur les attentats.
 7. **Icônes de saison** et pictogrammes d’ordres tactiques : à harmoniser avec la charte finale.
 
-## Sons à prévoir
+## Sons
 
-Les points d’accroche existent dans `src/ui/sons.ts` (aucun fichier son pour l’instant) : clic, ordre tactique, déploiement, rapatriement, opération (succès ou échec), alerte, passage de mois, crise, événement. À produire : sons courts et sobres (radio, téléscripteur, impulsion), avec un réglage de volume et une option muette.
+Les sons sont **synthétisés par code** (Web Audio, `src/ui/sons.ts`) : clic, ordre tactique (bip radio), déploiement et rapatriement (balayage), succès (arpège), échec et alerte, passage de mois (téléscripteur), crise (alarme), dossier (cloche). Réglage dans le menu ≡ (activé ou coupé, trois volumes). Un travail de conception sonore pourra remplacer ces synthèses par des fichiers, sans changer les points d’accroche.
 
 ## Règles
 
