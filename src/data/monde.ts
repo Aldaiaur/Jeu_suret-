@@ -45,6 +45,8 @@ export const EXT: string[] = ['EST','LIBYE','LEVANT','SAHEL','GUINEE','CORNE','I
 
 export const MARITIMES: string[] = ['EST','LIBYE','LEVANT','GUINEE','CORNE','INDOPAC'];
 
+// Enveloppe mensuelle (M€) : abstraction de jeu. Repères réels (fiche FRA, élevé) : provision OPEX de 450 M€/an
+// en loi de finances (≈ 37,5 M€/mois) pour des surcoûts OPEX + MISSINT de 1,1 à 1,54 Md€/an ; l’écart est le « surcoût ».
 export const DIFFICULTES: Record<string, DifficulteDef> = {
   facile:    { nom:'Facile',    croissanceMult:0.8,  enveloppe:75, budgetInitial:120, capital:70, opinion:60, menaceInt:30, credibilite:65, forceMult:0.9 },
   normal:    { nom:'Normal',    croissanceMult:1.0,  enveloppe:62, budgetInitial:80, capital:60, opinion:55, menaceInt:35, credibilite:60, forceMult:1.0 },
@@ -56,7 +58,8 @@ export const PARAMS = {
   actionsBase:2, actionsParCapital:25, actionsMax:6,
   capitalMensuel:2, opinionRappel:0.05,
   regenerationTours:2, fatigueRepos:15, fatigueDeploiement:6,
-  dureeAvantVote:4, probaEvenement:0.65, toursCriseLibre:2,
+  dureeAvantVote:4,  // article 35, al. 3 : autorisation du Parlement au-delà de 4 mois (Constitution, S1)
+   probaEvenement:0.65, toursCriseLibre:2,
   margeMin:4, rensFauxRapport:30,
   plafondProtection:0.5   // part maximale de la menace intérieure que la protection peut absorber
 };

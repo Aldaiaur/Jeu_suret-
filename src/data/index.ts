@@ -5,6 +5,7 @@ import { MENACES } from './menaces';
 import type { EvenementDef } from '../sim/types';
 import { EVENEMENTS_BASE } from './evenements';
 import { EVENEMENTS_2015 } from './evenements-2015';
+import { EVENEMENTS_MENACES } from './evenements-menaces';
 
 export * from './monde';
 export * from './france';
@@ -14,7 +15,7 @@ export * from './personnages';
 export * from './briefing';
 
 // Tous les événements de la campagne
-export const EVENEMENTS: EvenementDef[] = [...EVENEMENTS_BASE, ...EVENEMENTS_2015];
+export const EVENEMENTS: EvenementDef[] = [...EVENEMENTS_BASE, ...EVENEMENTS_2015, ...EVENEMENTS_MENACES];
 
 function indexer<T extends { id: string }>(liste: T[]): Record<string, T> {
   const o: Record<string, T> = {};

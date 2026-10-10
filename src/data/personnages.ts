@@ -15,6 +15,8 @@ export const PERSONNAGES: Personnage[] = [
   { id: 'FRA_SGDSN', nom: 'Laurent Ternier',          fonction: 'Secrétaire général de la défense et de la sécurité nationale', pays: 'FRA' },
   { id: 'FRA_CEMA',  nom: 'général Antoine de Kervéguen', fonction: 'Chef d’état-major des armées',                     pays: 'FRA' },
   { id: 'FRA_COS',   nom: 'général Marc Dussollier',  fonction: 'Commandant des opérations spéciales',                 pays: 'FRA' },
+  { id: 'FRA_SAHEL', nom: 'général Loïc Kerdraon',     fonction: 'Commandant de la force au Sahel',                     pays: 'FRA' },
+  { id: 'FRA_FFDJ',  nom: 'général Étienne Maupoint',  fonction: 'Commandant des forces françaises à Djibouti',         pays: 'FRA' },
   { id: 'FRA_DGSE',  nom: 'Philippe Maurand',         fonction: 'Directeur général de la sécurité extérieure',         pays: 'FRA' },
   { id: 'FRA_DGSI',  nom: 'Sophie Arnaud-Delmas',     fonction: 'Directrice générale de la sécurité intérieure',       pays: 'FRA' },
   { id: 'FRA_DRM',   nom: 'général Yves Pellerin',    fonction: 'Directeur du renseignement militaire',                pays: 'FRA' },

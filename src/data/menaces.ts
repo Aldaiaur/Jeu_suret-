@@ -47,5 +47,19 @@ export const MENACES: MenaceDef[] = [
     sensibilite:{renseignement:0.15, endurance:0.1}, pressionServices:{}, servicesCles:{DRM:1, DGSE:1},
     alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
     seuilAttaque:55, attaque:{credibilite:-3, opinion:-1}, apresAttaque:-6,
-    poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] }
+    poidsInterieur:0, impactInterieur:0, crise:false, secondaires:[] },
+  // Boko Haram et sa branche ralliée à Daech autour du lac Tchad : apogée en 2015, puis déclin et scission
+  // (4 000 à 6 000 combattants en 2015, CTC ; acteurs-non-etatiques.md). La France y agit surtout en appui des armées riveraines.
+  { id:'BOKO_HARAM', nom:'Insurrection du lac Tchad', criseTitre:'Offensive autour du lac Tchad', theatresDepart:['GUINEE'], forceDepart:[40,55], croissance:1.1,
+    sensibilite:{assaut:0.3, frappe:0.25, renseignement:0.25, endurance:0.15}, pressionServices:{}, servicesCles:{DGSE:1, DRM:1},
+    alimentePar:{DAECH:0.01}, seuilExpansion:60, expansion:['SAHEL'], probExpansion:0.05,
+    seuilAttaque:50, attaque:{credibilite:-2, opinion:-1}, apresAttaque:-5,
+    poidsInterieur:0, impactInterieur:0.02, crise:true, secondaires:[] },
+  // Al-Shabaab : plateau résilient de 4 000 à 6 000 combattants en Somalie (armée américaine, 2018). Menace pour
+  // les emprises et les ressortissants à Djibouti ; la France n’intervient pas en Somalie.
+  { id:'SHABAAB', nom:'Al-Shabaab', criseTitre:'Menace d’attentat contre les emprises de Djibouti', theatresDepart:['CORNE'], forceDepart:[25,40], croissance:1.0,
+    sensibilite:{renseignement:0.35, assaut:0.25, endurance:0.2}, pressionServices:{}, servicesCles:{DGSE:2},
+    alimentePar:{}, seuilExpansion:999, expansion:[], probExpansion:0,
+    seuilAttaque:55, attaque:{credibilite:-2, opinion:-2}, apresAttaque:-6,
+    poidsInterieur:0, impactInterieur:0.02, crise:true, secondaires:[] }
 ];

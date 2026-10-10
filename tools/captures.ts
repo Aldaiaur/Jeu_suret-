@@ -7,7 +7,8 @@ const URL_JEU = process.argv[2] || 'http://localhost:5173/';
 const DOSSIER = new URL('../captures/', import.meta.url);
 mkdirSync(DOSSIER, { recursive: true });
 
-const navigateur = await chromium.launch();
+// CHROMIUM : chemin d’un navigateur déjà installé, quand la version de Playwright n’a pas le sien
+const navigateur = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const page = await navigateur.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
 const erreurs: string[] = [];
 page.on('pageerror', e => erreurs.push(e.message));
