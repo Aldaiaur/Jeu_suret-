@@ -84,5 +84,27 @@ export const EVENEMENTS_MENACES: EvenementDef[] = [
       { texte:'Rendre les patrouilles mobiles et imprévisibles', effets:{ fatigue:[{categorie:'INT', delta:4}], menaceInt:-2 } },
       { texte:'Saluer le sang-froid des soldats et maintenir le dispositif', effets:{ opinion:2 } },
       { texte:'Réduire la présence militaire dans les rues', effets:{ menaceInt:3, capital:2 } }
+    ] },
+  // ---------- Crises entre États (la chronologie 2017-2018 montre leur montée) ----------
+  { id:'LIGNE_ROUGE_CHIMIQUE', titre:'Allégations d’emploi d’armes chimiques', auteur:'FRA_MAE', poids:3, max:1, cond:{ tourMin:16, menace:{type:'DAECH', forceMin:30, theatre:'LEVANT'} },
+    texte:'Des images montrent des civils suffoquant après un bombardement dans une banlieue assiégée. Les premiers prélèvements évoquent un agent chimique. Washington et Londres consultent Paris : une riposte commune est envisagée.',
+    choix:[
+      { texte:'Frappes punitives limitées sur des sites liés au programme', requiert:{categorie:'AIR'}, effets:{ capital:-3, fatigue:[{categorie:'AIR', delta:6}], relation:[{allie:'USA', delta:4}, {allie:'UK', delta:3}], alea:{ p:0.75, succes:{ credibilite:6 }, echec:{ credibilite:-2, opinion:-2 } } } },
+      { texte:'Exiger une enquête internationale et des sanctions ciblées', effets:{ credibilite:1, relation:[{allie:'DEU', delta:2}] } },
+      { texte:'Ne pas réagir faute de preuve définitive', effets:{ credibilite:-6, relation:[{allie:'USA', delta:-3}] } }
+    ] },
+  { id:'EMPOISONNEMENT', titre:'Un ancien agent empoisonné chez un allié', auteur:'FRA_DGSE', poids:2, max:1, cond:{ tourMin:18, menace:{type:'ETAT_EST', forceMin:45} },
+    texte:'Un ancien officier de renseignement réfugié dans un pays allié a été retrouvé inconscient, empoisonné par un agent neurotoxique militaire. Notre allié demande une réponse coordonnée : expulsions de diplomates et mesures contre les réseaux de renseignement.',
+    choix:[
+      { texte:'Expulser des agents sous couverture diplomatique', effets:{ credibilite:3, relation:[{allie:'UK', delta:6}, {allie:'USA', delta:2}], menace:[{type:'ETAT_EST', delta:3}, {type:'CYBER', delta:2}] } },
+      { texte:'Exprimer notre solidarité sans mesure de rétorsion', effets:{ relation:[{allie:'UK', delta:-3}] } },
+      { texte:'Renforcer le contre-espionnage sur notre sol', effets:{ budget:-5, rens:[{theatre:'METRO', delta:6}], menace:[{type:'CYBER', delta:-3}] } }
+    ] },
+  { id:'FUITE_CAMPAGNE', titre:'Piratage d’une équipe de campagne', auteur:'FRA_ANSSI', poids:3, max:1, cond:{ tourMin:24, tourMax:30, menace:{type:'CYBER', forceMin:30} },
+    texte:'À quelques jours d’un scrutin national, des milliers de courriels d’une équipe de campagne sont publiés, mêlés à de faux documents. L’ANSSI relève des techniques déjà observées dans des opérations attribuées à un service étranger.',
+    choix:[
+      { texte:'Saisir l’autorité de contrôle et alerter publiquement sur la manipulation', effets:{ credibilite:2, opinion:1, menace:[{type:'CYBER', delta:-4}] } },
+      { texte:'Attribuer publiquement l’opération à un État', effets:{ alea:{ p:0.5, succes:{ credibilite:4 }, echec:{ credibilite:-3 } }, menace:[{type:'ETAT_EST', delta:3}] } },
+      { texte:'Rester silencieux pour ne pas peser sur le scrutin', effets:{ opinion:-3, menace:[{type:'CYBER', delta:4}] } }
     ] }
 ];
