@@ -43,6 +43,13 @@ export function Tutoriel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mem.etape]);
 
+  // L'élément visé peut être hors de la zone visible d'un panneau défilant : on l'y amène
+  useEffect(() => {
+    if (!courant?.cible) return;
+    const id = window.setTimeout(() => document.querySelector(`[data-tuto="${courant.cible}"]`)?.scrollIntoView({ block: 'center' }), 80);
+    return () => clearTimeout(id);
+  }, [courant?.cible]);
+
   // Suivi de la position de l'élément mis en lumière (il peut bouger ou apparaître)
   useLayoutEffect(() => {
     if (!courant) { setRect(null); return; }
@@ -79,6 +86,8 @@ export function Tutoriel() {
     else if (rect.x - W - marge > 0) style = { left: rect.x - W - marge, top: Math.min(Math.max(12, rect.y), vh - hCarte - 12) };
     else style = { left: Math.min(rect.x + rect.w + marge, vw - W - 12), top: Math.min(Math.max(12, rect.y), vh - hCarte - 12) };
   }
+  // La fiche reste toujours entièrement visible
+  if (typeof style.top === 'number') style = { ...style, top: Math.max(12, Math.min(style.top, window.innerHeight - (carteRef.current?.offsetHeight || 190) - 12)) };
   const avecCondition = !estAstuce && !!etape?.condition;
 
   return (

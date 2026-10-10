@@ -10,6 +10,7 @@ Jeu de gestion de crise au tour par tour (1 tour = 1 mois, départ janvier 2015)
 - `npm run build` : contrôle de types + build de production dans `dist/`.
 - `npm run screens` : captures d'écran automatiques de l'interface (Playwright), dans `captures/`. `CHROMIUM=/chemin/chrome npm run screens` utilise un navigateur déjà installé.
 - `node tools/equilibre.ts` : compare l'issue des parties de référence (défaites, durée, score) avec la dernière version committée.
+- `node tools/tutoriel.ts` : parcourt tout le tutoriel dans le navigateur et signale une étape bloquée. À relancer après toute modification de l'interface ou du tutoriel.
 - `node tools/performances.ts` : temps de réponse de l'interface (vues régionales, passage de mois, intervention), serveur de développement lancé.
 - `http://localhost:5173/?galerie` (développement) : planche de toutes les illustrations, insignes et portraits.
 - `node tools/equilibre.ts --robot` : rejoue 45 parties avec le robot prudent (`tests/bot-prudent.ts`) sur HEAD et sur l'état courant. Ce sont les chiffres d'équilibre à citer dans les commits.
