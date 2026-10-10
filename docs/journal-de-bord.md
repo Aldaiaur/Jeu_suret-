@@ -59,3 +59,47 @@ Performances (Chromium sans accélération matérielle, mode développement) : v
 - **Insignes** : confirmation par un connaisseur que les créations ne ressemblent à aucun insigne officiel.
 - **Comptes et dépendances** : nouvelle dépendance `milsymbol` 3.0.4 (licence MIT) à mentionner dans les crédits. Vérification de marque « Red Lines » toujours à faire.
 - **Environnement** : la version de Playwright du projet attend un navigateur non installé ; les captures se lancent avec `CHROMIUM=/chemin/vers/chrome npm run screens`.
+
+## 10 octobre 2026 — deuxième session (branche `dev`)
+
+Consigne du propriétaire : « privilégier la jouabilité, résoudre et améliorer tout ce qui peut l’être, trancher en l’absence d’information ; l’art viendra plus tard ». Les décisions prises sont consignées dans `docs/game-design.md` (section « Décisions prises »). Chaque étape passe `npm test`, `npm run typecheck`, `npm run build` et a été vérifiée par captures. `main` n’a pas été touchée.
+
+### Ce qui a été fait
+
+| Commit | Contenu |
+|---|---|
+| `00f7526` | **Jouabilité.** Article 35 lisible (facteurs détaillés, débat au Parlement), réponses propres aux crises de la Métropole, de l’Est et de l’Indo-Pacifique, réaction adverse sur la carte (embuscades, harcèlement, dispersion après frappe), plancher de connaissance des lieux lié au renseignement, domaine de score « Contrôle du terrain », difficulté recalée, fiche repliable. |
+| `d2a7e73` | **Sons synthétisés par code** (Web Audio, aucun fichier) : ordres, déploiements, succès, échecs, alertes, passage de mois ; activation et volume dans le menu. |
+| `380a628` | Données vérifiées par recherche : effectifs du GIGN et du RAID, livraisons d’A400M, équipages des frégates, effectif du porte-avions. |
+| `4657880` | **Modèle `nation`, phase 1** : la procédure d’emploi de la force (durée avant vote, débat, effets) est en données (`src/data/nations.ts`) et interprétée par le moteur. |
+| `de7eaf1` | Tutoriel : chaque étape reste visible à l’écran ; parcours complet vérifié automatiquement (`node tools/tutoriel.ts`). |
+| `dcaf5f6` | Campagne « La route du Fezzan » (quatre dossiers enchaînés selon les choix) ; échéances enrichies (arrêts techniques, suites de dossiers, pénurie de soutien, dépassement budgétaire). Tous les événements ont désormais un auteur. |
+| `14ae226` | Impact logistique visible avant chaque engagement (soutien après déploiement, pénurie signalée). |
+
+### Chiffres d’équilibre (début `4236dce` → fin `14ae226`)
+
+**Robot prudent** (45 parties) :
+
+| | Défaites | Durée moyenne | Score moyen |
+|---|---|---|---|
+| Ensemble | 6,7 % → 13,3 % | 35,8 → 35 mois | 62,7 → 59,9 |
+| Facile | 0 % → 0 % | 36 → 36 | 71,6 → 70,5 |
+| Normal | 0 % → 6,7 % | 36 → 36 | 63,7 → 60,9 |
+| Difficile | 20 % → 33,3 % | 35,3 → 33,1 | 52,7 → 48,4 |
+
+**Robot aléatoire** (60 parties de référence) : défaites 73,3 % → 75 %, durée 27 → 24,9 mois, score 33,3 → 33,9.
+
+Lecture : facile et difficile atteignent la cible fixée ; le mode normal reste un peu clément (6,7 % pour une cible d’environ 15 %). Sur 15 parties par niveau, un écart de 7 points correspond à une seule partie : à confirmer avec davantage de parties avant de durcir.
+
+### Ce qui reste à faire
+
+- **Modèle `nation`, suite de la phase 1** : rattacher unités, services, alliés et personnages à la nation. Volontairement différé : environ 150 appels à modifier pour un gain nul tant qu’une seconde nation n’existe pas. C’est le prérequis du Royaume-Uni (`nation-GBR.md`).
+- **Équilibrage fin** du mode normal (voir ci-dessus).
+- **Recherche** : prompt 6 (`verification-prototype-FRA.md`), fiche États-Unis à refaire, valeurs « À VÉRIFIER » restantes (coefficients tactiques et saisonniers, caractéristiques de constructeur).
+- **Taille du paquet** : 2,2 Mo (630 ko compressés), surtout les fonds de carte ; découper le chargement (import dynamique de `world-atlas` et de `milsymbol`).
+
+### Ce qui demande une intervention humaine
+
+- **Art** (reporté par le propriétaire) : illustrations des matériels, portraits, insignes, écran d’accueil ; liste dans `docs/illustrations.md`. Les dessins actuels sont des substituts tracés par code.
+- **Sons** : les sons synthétisés sont des substituts sobres ; une banque sonore réelle pourra les remplacer dans `src/ui/sons.ts`.
+- **Validation** : noms des personnages fictifs (homonymies), valeurs « À VÉRIFIER », ressemblance des insignes avec des insignes officiels.
