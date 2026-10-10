@@ -1,4 +1,4 @@
-# Red Lines — document de design, version 0.2
+# Red Lines — document de design, version 0.3
 
 > Document vivant. Les décisions ouvertes sont marquées **[À TRANCHER]**.
 > Les faits à sourcer sont marqués **[À SOURCER]** et renvoient aux prompts de `docs/recherche/prompts.md`.
@@ -146,3 +146,20 @@ Contrainte : le jeu sort sur Steam, donc le nom doit fonctionner en anglais. Une
 | **Raison d'État** | Exact sur le thème, compris en anglais | Extension du jeu de plateau *Coalitions* (2024). Risque de confusion. |
 | **Grey Zone** | Exact sur le thème | Déjà pris (*Gray Zone*, *Grey Zone Warfare* sur Steam). À écarter. |
 | **Escalation** | | Très encombré. À écarter. |
+
+## 10. Théâtres régionaux, biomes et saisons
+
+Chaque théâtre a une **carte régionale** (`src/data/cartes-regionales.ts`) : 10 à 12 lieux réels, des liaisons cohérentes avec le terrain et trois scénarios de crise. Un clic sur un théâtre ouvre cette carte à la place de la carte du monde ; la fiche du théâtre reste à droite et une barre d’onglets permet de passer d’un théâtre à l’autre.
+
+- **Biomes** (`src/data/biomes.ts`) : palette, textures et éléments de relief. Le décor est peint par code sur un canvas à partir de Natural Earth, puis affiché comme une image : aucun fichier lourd, aucune dépendance réseau.
+- **Saisons** : déclarées dans la définition de chaque théâtre (`SAISONS` dans `src/data/monde.ts`). Chaque mois appartient à une seule saison, ce que `verifierDonnees()` contrôle. Effets possibles : pression par catégorie de force, fatigue, coûts mensuels, croissance d’une menace, frappes et reconnaissances disponibles en crise. L’indicateur de saison apparaît dans la fiche, la vue régionale, l’intervention et sur la carte du monde (pastille colorée).
+
+## Décisions en attente de validation
+
+Décisions prises pendant la session autonome du 10 octobre 2026, avec l’option la plus prudente. À confirmer ou corriger.
+
+1. **Crises sur carte régionale limitées à cinq théâtres** (Levant, Sahel, Libye, golfe de Guinée, Djibouti). Sur le territoire national, à l’est et en Indo-Pacifique, l’adversaire est un État ou il s’agit du sol national : raids et frappes y seraient absurdes ou dangereux pour le ton. La crise y reste résolue globalement, avec un titre et un texte propres au théâtre.
+2. **Lieux russes et chinois marqués « adversaire »** sur les cartes de l’est et de la mer de Chine, pour la lecture seulement : aucune action offensive n’est possible contre eux.
+3. **Coefficients saisonniers** choisis à dire d’expert (par exemple −30 % de pression terrestre au Sahel pendant les pluies, +35 % de fatigue au Levant l’été). Ils sont marqués « À VÉRIFIER » et devraient être calés sur des retours d’expérience.
+4. **Vote de l’article 35** : la recherche montre que tous les votes de 2015-2018 ont été quasi unanimes ; le jeu garde un vote incertain (probabilité selon l’opinion et le capital) pour préserver la tension. À trancher : rendre le refus beaucoup plus rare ?
+5. **Mesure de l’équilibre** : le robot aléatoire des parties de référence a une forte variance (un changement mineur de carte fait varier la part de défaites de plus de 10 points). Les chiffres d’équilibre des commits doivent être lus avec prudence ; un robot heuristique est prévu.

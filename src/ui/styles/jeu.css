@@ -186,7 +186,7 @@
   background: rgba(18, 25, 32, 0.97); border: 1px solid var(--trait-2); border-radius: var(--rayon-l);
   box-shadow: var(--ombre-l); overflow-y: auto; padding: 18px 18px 22px;
   animation: glissement-droite 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  backdrop-filter: blur(10px);
+  /* pas de backdrop-filter : combiné aux effets de saison animés en dessous, il assombrit la fiche sous Chromium */
 }
 .fiche-fermer { position: absolute; right: 10px; top: 10px; }
 .fiche-entete { margin-bottom: 16px; padding-right: 30px; }
@@ -429,3 +429,45 @@
 .tuto-pied { display: flex; justify-content: flex-end; gap: 6px; }
 .tuto-progression { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--trait); }
 .tuto-progression i { display: block; height: 100%; background: var(--ambre); transition: width 300ms ease; }
+
+/* ---------- Vue régionale ---------- */
+.vue-regionale { position: absolute; inset: 0; z-index: 0; isolation: isolate; animation: fondu 220ms ease-out; }
+.calque { position: absolute; left: 0; top: 0; display: block; }
+.zoom-carte .calque { width: 100%; height: 100%; }
+.anim-pluie, .anim-neige, .anim-poussiere, .anim-houle, .anim-brouillard { will-change: transform; }
+.route { stroke-width: 2.2; stroke-dasharray: 7 4; stroke-linecap: round; opacity: 0.75; }
+.lieu.petit .lieu-nom { font-size: 12px; }
+.vr-entete { position: absolute; left: 12px; top: 12px; right: 470px; display: flex; gap: 10px; align-items: center; z-index: 3; }
+.vr-onglets { display: flex; gap: 2px; padding: 3px; background: rgba(12, 17, 22, 0.86); border: 1px solid var(--trait-2); border-radius: var(--rayon); overflow-x: auto; }
+.vr-onglet { font: 600 10.5px var(--police-titre); letter-spacing: 0.04em; color: var(--texte-2); padding: 5px 6px; border-radius: 4px; white-space: nowrap; }
+.vr-onglet:hover { background: var(--surface-survol); color: var(--texte); }
+.vr-onglet.actif { background: var(--surface-3); color: var(--texte); box-shadow: inset 0 -2px 0 var(--turquoise); }
+.vr-onglet.crise { color: var(--rouge-vif); }
+.vr-cartouche { position: absolute; left: 12px; bottom: 12px; max-width: 420px; padding: 10px 14px; background: rgba(12, 17, 22, 0.88); border: 1px solid var(--trait-2); border-radius: var(--rayon-l); z-index: 3; }
+.vr-saison { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 14px; cursor: help; }
+.vr-saison b { font-weight: 600; }
+.vr-effets, .vr-menaces { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.vr-legende { display: flex; gap: 12px; font-size: 11px; color: var(--texte-2); margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--trait); }
+.vr-legende .lg { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.vr-legende .lg.allie { background: var(--vert); } .vr-legende .lg.neutre { background: var(--texte-3); } .vr-legende .lg.ennemi { background: var(--rouge); }
+.icone-saison { flex: none; }
+.pastille .icone-saison { vertical-align: -2px; margin-right: 4px; }
+
+/* Effets de saison animés */
+.anim-pluie { animation: pluie 0.9s linear infinite; }
+.anim-neige { animation: neige 7s linear infinite; }
+.anim-poussiere { animation: poussiere 9s linear infinite; }
+.anim-houle { animation: houle 6s linear infinite; }
+.anim-chaleur { animation: chaleur 4s ease-in-out infinite; }
+.anim-brouillard { animation: brouillard 14s ease-in-out infinite alternate; }
+.anim-brouillard.lent { animation-duration: 21s; }
+@keyframes pluie { from { transform: translate(0, 0); } to { transform: translate(-7px, 34px); } }
+@keyframes neige { from { transform: translate(0, 0); } to { transform: translate(10px, 40px); } }
+@keyframes poussiere { from { transform: translate(0, 0); } to { transform: translate(60px, 8px); } }
+@keyframes houle { from { transform: translate(0, 0); } to { transform: translate(80px, 0); } }
+@keyframes chaleur { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+@keyframes brouillard { from { transform: translateX(-40px); } to { transform: translateX(40px); } }
+@media (prefers-reduced-motion: reduce) {
+  .anim-pluie, .anim-neige, .anim-poussiere, .anim-houle, .anim-chaleur, .anim-brouillard { animation: none !important; }
+}
+.zoom-saison { display: flex; align-items: center; gap: 5px; font: 500 14px var(--police) !important; }

@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 import { AL, ALLIES, CATEGORIES, ETATS_UNITE, MT, OP, PARAMS, POIDS_CAPTEUR, SERVICES, SV, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES } from '../../data';
 import {
   appuiDef, capteursLibres, coutMult, dateDuTour, delaiProjection, evaluerAppui, fiabilite, menaceParId,
-  pressionMenace, probaVote, type Action, type AllieDef, type AppuiDef
+  pressionMenace, probaVote, saisonDu, type Action, type AllieDef, type AppuiDef
 } from '../../sim';
+import { COULEUR_SAISON, IconeSaison, decrireSaison } from '../composants/Saison';
 import { usePartie } from '../contexte';
 import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct } from '../format';
 
@@ -90,6 +91,9 @@ function FicheTheatre({ id }: { id: string }) {
           {T.exterieur && T.basePermanente && <span className="pastille contour" data-tip="Forces prépositionnées : pas de vote du Parlement.">Base permanente</span>}
           {th.voteFait && <span className="pastille vert">Intervention autorisée</span>}
           {th.crise && <span className="pastille rouge pulse">Crise</span>}
+          {(() => { const sa = saisonDu(id, s.tour), ef = decrireSaison(sa.effets); return (
+            <span className="pastille contour" style={{ color: COULEUR_SAISON[sa.visuel] }} data-tuto="fiche-saison"
+              data-tip={sa.description + (ef.length ? '\n' + ef.join('\n') : '\nPas d’effet sur les règles.')}><IconeSaison visuel={sa.visuel} />{sa.nom}</span>); })()}
         </div>
         {voteDans !== null && (
           <div className="encart ambre" data-tuto="article35">

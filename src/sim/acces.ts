@@ -1,9 +1,19 @@
 // Accesseurs et petites règles dérivées de l'état.
-import { AL, ANNEE_DEPART, DOC, MOIS, PARAMS, TYPES_CAPTEURS, UN, UNITES } from '../data';
-import type { AppuiDef, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, UniteDef } from './types';
+import { AL, ANNEE_DEPART, DOC, MOIS, PARAMS, TH, TYPES_CAPTEURS, UN, UNITES } from '../data';
+import type { AppuiDef, Categorie, EffetsAppui, EtatUniteId, Etat, GenreJournal, Mods, SaisonDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
 
 export function dateDuTour(t: number): string { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
+
+// ---------- Saisons (déclarées dans les données de chaque théâtre) ----------
+export function saisonDu(theatre: string, tour: number): SaisonDef {
+  const m = tour % 12;
+  return TH[theatre].saisons.find(x => x.mois.includes(m))!;
+}
+export function multPression(theatre: string, tour: number, c: Categorie): number { return saisonDu(theatre, tour).effets.pression?.[c] ?? 1; }
+export function multFatigue(theatre: string, tour: number): number { return saisonDu(theatre, tour).effets.fatigue ?? 1; }
+export function multCout(theatre: string, tour: number): number { return saisonDu(theatre, tour).effets.cout ?? 1; }
+export function multCroissance(theatre: string, tour: number, menace: string): number { return saisonDu(theatre, tour).effets.croissance?.[menace] ?? 1; }
 export const MODS_NEUTRES: Mods = { rensBonus: 0, capteursBonus: {}, opBonus: 0, enveloppe: 0, delaiMod: 0, coutMult: 1, protectionMult: 1, croissanceExtMult: 1, capitalMensuel: 0, voteBonus: 0, opinion: 0, credibilite: 0 };
 export function mods(s: Etat): Mods { return s.doctrine ? DOC[s.doctrine].mods : MODS_NEUTRES; }
 export function unitesDans(s: Etat, theatre: string, etats?: EtatUniteId[]): UniteDef[] {
@@ -36,8 +46,12 @@ export function probaVote(s: Etat): number {
 }
 export function coutsMensuels(s: Etat): number {
   let c = 0;
-  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += u.coutMensuel * coutMult(s); }
+  for (const u of UNITES) { const e = s.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') c += coutMensuelUnite(s, u); }
   return arrondi(c);
+}
+export function coutMensuelUnite(s: Etat, u: UniteDef): number {
+  const e = s.unites[u.id];
+  return u.coutMensuel * coutMult(s) * (e.theatre ? multCout(e.theatre, s.tour) : 1);
 }
 export function fiabilite(r: number): string { return r >= 75 ? 'A' : r >= 55 ? 'B' : r >= 35 ? 'C' : r >= 20 ? 'D' : 'E'; }
 export function journaliser(s: Etat, texte: string, genre?: GenreJournal): void {

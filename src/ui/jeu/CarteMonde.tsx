@@ -6,7 +6,8 @@ import type { Topology, GeometryCollection } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import monde from 'world-atlas/countries-50m.json';
 import { CATEGORIES, MT, TH, THEATRES, UNITES } from '../../data';
-import { appuiDef, fiabilite, type Etat } from '../../sim';
+import { appuiDef, fiabilite, saisonDu, type Etat } from '../../sim';
+import { COULEUR_SAISON } from '../composants/Saison';
 import { AL } from '../../data';
 import { usePartie } from '../contexte';
 import { couleurNiveau } from '../format';
@@ -137,7 +138,7 @@ export function CarteMonde() {
 
   const k = vue.k;
   return (
-    <div className="carte-monde" ref={boite}>
+    <div className="carte-monde" ref={boite} inert={ui.selection?.kind === 'theatre'}>
       <svg ref={svgRef} width={L} height={H} viewBox={`0 0 ${L} ${H}`}
         onWheel={molette} onPointerDown={appui} onPointerMove={deplacement} onPointerUp={relache} onPointerLeave={relache}
         onClick={() => clic(null)} data-tuto="carte">
@@ -188,9 +189,10 @@ function Marqueur({ id, pos, k }: { id: string; pos: [number, number]; k: number
     '\nMenaces identifiées : ' + nbM + '\nRenseignement : ' + th.rens + ' (fiabilité ' + fiabilite(th.rens) + ')' +
     '\nForces déployées : ' + dep.length + (proj ? ' (+' + proj + ' en route)' : '') + '\nCapacité partenaire : ' + th.partenaire +
     th.appuis.map(a => '\n' + AL[a.allie].nom + ' : ' + appuiDef(a.allie, a.appui).nom + ' (' + a.tours + ' mois)').join('') +
-    (th.crise ? '\nCRISE : ' + th.crise.titre : '');
+    (th.crise ? '\nCRISE : ' + th.crise.titre : '') + '\nSaison : ' + saisonDu(id, s.tour).nom + '\n(cliquer pour la carte régionale)';
+  const sa = saisonDu(id, s.tour);
   return (
-    <g transform={`translate(${pos[0]},${pos[1]}) scale(${1 / k})`} className={'marqueur' + (sel ? ' sel' : '')} data-tip={tip} data-tuto={'theatre-' + id}
+    <g transform={`translate(${pos[0]},${pos[1]}) scale(${1 / k})`} className={'marqueur' + (sel ? ' sel' : '')} data-tip={tip} data-tuto={ui.selection?.kind === 'theatre' ? undefined : 'theatre-' + id}
       onClick={ev => { ev.stopPropagation(); majUi({ selection: { kind: 'theatre', id } }); }}>
       {th.crise && <circle r={R + 4} className="onde" style={{ stroke: 'var(--rouge)' }} />}
       {sel && <circle r={R + 10} fill={col} opacity={0.25} filter="url(#lueur)" />}
@@ -215,6 +217,7 @@ function Marqueur({ id, pos, k }: { id: string; pos: [number, number]; k: number
         </g>
       )}
       {(th.allie > 0 || th.appuis.length > 0) && !th.crise && <circle cx={-R + 2} cy={-R + 2} r={4} fill="var(--violet)" />}
+      {sa.visuel !== 'aucun' && <circle cx={-R - 1} cy={R - 3} r={3.5} fill={COULEUR_SAISON[sa.visuel]} stroke="#0a0e12" strokeWidth={1.2} />}
     </g>
   );
 }

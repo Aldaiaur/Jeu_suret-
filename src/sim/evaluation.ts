@@ -1,8 +1,8 @@
 // Évaluations : pression sur les menaces, chances des opérations, moyens de crise, appuis alliés.
-import { AL, MT, OP, TH, UN, UNITES } from '../data';
+import { AL, CARTES_REGIONALES, MT, OP, TH, UN, UNITES } from '../data';
 import type { Capacite, Etat, Menace, OperationDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
-import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, nbCapteurs, unitesDans } from './acces';
+import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, multPression, nbCapteurs, unitesDans } from './acces';
 import { rensMenace } from './renseignement';
 import { menaceDeCrise } from './crises';
 
@@ -11,7 +11,7 @@ export function pressionMenace(s: Etat, m: Menace): number {
   const T = MT[m.type], th = s.theatres[m.theatre];
   let p = 0;
   for (const u of unitesDans(s, m.theatre)) {
-    const f = 1 - s.unites[u.id].fatigue / 200;
+    const f = (1 - s.unites[u.id].fatigue / 200) * multPression(m.theatre, s.tour, u.categorie);
     for (const c in T.sensibilite) p += u.cap[c as Capacite] * T.sensibilite[c as Capacite]! * f;
   }
   p += (T.sensibilite.renseignement || 0) * th.rens / 10;
@@ -45,11 +45,11 @@ export type MoyensCrise =
   | { zoom: true; fs: string[]; fsDispo: string[]; frappe: string[]; possible: boolean }
   | { zoom: false; sur: string[]; dispo: string[]; possible: boolean };
 export function moyensCrise(s: Etat, theatre: string): MoyensCrise {
-  const T = TH[theatre];
-  if (T.carteRegionale) {
-    const fs = unitesDans(s, theatre).filter(u => u.categorie === 'FS');
-    const fsDispo = UNITES.filter(u => u.categorie === 'FS' && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
-    const frappe = unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && u.categorie !== 'FS');
+  const C = CARTES_REGIONALES[TH[theatre].carteRegionale];
+  if (C.zoomCrise) {
+    const fs = unitesDans(s, theatre).filter(u => C.forcesCrise.includes(u.categorie));
+    const fsDispo = UNITES.filter(u => C.forcesCrise.includes(u.categorie) && s.unites[u.id].etat === 'disponible' && u.theatres.includes(theatre) && !enIndisponibilite(u, s.tour));
+    const frappe = C.frappes ? unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && !C.forcesCrise.includes(u.categorie)) : [];
     return { zoom: true, fs: fs.map(u => u.id), fsDispo: fsDispo.map(u => u.id), frappe: frappe.map(u => u.id), possible: fs.length + fsDispo.length > 0 };
   }
   const sur = unitesDans(s, theatre);

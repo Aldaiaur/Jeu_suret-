@@ -11,6 +11,7 @@ export * from './monde';
 export * from './france';
 export * from './menaces';
 export * from './cartes-regionales';
+export * from './biomes';
 export * from './personnages';
 export * from './briefing';
 

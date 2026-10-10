@@ -71,7 +71,7 @@ function FenetreCrise() {
             <div><span className="titre-section">Forces spéciales</span><div>{moy.fs.length ? moy.fs.map(i => UN[i].nom).join(', ') : moy.fsDispo.length ? 'Projection d’urgence : ' + UN[moy.fsDispo[0]].nom : 'Aucune'}</div></div>
             <div><span className="titre-section">Appui feu</span><div>{moy.frappe.length ? moy.frappe.map(i => UN[i].nom).join(', ') : 'Aucun'}</div></div>
           </div>
-          <div className="encart">Intervenir ouvre la carte régionale <b>{CARTES_REGIONALES[TH[t].carteRegionale!].nom}</b> : six semaines au plus pour atteindre les objectifs.</div>
+          <div className="encart">Intervenir ouvre la carte régionale <b>{CARTES_REGIONALES[TH[t].carteRegionale].nom}</b> : six semaines au plus pour atteindre les objectifs.</div>
         </>
       ) : (
         <>
@@ -183,7 +183,8 @@ function FenetreAide() {
         <p><b>Unités.</b> Disponible, en projection, déployée (la fatigue monte), puis en régénération après rapatriement. À 100 de fatigue, l’unité est relevée d’office.</p>
         <p><b>Article 35.</b> Au-delà de {PARAMS.dureeAvantVote} mois, une intervention extérieure est soumise au Parlement. Un vote négatif impose le retrait.</p>
         <p><b>Budget.</b> Chaque mois : solde + enveloppe − coûts. Un dépassement devient du surcoût et coûte du capital politique.</p>
-        <p><b>Crises.</b> Au Levant et au Sahel, intervenir ouvre une carte régionale : raids, frappes, reconnaissance, appui aux forces locales, évacuation. Ailleurs, l’intervention est résolue globalement.</p>
+        <p><b>Théâtres.</b> Cliquez sur un théâtre pour ouvrir sa carte régionale : lieux, liaisons, biome et saison du mois. Les saisons modifient la pression exercée par chaque type de force, la fatigue, les coûts et la croissance de certaines menaces.</p>
+        <p><b>Crises.</b> Au Levant, au Sahel, en Libye, dans le golfe de Guinée et à Djibouti, intervenir ouvre une intervention de six semaines sur la carte régionale : raids, frappes, reconnaissance, appui aux forces locales, évacuation. Sur le territoire national, à l’est et en Indo-Pacifique, l’intervention est résolue globalement.</p>
         <p><b>Défaite.</b> Opinion sous 10, capital à 0, ou menace intérieure à 100 pendant 3 mois.</p>
         <p><b>Raccourcis.</b> Entrée : fin du mois · Échap : fermer · H : aide · 1, 2, 3 : choix d’un événement.</p>
       </div>

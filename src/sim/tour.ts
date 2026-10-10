@@ -2,7 +2,7 @@
 import { ALLIES, DIFFICULTES, EV, EVENEMENTS, MT, NB_TOURS, PARAMS, TH, THEATRES, UNITES } from '../data';
 import type { Etat, Instantane, Score } from './types';
 import { alea, aleaEntre, arrondi, borner, choisir, choisirPondere, cloner } from './outils';
-import { actionsParTour, appuiDef, dateDuTour, decider, enIndisponibilite, journaliser, mods, probaVote, unitesDans } from './acces';
+import { actionsParTour, appuiDef, coutMensuelUnite, dateDuTour, decider, enIndisponibilite, journaliser, mods, multCroissance, multFatigue, probaVote, unitesDans } from './acces';
 import { calculerRens, estimerMenaces, rensMenace } from './renseignement';
 import { pressionMenace } from './evaluation';
 import { rapatrier } from './actions';
@@ -14,11 +14,12 @@ export function finDeTour(s: Etat): Etat {
   if (s.phase !== 'jeu' || s.fin) return s;
   const n = cloner(s);
   const R = n.ressources, md = mods(n), D = DIFFICULTES[n.difficulte];
+  const mois = n.tour;
   n.dernierResultat = null; n.dernierBilan = null;
 
   // 1. Budget
   let depenses = 0;
-  for (const u of UNITES) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += u.coutMensuel * md.coutMult; }
+  for (const u of UNITES) { const e = n.unites[u.id]; if (e.etat === 'deployee' || e.etat === 'projection') depenses += coutMensuelUnite(n, u); }
   R.budget = arrondi(R.budget + R.enveloppe - depenses);
   if (R.budget < 0) {
     R.surcout = arrondi(R.surcout - R.budget);
@@ -42,7 +43,7 @@ export function finDeTour(s: Etat): Etat {
     }
     if (e.etat === 'projection') { e.compteur--; if (e.compteur <= 0) { e.etat = 'deployee'; journaliser(n, u.nom + ' opérationnel sur le théâtre ' + TH[e.theatre!].nom + '.', 'info'); } continue; }
     if (e.etat === 'deployee') {
-      e.fatigue = borner(e.fatigue + PARAMS.fatigueDeploiement * (10 - u.cap.endurance) / 5 + 1, 0, 100);
+      e.fatigue = borner(e.fatigue + (PARAMS.fatigueDeploiement * (10 - u.cap.endurance) / 5 + 1) * multFatigue(e.theatre!, mois), 0, 100);
       if (e.fatigue >= 100) rapatrier(n, u.id, 'usure, relève impérative');
       continue;
     }
@@ -82,7 +83,7 @@ export function finDeTour(s: Etat): Etat {
   const existantes = n.menaces.slice();
   for (const m of existantes) {
     const T = MT[m.type], TT = TH[m.theatre];
-    let croiss = T.croissance * D.croissanceMult * (TT.exterieur ? md.croissanceExtMult : 1);
+    let croiss = T.croissance * D.croissanceMult * (TT.exterieur ? md.croissanceExtMult : 1) * multCroissance(m.theatre, mois, m.type);
     for (const t in T.alimentePar) croiss += (forcesParType[t] || 0) * T.alimentePar[t];
     croiss *= (1 - m.force / 130);
     const delta = croiss - pressionMenace(n, m) * 0.15 + (alea(n) - 0.5) * 3;

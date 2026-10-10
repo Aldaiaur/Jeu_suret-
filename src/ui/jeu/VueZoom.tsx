@@ -1,18 +1,15 @@
 // Zoom régional : intervention semaine par semaine sur une carte géographique réelle.
 import { useMemo } from 'react';
-import { geoMercator, geoPath } from 'd3-geo';
-import { feature } from 'topojson-client';
-import type { Topology, GeometryCollection } from 'topojson-specification';
-import type { Feature, FeatureCollection, Geometry } from 'geojson';
-import monde from 'world-atlas/countries-50m.json';
 import { CARTES_REGIONALES, UN } from '../../data';
-import { evaluerActionZoom, nomLieu, objectifsZoom, type ActionZoom } from '../../sim';
+import { evaluerActionZoom, nomLieu, objectifsZoom, saisonDu, type ActionZoom } from '../../sim';
+import { FondRegional, projectionRegionale, type Cadre } from '../composants/FondRegional';
+import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../composants/Saison';
 import { usePartie } from '../contexte';
 import { pct } from '../format';
+import { placerEtiquettes } from '../composants/etiquettes';
 
 const L = 900, H = 640;
-const topo = monde as unknown as Topology<{ countries: GeometryCollection }>;
-const pays = feature(topo, topo.objects.countries) as FeatureCollection<Geometry, { name: string }>;
+const CADRE: Cadre = { L, H, marges: { haut: 70, droite: 90, bas: 60, gauche: 90 } };
 
 function libelle(a: ActionZoom, z: Parameters<typeof nomLieu>[0]): string {
   switch (a.type) {
@@ -41,31 +38,14 @@ export function VueZoom() {
   const lieuxObj = sc.objectifs.filter(o => o.lieu).map(o => o.lieu!);
   const objectifs = objectifsZoom(s);
 
-  const { proj, fonds } = useMemo(() => {
-    const pts: Feature<Geometry> = { type: 'Feature', properties: {}, geometry: { type: 'MultiPoint', coordinates: C.lieux.map(l => [l.lon, l.lat]) } };
-    const p = geoMercator().fitExtent([[90, 70], [L - 90, H - 60]], pts);
-    const ch = geoPath(p);
-    return { proj: p, fonds: pays.features.map((f, i) => ({ id: i + ':' + String(f.id), d: ch(f) || '', nom: f.properties.name })) };
-  }, [C]);
+  const proj = useMemo(() => projectionRegionale(C, CADRE), [C]);
+  const saison = saisonDu(z.theatre, s.tour), effetsSaison = decrireSaison(saison.effets);
   const pos = useMemo(() => {
     const r: Record<string, [number, number]> = {};
     for (const l of C.lieux) r[l.id] = proj([l.lon, l.lat]) as [number, number];
     return r;
   }, [C, proj]);
-  // Étiquettes : au-dessus du lieu, ou sur le côté libre quand un autre lieu est trop proche
-  const etiquettes = useMemo(() => {
-    const r: Record<string, { x: number; y: number; ancre: 'start' | 'middle' | 'end' }> = {};
-    for (const l of C.lieux) {
-      const [x, y] = pos[l.id];
-      let proche: [number, number] | null = null, dmin = 70;
-      for (const m of C.lieux) { if (m === l) continue; const d = Math.hypot(pos[m.id][0] - x, pos[m.id][1] - y); if (d < dmin) { dmin = d; proche = pos[m.id]; } }
-      const dx = proche ? proche[0] - x : 0, dy = proche ? proche[1] - y : 0;
-      if (!proche || (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) >= 75)) r[l.id] = { x: 0, y: dy < 0 && Math.abs(dy) > 20 ? 30 : -22, ancre: 'middle' };
-      else if (proche[0] >= x) r[l.id] = { x: -22, y: 4, ancre: 'end' };
-      else r[l.id] = { x: 22, y: 4, ancre: 'start' };
-    }
-    return r;
-  }, [C, pos]);
+  const etiquettes = useMemo(() => placerEtiquettes(C.lieux, pos, 18), [C, pos]);
 
   const selL = ui.zoomLieu, selU = ui.zoomUnite;
   const liste = possibles.filter((a): a is ActionZoom => a.type.startsWith('Z_') && a.type !== 'Z_SEMAINE' && a.type !== 'Z_RETRAIT')
@@ -86,6 +66,7 @@ export function VueZoom() {
           <div data-tip="Offensive possible des forces locales cette semaine."><span className="jauge-lib">Appui local</span><b className="chiffres">{z.appui}</b></div>
           <div data-tip={C.forceLocale.nom}><span className="jauge-lib">Forces locales</span><b className="chiffres">{z.forceLocale}</b></div>
           <div data-tip="Renseignement du théâtre : visibilité initiale des positions adverses et marge d’erreur."><span className="jauge-lib">Renseignement</span><b className="chiffres c-turquoise">{z.rens}</b></div>
+          <div data-tip={saison.description + (effetsSaison.length ? '\n' + effetsSaison.join('\n') : '')}><span className="jauge-lib">Saison</span><b className="zoom-saison" style={{ color: COULEUR_SAISON[saison.visuel] }}><IconeSaison visuel={saison.visuel} taille={15} /> {saison.nom}</b></div>
         </div>
         <div className="zoom-boutons">
           <button className="btn danger" onClick={() => jouer({ type: 'Z_RETRAIT' })}>Mettre fin à l’intervention</button>
@@ -113,12 +94,9 @@ export function VueZoom() {
       </aside>
 
       <div className="zoom-carte" onClick={() => majUi({ zoomLieu: null, zoomUnite: null })}>
-        <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <radialGradient id="sol" cx="50%" cy="45%" r="70%"><stop offset="0%" stopColor="#1a2026" /><stop offset="100%" stopColor="#0c1014" /></radialGradient>
-          </defs>
-          <rect width={L} height={H} fill="url(#sol)" />
-          {fonds.map(p => <path key={p.id} d={p.d} className="zoom-pays" />)}
+        <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque" aria-hidden="true"><FondRegional C={C} cadre={CADRE} projection={proj} /></svg>
+        <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque" aria-hidden="true"><EffetSaison visuel={saison.visuel} L={L} H={H} prefixe={'zm-' + C.id} /></svg>
+        <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque">
           {C.liens.map(([a, b]) => <line key={a + b} x1={pos[a][0]} y1={pos[a][1]} x2={pos[b][0]} y2={pos[b][1]} className="zoom-lien" />)}
           {C.lieux.map(Ld => {
             const l = z.lieux[Ld.id], [x, y] = pos[Ld.id];

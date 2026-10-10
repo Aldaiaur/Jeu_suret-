@@ -60,7 +60,7 @@ export interface Astuce { id: string; titre: string; texte: string; cible?: stri
 export const ASTUCES: Astuce[] = [
   { id: 'evenement', titre: 'Un événement', texte: 'Lisez les effets sous chaque choix. Certains choix ont une issue incertaine, d’autres entraînent des suites les mois suivants. Touches 1, 2, 3 pour choisir.',
     condition: s => s.phase === 'evenement' },
-  { id: 'crise', titre: 'Une crise', texte: 'Intervenir engage vos moyens et votre crédibilité ; ne rien faire coûte de l’opinion et laisse la menace grandir pendant deux mois. Au Levant et au Sahel, intervenir ouvre une carte régionale.',
+  { id: 'crise', titre: 'Une crise', texte: 'Intervenir engage vos moyens et votre crédibilité ; ne rien faire coûte de l’opinion et laisse la menace grandir pendant deux mois. Sur cinq théâtres (Levant, Sahel, Libye, golfe de Guinée, Djibouti), intervenir ouvre une intervention sur la carte régionale.',
     condition: s => s.phase === 'crise' },
   { id: 'zoom', titre: 'Intervention régionale', texte: 'Sélectionnez un détachement puis un lieu. Reconnaissez avant de frapper : une frappe mal renseignée touche plus de civils. Seules les forces locales reprennent durablement un lieu. « Semaine suivante » laisse l’adversaire réagir.',
     condition: s => s.phase === 'zoom' },

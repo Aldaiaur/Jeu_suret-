@@ -15,8 +15,9 @@ export function creerCrise(s: Etat, theatre: string, menaceId: string): boolean 
   let titre = MT[m.type].criseTitre + ' — ' + T.nom;
   let texte = 'La situation se dégrade brutalement sur le théâtre ' + T.nom + ' (' + MT[m.type].nom + '). Une décision d’engagement est attendue.';
   let scenario: string | null = null;
-  if (T.carteRegionale) {
-    const sc = choisir(s, CARTES_REGIONALES[T.carteRegionale].scenarios);
+  const C = CARTES_REGIONALES[T.carteRegionale];
+  if (C.scenarios.length) {
+    const sc = choisir(s, C.scenarios);
     scenario = sc.id; titre = sc.titre; texte = sc.texte;
   }
   th.crise = { titre, texte, menaceId, scenario, statut: 'ouverte', toursLibres: 0 };

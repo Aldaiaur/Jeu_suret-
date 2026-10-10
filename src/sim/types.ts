@@ -19,7 +19,30 @@ export interface TheatreDef {
   exterieur: boolean; maritime: boolean;
   rensBase: number;
   basePermanente: boolean;
-  carteRegionale: string | null;
+  carteRegionale: string;
+  saisons: SaisonDef[];
+}
+
+// Saisons : déclarées par théâtre, elles couvrent chacune une liste de mois (0 = janvier).
+// Les effets sont des multiplicateurs (1 = neutre) ou des écarts appliqués par la simulation.
+export type VisuelSaison = 'aucun' | 'pluie' | 'chaleur' | 'boue' | 'neige' | 'mousson' | 'houle' | 'poussiere' | 'brouillard';
+export interface EffetsSaison {
+  pression?: Partial<Record<Categorie, number>>;   // pression exercée par les unités de cette catégorie
+  fatigue?: number;                                  // gain mensuel de fatigue des unités déployées
+  croissance?: Record<string, number>;               // croissance d’un type de menace sur ce théâtre
+  cout?: number;                                     // coût mensuel des unités déployées
+  frappesZoom?: number; recosZoom?: number;          // moyens disponibles chaque semaine en crise
+}
+export interface SaisonDef { id: string; nom: string; mois: number[]; visuel: VisuelSaison; description: string; effets: EffetsSaison }
+
+export type BiomeId = 'urbain_bocage' | 'foret_plaine' | 'littoral_desert' | 'steppe_fluviale' | 'desert_reg' | 'mangrove_littoral' | 'littoral_aride' | 'archipel_ocean';
+export type ElementRelief = 'dune' | 'rocher' | 'arbre' | 'haie' | 'batiment' | 'palmier' | 'mangrove' | 'vague' | 'marais' | 'champ' | 'montagne' | 'ile' | 'acacia';
+export interface BiomeDef {
+  id: BiomeId; nom: string;
+  palette: { mer: string; merProfonde: string; terre: string; terre2: string; relief: string; trait: string; route: string };
+  textures: ('dunes' | 'reg' | 'bocage' | 'urbain' | 'foret' | 'mangrove' | 'steppe' | 'houle' | 'champs')[];
+  relief: ElementRelief[];
+  densite: number;   // nombre d’éléments de relief par carte (indicatif)
 }
 
 export interface UniteDef {
@@ -135,7 +158,7 @@ export interface EvenementDef { id: string; titre: string; poids: number; max?: 
 export type Controle = 'allie' | 'ennemi' | 'neutre';
 
 export interface LieuDef {
-  id: string; nom: string; x: number; y: number;
+  id: string; nom: string; x?: number; y?: number;
   lon: number; lat: number;
   type: 'ville' | 'base' | 'zone';
   controle: Controle; defense: number; force: [number, number] | null; civils: number;
@@ -151,6 +174,13 @@ export interface ScenarioDef {
 
 export interface CarteRegionaleDef {
   id: string; nom: string; theatre: string; largeur: number; hauteur: number; depart: string;
+  biome: BiomeId;
+  // Crise résolue sur la carte (6 semaines) ou de façon globale. Hors carte : théâtres où l’adversaire
+  // est un État (Russie, Chine) ou territoire national, où raids et frappes n’ont pas de sens.
+  zoomCrise: boolean;
+  forcesCrise: Categorie[];       // catégories engageables en crise sur la carte
+  frappes: boolean;               // règles d’engagement : frappes aériennes autorisées
+  fleuves?: { nom: string; points: [number, number][] }[];   // tracés schématiques (décor)
   forceLocale: { nom: string; force: number };
   reserveEnnemie: [number, number];
   lieux: LieuDef[];

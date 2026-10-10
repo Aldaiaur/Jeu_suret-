@@ -8,7 +8,8 @@ Jeu de gestion de crise au tour par tour (1 tour = 1 mois, départ janvier 2015)
 - `npm test` : tests (Vitest). À lancer avant chaque commit.
 - `npm run typecheck` : contrôle de types strict.
 - `npm run build` : contrôle de types + build de production dans `dist/`.
-- `npm run screens` : captures d'écran automatiques de l'interface (Playwright), dans `captures/`.
+- `npm run screens` : captures d'écran automatiques de l'interface (Playwright), dans `captures/`. `CHROMIUM=/chemin/chrome npm run screens` utilise un navigateur déjà installé.
+- `node tools/equilibre.ts` : compare l'issue des parties de référence (défaites, durée, score) avec la dernière version committée.
 
 ## Architecture (à respecter)
 
@@ -26,6 +27,8 @@ prototype/  Maquette HTML d'origine, conservée comme référence. Ne pas modifi
 - L'état est sérialisable en JSON (sauvegardes). Pas de `Map`, `Set`, classe ni fonction dans l'état.
 - Pas de `Math.random()` dans `src/sim/` : utiliser `alea(s)`, sinon les parties ne sont plus rejouables.
 - `verifierDonnees()` doit rester vide : toute référence croisée dans les données y est contrôlée. Ajouter un contrôle quand on ajoute un nouveau type de référence.
+- Chaque théâtre a une carte régionale et des saisons déclarées en données ; un effet saisonnier passe par les accesseurs `saisonDu`, `multPression`, `multFatigue`, `multCout`, `multCroissance` (`src/sim/acces.ts`).
+- Décors des cartes : générés par code (canvas ou SVG), jamais de fichier image lourd ni de ressource réseau.
 
 ## Tests de non-régression
 

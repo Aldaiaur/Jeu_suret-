@@ -14,7 +14,7 @@ const erreurs: string[] = [];
 page.on('pageerror', e => erreurs.push(e.message));
 page.on('console', m => { if (m.type() === 'error') erreurs.push(m.text()); });
 
-const capture = async (nom: string) => { await page.waitForTimeout(450); await page.screenshot({ path: new URL(nom + '.png', DOSSIER).pathname.replace(/^\/([A-Z]:)/, '$1') }); console.log('capture ' + nom); };
+const capture = async (nom: string) => { await page.waitForTimeout(700); await page.screenshot({ path: new URL(nom + '.png', DOSSIER).pathname.replace(/^\/([A-Z]:)/, '$1') }); console.log('capture ' + nom); };
 const jeu = (p: Page, code: string) => p.evaluate(code);
 
 await page.goto(URL_JEU);
@@ -73,6 +73,20 @@ await capture('14-zoom-selection');
 
 await page.keyboard.press('h');
 await capture('15-aide');
+await page.keyboard.press('h');
+
+// Vues régionales de chaque théâtre (biome, saison du mois)
+await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.zoom = null; s.phase = 'jeu'; s.criseCourante = null; s.theatres.LEVANT.crise = null; j.remplacer(s); j.majUi({ bilan: null }); })()`);
+await page.waitForTimeout(300);
+for (const t of ['METRO', 'EST', 'LIBYE', 'LEVANT', 'SAHEL', 'GUINEE', 'CORNE', 'INDOPAC']) {
+  await jeu(page, `window.__jeu.majUi({ selection: { kind: 'theatre', id: '${t}' } })`);
+  await capture('20-regional-' + t);
+}
+// Saisons marquées : pluies au Sahel (juillet), raspoutitsa et hiver à l'est, mousson à Djibouti
+for (const [t, tour, nom] of [['SAHEL', 6, 'sahel-pluies'], ['EST', 3, 'est-raspoutitsa'], ['EST', 12, 'est-hiver'], ['CORNE', 7, 'corne-mousson'], ['LEVANT', 7, 'levant-chaleur']] as const) {
+  await jeu(page, `(() => { const j = window.__jeu; const s = structuredClone(j.etat); s.tour = ${tour}; j.remplacer(s); j.majUi({ selection: { kind: 'theatre', id: '${t}' } }); })()`);
+  await capture('21-saison-' + nom);
+}
 
 await navigateur.close();
 if (erreurs.length) { console.error('Erreurs dans la page :\n' + erreurs.join('\n')); process.exitCode = 1; }

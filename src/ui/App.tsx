@@ -8,6 +8,7 @@ import { BarreHaute } from './jeu/BarreHaute';
 import { PanneauGauche } from './jeu/PanneauGauche';
 import { PanneauDroit } from './jeu/PanneauDroit';
 import { CarteMonde } from './jeu/CarteMonde';
+import { VueRegionale } from './jeu/VueRegionale';
 import { Fiche } from './jeu/Fiche';
 import { Fenetres } from './jeu/Fenetres';
 import { VueZoom } from './jeu/VueZoom';
@@ -44,6 +45,7 @@ function Jeu() {
         <PanneauGauche />
         <main className="centre">
           <CarteMonde />
+          {ui.selection?.kind === 'theatre' && <VueRegionale theatre={ui.selection.id} />}
           <Fiche />
         </main>
         <PanneauDroit />

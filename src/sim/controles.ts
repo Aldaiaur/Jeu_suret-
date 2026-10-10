@@ -1,6 +1,6 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
-  AL, ALLIES, CARTES_REGIONALES, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
+  AL, ALLIES, BIOMES, CARTES_REGIONALES, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
   OPERATIONS, SERVICES, TH, THEATRES, TYPES_CAPTEURS, UN, UNITES
 } from '../data';
 import type { Effets, Etat } from './types';
@@ -32,7 +32,21 @@ export function verifierDonnees(): string[] {
   ids(THEATRES, 'THEATRES'); ids(UNITES, 'UNITES'); ids(SERVICES, 'SERVICES'); ids(MENACES, 'MENACES'); ids(EVENEMENTS, 'EVENEMENTS'); ids(ALLIES, 'ALLIES');
   const th = (t: string) => TH[t] !== undefined;
   for (const T of THEATRES) for (const v of T.voisins) { if (!th(v)) err.push('Théâtre ' + T.id + ' : voisin inconnu ' + v); else if (!TH[v].voisins.includes(T.id)) err.push('Théâtre ' + T.id + ' : liaison non réciproque avec ' + v); }
-  for (const T of THEATRES) if (T.carteRegionale && !CARTES_REGIONALES[T.carteRegionale]) err.push('Théâtre ' + T.id + ' : carte régionale inconnue');
+  for (const T of THEATRES) {
+    const C = CARTES_REGIONALES[T.carteRegionale];
+    if (!C) err.push('Théâtre ' + T.id + ' : carte régionale inconnue');
+    else if (C.theatre !== T.id) err.push('Théâtre ' + T.id + ' : la carte ' + C.id + ' appartient à ' + C.theatre);
+    // Saisons : chaque mois appartient à exactement une saison
+    for (let m = 0; m < 12; m++) {
+      const n = T.saisons.filter(x => x.mois.includes(m)).length;
+      if (n !== 1) err.push('Théâtre ' + T.id + ' : le mois ' + m + ' appartient à ' + n + ' saison(s)');
+    }
+    for (const sa of T.saisons) {
+      for (const m of sa.mois) if (!(Number.isInteger(m) && m >= 0 && m <= 11)) err.push('Théâtre ' + T.id + '/' + sa.id + ' : mois invalide ' + m);
+      for (const t in (sa.effets.croissance || {})) if (!MT[t]) err.push('Théâtre ' + T.id + '/' + sa.id + ' : menace inconnue ' + t);
+      for (const c in (sa.effets.pression || {})) if (!CATEGORIES[c as keyof typeof CATEGORIES]) err.push('Théâtre ' + T.id + '/' + sa.id + ' : catégorie inconnue ' + c);
+    }
+  }
   for (const u of UNITES) { for (const t of u.theatres) if (!th(t)) err.push('Unité ' + u.id + ' : théâtre inconnu ' + t); if (!CATEGORIES[u.categorie]) err.push('Unité ' + u.id + ' : catégorie inconnue'); if (u.depart && !u.theatres.includes(u.depart)) err.push('Unité ' + u.id + ' : théâtre de départ non accessible'); }
   for (const sv of SERVICES) { for (const t of sv.theatres) if (!th(t)) err.push('Service ' + sv.id + ' : théâtre inconnu ' + t); for (const t in sv.affectationInitiale) if (!sv.theatres.includes(t)) err.push('Service ' + sv.id + ' : affectation hors périmètre ' + t); }
   for (const m of MENACES) { for (const t of m.theatresDepart.concat(m.expansion)) if (!th(t)) err.push('Menace ' + m.id + ' : théâtre inconnu ' + t); for (const t in m.alimentePar) if (!MT[t]) err.push('Menace ' + m.id + ' : alimentation par type inconnu ' + t); }
@@ -64,6 +78,18 @@ export function verifierDonnees(): string[] {
     for (const [a, b] of C.liens) if (!L[a] || !L[b]) err.push('Carte ' + id + ' : lien vers un lieu inconnu ' + a + '-' + b);
     for (const sc of C.scenarios) for (const o of sc.objectifs) if (o.lieu && !L[o.lieu]) err.push('Carte ' + id + ' : objectif sur lieu inconnu ' + o.lieu);
     if (C.lieux.length < 8 || C.lieux.length > 12) err.push('Carte ' + id + ' : 8 à 12 lieux attendus');
+    if (C.id !== id) err.push('Carte ' + id + ' : identifiant incohérent');
+    if (!TH[C.theatre] || TH[C.theatre].carteRegionale !== id) err.push('Carte ' + id + ' : théâtre inconnu ou non rattaché ' + C.theatre);
+    if (!BIOMES[C.biome]) err.push('Carte ' + id + ' : biome inconnu ' + C.biome);
+    for (const c of C.forcesCrise) if (!CATEGORIES[c]) err.push('Carte ' + id + ' : catégorie inconnue ' + c);
+    if (!C.scenarios.length) err.push('Carte ' + id + ' : au moins un scénario de crise attendu');
+    if (C.zoomCrise) {
+      if (!C.forcesCrise.length) err.push('Carte ' + id + ' : forces de crise attendues');
+      if ((L[C.depart] as { controle?: string } | undefined)?.controle !== 'allie') err.push('Carte ' + id + ' : le lieu de départ doit être allié');
+      for (const sc of C.scenarios) if (!sc.objectifs.length) err.push('Carte ' + id + '/' + sc.id + ' : objectifs attendus');
+    }
+    for (const l of C.lieux) if ((l.controle === 'ennemi') !== (l.force !== null)) err.push('Carte ' + id + '/' + l.id + ' : force attendue pour un lieu adverse seulement');
+    for (const sc of C.scenarios) for (const k in sc.modifs) if (!L[k]) err.push('Carte ' + id + '/' + sc.id + ' : modification d’un lieu inconnu ' + k);
   }
   return err;
 }

@@ -2,7 +2,7 @@
 import { CARTES_REGIONALES, TH, UN } from '../data';
 import type { ActionZoom, CarteRegionaleDef, Etat, ObjectifEtat, Zoom, ZoomLieu } from './types';
 import { alea, aleaEntre, aleaInt, borner, choisir } from './outils';
-import { bonusTheatre, coutMult, decider, journaliser, unitesDans } from './acces';
+import { bonusTheatre, coutMult, decider, journaliser, saisonDu, unitesDans } from './acces';
 import { calculerRens } from './renseignement';
 import type { MoyensCrise } from './evaluation';
 import { appliquerEffets, avancerFile, nettoyerMenaces } from './evenements';
@@ -36,8 +36,11 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
       revele: L.controle !== 'ennemi' || alea(s) < rens / 100, estimee: null, marge: Math.max(5, Math.round((100 - rens) / 3)), dispersion: 0, frappe: false };
   }
   const reserve = Math.round(aleaEntre(s, C.reserveEnnemie[0], C.reserveEnnemie[1]));
-  const frappesMax = unitesDans(s, theatre).filter(u => u.cap.frappe >= 5 && u.categorie !== 'FS').length + bonusTheatre(s, theatre).frappesZoom;
-  const recosMax = 1 + unitesDans(s, theatre).filter(u => u.cap.renseignement >= 8).length + bonusTheatre(s, theatre).recosZoom;
+  const sa = saisonDu(theatre, s.tour).effets;
+  // La saison réduit les frappes disponibles sans jamais supprimer la dernière
+  const frappesBase = C.frappes ? moy.frappe.length + bonusTheatre(s, theatre).frappesZoom : 0;
+  const frappesMax = frappesBase > 0 ? Math.max(1, frappesBase + (sa.frappesZoom || 0)) : 0;
+  const recosMax = Math.max(1, 1 + unitesDans(s, theatre).filter(u => u.cap.renseignement >= 8).length + bonusTheatre(s, theatre).recosZoom + (sa.recosZoom || 0));
   s.zoom = {
     carte: C.id, theatre, scenario: sc.id, titre: sc.titre, semaine: 1, maxSemaines: 6, lieux,
     unites: fsIds.map(id => ({ id, lieu: C.depart, blesse: false, aAgi: false })),
