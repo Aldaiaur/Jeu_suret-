@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AL, MOIS, NB_TOURS, TH, THEATRES, UNITES } from '../../data';
-import { appuiDef, coutsMensuels, dateDuTour, instantane, probaVote, type Action } from '../../sim';
+import { appuiDef, coutsMensuels, dateDuTour, instantane, probaVote, soutienTheatre, type Action } from '../../sim';
 import { procedure } from '../../sim';
 import { usePartie, type OngletDroit } from '../contexte';
 import { pct } from '../format';
@@ -47,6 +47,11 @@ function Situation() {
     if (e.etat === 'projection') ech.push([e.compteur, <>{u.nom} arrive sur {TH[e.theatre!].court} dans {e.compteur} mois</>, '']);
     if (e.etat === 'deployee' && e.fatigue >= 75) ech.push([0, <>{u.nom} : fatigue {Math.round(e.fatigue)}, relève à prévoir</>, 'rouge']);
     for (const p of u.indisponibilites || []) if (p.debut > s.tour && p.debut - s.tour <= 3) ech.push([p.debut - s.tour, <>{u.nom} : arrêt technique dans {p.debut - s.tour} mois</>, 'ambre']);
+  }
+  for (const c of s.chaines) { const dans = Math.max(1, c.tour - s.tour); ech.push([dans, <>Suite d’un dossier attendue dans {dans} mois</>, '']); }
+  for (const T of THEATRES) {
+    const sout = Object.values(s.unites).some(e => e.theatre === T.id) ? soutienTheatre(s, T.id) : null;
+    if (sout && sout.ratio < 1) ech.push([0, <>Soutien insuffisant ({T.court}) : {sout.demande} / {sout.capacite}, efficacité réduite</>, 'rouge']);
   }
   const prevu = s.ressources.budget + s.ressources.enveloppe - coutsMensuels(s);
   if (prevu < 0) ech.push([0, <>Dépassement budgétaire prévu : {prevu.toFixed(1)} M€</>, 'rouge']);

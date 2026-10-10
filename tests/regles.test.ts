@@ -40,3 +40,18 @@ describe('score', () => {
     expect(Math.round(sc.domaines.reduce((a, d) => a + d.poids, 0) * 100)).toBe(100);
   });
 });
+
+describe('campagne de la route du Fezzan', () => {
+  it('enchaîne les dossiers selon les choix', () => {
+    let s = M.forcerEvenement(depart(), 'ROUTE_SIGNAL');
+    expect(s.evenementCourant).toBe('ROUTE_SIGNAL');
+    s = M.appliquerAction(s, { type: 'CHOIX', index: 0 });
+    expect(s.chaines.some(c => c.id === 'ROUTE_FILIERE')).toBe(true);
+    for (let i = 0; i < 2; i++) {
+      s = M.finDeTour({ ...s, file: s.file.filter(f => f.kind === 'evenement' && f.id.startsWith('ROUTE')), phase: 'jeu', evenementCourant: null });
+      while (s.phase === 'evenement' && s.evenementCourant !== 'ROUTE_FILIERE') s = M.appliquerAction(s, M.actionsPossibles(s)[0]);
+      if (s.evenementCourant === 'ROUTE_FILIERE') break;
+    }
+    expect(s.evenementCourant).toBe('ROUTE_FILIERE');
+  });
+});
