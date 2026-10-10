@@ -54,3 +54,16 @@ export const PARAMS_TACTIQUE = {
   menaceInfiltration: 55,  // niveau de menace du théâtre à partir duquel l’adversaire s’étend
   surcoutPenurie: 1.25     // multiplicateur de coût quand le soutien est insuffisant (affrètement)
 };
+
+// ---------------------------------------------------------------------
+// FRICTIONS : un aléa par semaine pendant une intervention de crise (une chance sur deux à partir
+// de la semaine 2). Elles obligent à adapter le plan sans allonger la partie. // À VÉRIFIER (équilibrage)
+// ---------------------------------------------------------------------
+export interface FrictionDef { id: string; nom: string; texte: string }
+export const FRICTIONS: FrictionDef[] = [
+  { id:'TEMPETE', nom:'Mauvais temps', texte:'Vents de sable ou plafond bas : une frappe et une reconnaissance de moins cette semaine.' },
+  { id:'SOURCE', nom:'Une source se manifeste', texte:'Un informateur livre la position adverse la plus importante encore inconnue.' },
+  { id:'ENGINS', nom:'Engins explosifs sur les axes', texte:'Chaque déplacement de détachement risque d’être touché cette semaine (une chance sur quatre).' },
+  { id:'RALLIEMENT', nom:'Ralliement de combattants locaux', texte:'Des notables rallient les forces partenaires : forces locales +10 et une offensive locale de plus.' },
+  { id:'EXODE', nom:'Exode de civils', texte:'Une partie des habitants fuit la position adverse la plus peuplée : moins de risques pour les civils.' }
+];

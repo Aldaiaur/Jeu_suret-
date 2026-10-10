@@ -580,3 +580,19 @@
 .barre-haute-fin .pastille { max-width: 170px; overflow: hidden; text-overflow: ellipsis; display: inline-block; line-height: 20px; }
 .fiche-onglets { margin: 2px 0 14px; position: sticky; top: -1px; z-index: 2; background: var(--surface); }
 .ligne-action-texte > div:first-child { flex-wrap: wrap; column-gap: 2px; }
+
+/* ---------- Intervention de crise : intention adverse, friction, étoiles ---------- */
+.zoom-intention { padding: 10px 12px; border-radius: var(--rayon); background: var(--ambre-fond); border-left: 3px solid var(--ambre); font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.zoom-intention.danger { background: var(--rouge-fond); border-left-color: var(--rouge); }
+.zoom-intention-p { font-size: 12.5px; }
+.zoom-friction { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; max-width: 80%; padding: 8px 14px; border-radius: 999px; background: rgba(20, 26, 32, 0.92); border: 1px solid var(--ambre); color: var(--texte); font-size: 13px; box-shadow: var(--ombre); }
+.zoom-friction b { color: var(--ambre); }
+.zoom-fleche line { stroke: #ff5a5f; stroke-width: 3; stroke-dasharray: 8 5; animation: fleche-adverse 1.2s linear infinite; }
+.zoom-fleche text { fill: #ffb3b5; font: 700 13px var(--police-chiffres); paint-order: stroke; stroke: #0a0e12; stroke-width: 4px; }
+@keyframes fleche-adverse { to { stroke-dashoffset: -26; } }
+.lieu-menace { fill: none; stroke: #ff5a5f; stroke-width: 2.5; stroke-dasharray: 4 4; animation: pulse-menace 1.4s ease-in-out infinite; }
+@keyframes pulse-menace { 50% { opacity: 0.35; } }
+.etoiles { display: flex; align-items: center; gap: 6px; margin: 0 0 14px; font-size: 30px; color: var(--trait-2); }
+.etoiles .pleine { color: var(--ambre); text-shadow: 0 0 12px rgba(240, 180, 60, 0.45); }
+.etoiles .discret { margin-left: 10px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .zoom-fleche line, .lieu-menace { animation: none; } }

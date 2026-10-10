@@ -1,5 +1,5 @@
 // Zoom régional : moteur générique piloté par CARTES_REGIONALES (1 tour local = 1 semaine).
-import { CARTES_REGIONALES, TH, UN } from '../data';
+import { CARTES_REGIONALES, FRICTIONS, TH, UN } from '../data';
 import { unitesDe } from './acces';
 import type { ActionZoom, CarteRegionaleDef, Etat, ObjectifEtat, Zoom, ZoomLieu } from './types';
 import { alea, aleaEntre, aleaInt, borner, choisir } from './outils';
@@ -52,9 +52,10 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
     frappesMax, frappes: frappesMax, recosMax, recos: recosMax, appui: 1,
     forceLocale: Math.round(C.forceLocale.force + th.partenaire * 0.5), reserve,
     forceInitiale: total + reserve, rens, evacuesParLieu: {},
-    stats: { pertes: 0, collat: 0, neutralises: 0, evacues: 0 }, journal: []
+    stats: { pertes: 0, collat: 0, neutralises: 0, evacues: 0 }, journal: [], intention: null, friction: null
   };
   majEstimationsZoom(s);
+  planifierAdversaire(s);
   s.zoom.journal.unshift('Semaine 1 — Activation de la cellule de crise : ' + sc.titre + '.');
   s.phase = 'zoom';
   decider(s, 'Intervention décidée : ' + sc.titre + ' (' + C.nom + ').');
@@ -125,7 +126,9 @@ export function actZoom(s: Etat, a: ActionZoom): void {
     case 'Z_DEPLACER': {
       const unit = z.unites.find(u => u.id === a.unite)!;
       unit.lieu = a.vers; unit.aAgi = true;
-      J(UN[unit.id].nom + ' se porte sur ' + nomLieu(z, a.vers) + '.');
+      let t = UN[unit.id].nom + ' se porte sur ' + nomLieu(z, a.vers) + '.';
+      if (z.friction === 'ENGINS' && !unit.blesse && alea(s) < 0.25) { unit.blesse = true; z.stats.pertes++; t += ' Un engin explosif touche le convoi : le détachement est diminué.'; }
+      J(t);
       break;
     }
     case 'Z_RECO': {
@@ -234,31 +237,24 @@ function reactionAdverse(s: Etat): void {
       J('À ' + nomLieu(z, id) + ', l’adversaire se disperse parmi la population.');
     }
   }
-  // Contre-attaque (au plus une par semaine)
-  const attaquants = ids.filter(id => z.lieux[id].controle === 'ennemi' && z.lieux[id].force >= 25)
-    .filter(id => voisinsLieu(C, id).some(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart))
-    .sort((a, b) => z.lieux[b].force - z.lieux[a].force);
-  if (attaquants.length && alea(s) < 0.6) {
-    const src = attaquants[0], A = z.lieux[src];
-    const cibles = voisinsLieu(C, src).filter(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart);
-    const defVal = (v: string) => z.lieux[v].defense + (z.lieux[v].controle === 'allie' ? z.forceLocale * 0.3 : 0) + z.unites.filter(u => u.lieu === v && !u.blesse).length * 10;
-    const tgt = cibles.sort((a, b) => defVal(a) - defVal(b))[0];
-    const M = z.lieux[tgt];
-    const p = borner(0.5 + (A.force * 0.8 - defVal(tgt)) / 80, 0.05, 0.9);
+  // Contre-attaque annoncée la semaine précédente (au plus une par semaine)
+  const it = z.intention;
+  if (it && z.lieux[it.source].controle === 'ennemi' && z.lieux[it.source].force >= 15 && z.lieux[it.cible].controle !== 'ennemi') {
+    const A = z.lieux[it.source], M = z.lieux[it.cible], p = probaContreAttaque(s, it.source, it.cible);
     if (alea(s) < p) {
       M.controle = 'ennemi'; M.force = Math.round(A.force * 0.5); M.revele = true; M.marge = 10;
       A.force = Math.round(A.force * 0.5);
       z.forceLocale = Math.max(0, z.forceLocale - 5);
-      for (const u of z.unites.filter(u => u.lieu === tgt)) {
+      for (const u of z.unites.filter(u => u.lieu === it.cible)) {
         u.lieu = C.depart;
         if (alea(s) < 0.3) { u.blesse = true; z.stats.pertes++; }
       }
-      J('Contre-attaque adverse depuis ' + nomLieu(z, src) + ' : ' + nomLieu(z, tgt) + ' tombe.');
+      J('Contre-attaque adverse depuis ' + nomLieu(z, it.source) + ' : ' + nomLieu(z, it.cible) + ' tombe.');
     } else {
       A.force = Math.max(0, A.force - 6);
-      J('Contre-attaque adverse sur ' + nomLieu(z, tgt) + ' repoussée.');
+      J('Contre-attaque adverse sur ' + nomLieu(z, it.cible) + ' repoussée.');
     }
-  }
+  } else if (it) J('L’attaque annoncée sur ' + nomLieu(z, it.cible) + ' n’a pas lieu : l’adversaire n’en a plus les moyens.');
   // Détection passive
   for (const id of ids) {
     const l = z.lieux[id];
@@ -268,7 +264,51 @@ function reactionAdverse(s: Etat): void {
   }
   for (const u of z.unites) u.aAgi = false;
   z.frappes = z.frappesMax; z.recos = z.recosMax; z.appui = 1;
+  tirerFriction(s);
   majEstimationsZoom(s);
+  planifierAdversaire(s);
+}
+
+// Défense d'un lieu face à une contre-attaque : fortifications, forces locales, détachements présents
+function defenseLieu(s: Etat, id: string): number {
+  const z = s.zoom!, l = z.lieux[id];
+  return l.defense + (l.controle === 'allie' ? z.forceLocale * 0.3 : 0) + z.unites.filter(u => u.lieu === id && !u.blesse).length * 10;
+}
+export function probaContreAttaque(s: Etat, source: string, cible: string): number {
+  return borner(0.5 + (s.zoom!.lieux[source].force * 0.8 - defenseLieu(s, cible)) / 80, 0.05, 0.9);
+}
+// L'adversaire annonce son intention pour la fin de la semaine : le joueur peut renforcer la cible,
+// frapper ou attaquer la source. C'est le cœur tactique de l'intervention.
+function planifierAdversaire(s: Etat): void {
+  const z = s.zoom!, C = CARTES_REGIONALES[z.carte];
+  z.intention = null;
+  const sources = C.lieux.map(l => l.id).filter(id => z.lieux[id].controle === 'ennemi' && z.lieux[id].force >= 25)
+    .filter(id => voisinsLieu(C, id).some(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart))
+    .sort((a, b) => z.lieux[b].force - z.lieux[a].force);
+  if (!sources.length || alea(s) >= 0.75) return;
+  const src = sources[0];
+  const cibles = voisinsLieu(C, src).filter(v => z.lieux[v].controle !== 'ennemi' && v !== C.depart).sort((a, b) => defenseLieu(s, a) - defenseLieu(s, b));
+  z.intention = { source: src, cible: cibles[0] };
+}
+function tirerFriction(s: Etat): void {
+  const z = s.zoom!, C = CARTES_REGIONALES[z.carte];
+  z.friction = null;
+  if (alea(s) >= 0.5) return;
+  const F = choisir(s, FRICTIONS);
+  z.friction = F.id;
+  const J = (t: string) => z.journal.unshift('Semaine ' + (z.semaine + 1) + ' — ' + t);
+  const ennemis = C.lieux.map(l => l.id).filter(id => z.lieux[id].controle === 'ennemi');
+  if (F.id === 'TEMPETE') { z.frappes = Math.max(0, z.frappes - 1); z.recos = Math.max(0, z.recos - 1); }
+  if (F.id === 'SOURCE') {
+    const cible = ennemis.filter(id => !z.lieux[id].revele).sort((a, b) => z.lieux[b].force - z.lieux[a].force)[0];
+    if (cible) { z.lieux[cible].revele = true; z.lieux[cible].marge = 8; }
+  }
+  if (F.id === 'RALLIEMENT') { z.forceLocale += 10; z.appui++; }
+  if (F.id === 'EXODE') {
+    const cible = ennemis.filter(id => z.lieux[id].civils > 0).sort((a, b) => z.lieux[b].civils - z.lieux[a].civils)[0];
+    if (cible) z.lieux[cible].civils--;
+  }
+  J(F.nom + ' : ' + F.texte);
 }
 export function objectifsZoom(s: Etat): ObjectifEtat[] {
   const z = s.zoom!, C = CARTES_REGIONALES[z.carte], sc = C.scenarios.find(x => x.id === z.scenario)!;
@@ -295,8 +335,9 @@ function terminerZoom(s: Etat, anticipe: boolean): void {
   for (const u of z.unites) s.unites[u.id].fatigue = borner(s.unites[u.id].fatigue + 15 + (u.blesse ? 10 : 0), 0, 100);
   s.stats.pertes += z.stats.pertes; s.stats.collat += z.stats.collat;
   if (r >= 0.5) s.stats.crisesReussies++;
+  const etoiles = (r === 1 ? 1 : 0) + (z.stats.pertes === 0 ? 1 : 0) + (z.stats.collat === 0 ? 1 : 0);
   s.dernierBilan = { titre: z.titre, theatre: z.theatre, semaines: Math.min(z.semaine, z.maxSemaines), anticipe, objectifs: obj, taux: r,
-    stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res };
+    stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res, etoiles };
   const txt = 'Bilan — ' + z.titre + ' : ' + obj.filter(o => o.atteint).length + '/' + obj.length + ' objectifs, ' + z.stats.pertes + ' perte(s), ' + z.stats.collat + ' incident(s) collatéral(aux).';
   decider(s, txt); journaliser(s, txt, r >= 0.5 ? 'succes' : 'alerte');
   // Retour à la situation du théâtre : contrôle et activité adverse issus de l'intervention

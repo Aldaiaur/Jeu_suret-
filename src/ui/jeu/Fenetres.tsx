@@ -193,6 +193,12 @@ function FenetreBilanZoom({ b }: { b: BilanZoom }) {
   return (
     <Fenetre tampon="Retour d’expérience" ton={b.taux >= 0.5 ? 'turquoise' : 'rouge'} titre={b.titre} sousTitre={b.semaines + ' semaine(s) d’engagement' + (b.anticipe ? ' · retrait décidé' : '')}
       pied={<button className="btn principal grand" onClick={fermer}>Retour à la carte stratégique</button>}>
+      {b.etoiles !== undefined && (
+        <div className="etoiles" data-tip={'Une étoile par critère : tous les objectifs atteints, aucune perte, aucune victime civile.'}>
+          {[0, 1, 2].map(i => <span key={i} className={i < b.etoiles ? 'pleine' : ''}>★</span>)}
+          <span className="discret petit">{['Mission manquée', 'Mission accomplie de justesse', 'Belle opération', 'Opération exemplaire'][b.etoiles]}</span>
+        </div>
+      )}
       <div className="objectifs">
         {b.objectifs.map((o, i) => <div key={i} className={'objectif ' + (o.atteint ? 'ok' : 'ko')}><span>{o.atteint ? '✓' : '✕'}</span>{o.texte}</div>)}
       </div>

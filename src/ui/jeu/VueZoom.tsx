@@ -1,7 +1,7 @@
 // Zoom régional : intervention semaine par semaine sur une carte géographique réelle.
 import { useMemo } from 'react';
-import { CARTES_REGIONALES, UN } from '../../data';
-import { evaluerActionZoom, nomLieu, objectifsZoom, saisonDu, type ActionZoom } from '../../sim';
+import { CARTES_REGIONALES, FRICTIONS, UN } from '../../data';
+import { evaluerActionZoom, nomLieu, objectifsZoom, probaContreAttaque, saisonDu, type ActionZoom } from '../../sim';
 import { FondRegional, projectionRegionale, type Cadre } from '../composants/FondRegional';
 import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../composants/Saison';
 import { usePartie } from '../contexte';
@@ -38,7 +38,9 @@ export function VueZoom() {
   const z = s.zoom!, C = CARTES_REGIONALES[z.carte];
   const sc = C.scenarios.find(x => x.id === z.scenario)!;
   const lieuxObj = sc.objectifs.filter(o => o.lieu).map(o => o.lieu!);
-  const objectifs = objectifsZoom(s);
+  const objectifs = objectifsZoom(s), tousAtteints = objectifs.every(o => o.atteint);
+  const it = z.intention, pAttaque = it ? probaContreAttaque(s, it.source, it.cible) : 0, sourceVue = it ? z.lieux[it.source].revele : false;
+  const friction = z.friction ? FRICTIONS.find(f => f.id === z.friction) : null;
 
   const proj = useMemo(() => projectionRegionale(C, CADRE), [C]);
   const saison = saisonDu(z.theatre, s.tour), effetsSaison = decrireSaison(saison.effets);
@@ -71,7 +73,9 @@ export function VueZoom() {
           <div data-tip={saison.description + (effetsSaison.length ? '\n' + effetsSaison.join('\n') : '')}><span className="jauge-lib">Saison</span><b className="zoom-saison" style={{ color: COULEUR_SAISON[saison.visuel] }}><IconeSaison visuel={saison.visuel} taille={15} /> {saison.nom}</b></div>
         </div>
         <div className="zoom-boutons">
-          <button className="btn danger" onClick={() => jouer({ type: 'Z_RETRAIT' })}>Mettre fin à l’intervention</button>
+          {tousAtteints
+            ? <button className="btn principal" onClick={() => jouer({ type: 'Z_RETRAIT' })} data-tip="Tous les objectifs sont atteints : conclure maintenant épargne vos hommes et les civils.">Objectifs atteints : conclure</button>
+            : <button className="btn danger" onClick={() => jouer({ type: 'Z_RETRAIT' })} data-tip="Se retirer maintenant : les objectifs non atteints comptent comme des échecs.">Mettre fin à l’intervention</button>}
           <button className="btn principal grand" onClick={() => jouer({ type: 'Z_SEMAINE' })} data-tip="L’adversaire réagit, puis la semaine suivante commence. (Entrée)">Semaine suivante <span className="touche">↵</span></button>
         </div>
       </header>
@@ -85,6 +89,14 @@ export function VueZoom() {
             <span className={'etat ' + (u.blesse ? 'etat-indisponible' : u.aAgi ? 'etat-regeneration' : 'etat-disponible')}>{u.blesse ? 'diminué' : u.aAgi ? 'a agi' : 'prêt'}</span>
           </button>
         ))}
+        <h3 className="titre-section" style={{ marginTop: 18 }}>Ce que prépare l’adversaire</h3>
+        {it ? (
+          <div className={'zoom-intention ' + (pAttaque >= 0.5 ? 'danger' : '')}>
+            <b>Attaque annoncée sur {nomLieu(z, it.cible)}</b>{sourceVue ? <> depuis {nomLieu(z, it.source)}</> : <> (origine non identifiée)</>}
+            <div className="zoom-intention-p">Chances de succès adverse : <b className="chiffres">{Math.round(pAttaque * 100)} %</b></div>
+            <div className="discret petit">Pour la contrer : placez un détachement sur {nomLieu(z, it.cible)} (+10 de défense){sourceVue ? <>, ou frappez et attaquez {nomLieu(z, it.source)} pour l’affaiblir</> : <>, ou reconnaissez les positions voisines pour trouver d’où elle part</>}.</div>
+          </div>
+        ) : <p className="discret petit">Aucune attaque annoncée cette semaine : profitez-en pour prendre l’initiative.</p>}
         <h3 className="titre-section" style={{ marginTop: 18 }}>Objectifs</h3>
         {objectifs.map((o, i) => <div key={i} className={'objectif ' + (o.atteint ? 'ok' : 'attente')}><span>{o.atteint ? '✓' : '○'}</span>{o.texte}</div>)}
         <div className="stats-mini">
@@ -96,10 +108,19 @@ export function VueZoom() {
       </aside>
 
       <div className="zoom-carte" onClick={() => majUi({ zoomLieu: null, zoomUnite: null })}>
+        {friction && <div className="zoom-friction" data-tip={friction.texte}><b>Semaine {z.semaine} · {friction.nom}</b> — {friction.texte}</div>}
         <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque" aria-hidden="true"><FondRegional C={C} cadre={CADRE} projection={proj} /></svg>
         <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque" aria-hidden="true"><EffetSaison visuel={saison.visuel} L={L} H={H} prefixe={'zm-' + C.id} /></svg>
         <svg viewBox={`0 0 ${L} ${H}`} preserveAspectRatio="xMidYMid meet" className="calque">
           {C.liens.map(([a, b]) => <line key={a + b} x1={pos[a][0]} y1={pos[a][1]} x2={pos[b][0]} y2={pos[b][1]} className="zoom-lien" />)}
+          <defs><marker id="fleche-adverse" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a5f" /></marker></defs>
+          {it && sourceVue && (() => {
+            const [x1, y1] = pos[it.source], [x2, y2] = pos[it.cible], d = Math.hypot(x2 - x1, y2 - y1) || 1, k = (d - 26) / d;
+            return <g className="zoom-fleche" data-tip={'Attaque annoncée : ' + nomLieu(z, it.source) + ' → ' + nomLieu(z, it.cible) + '\nChances de succès adverse : ' + Math.round(pAttaque * 100) + ' %'}>
+              <line x1={x1 + (x2 - x1) * 0.12} y1={y1 + (y2 - y1) * 0.12} x2={x1 + (x2 - x1) * k} y2={y1 + (y2 - y1) * k} markerEnd="url(#fleche-adverse)" />
+              <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 8} textAnchor="middle">{Math.round(pAttaque * 100)} %</text>
+            </g>;
+          })()}
           {C.lieux.map(Ld => {
             const l = z.lieux[Ld.id], [x, y] = pos[Ld.id];
             const sel = selL === Ld.id, obj = lieuxObj.includes(Ld.id), cible = cibles.has(Ld.id);
@@ -112,6 +133,7 @@ export function VueZoom() {
               <g key={Ld.id} transform={`translate(${x},${y})`} className={'lieu ctrl-' + l.controle + (sel ? ' sel' : '')} data-tip={tip}
                 onClick={ev => { ev.stopPropagation(); majUi({ zoomLieu: Ld.id, zoomUnite: null }); }} {...activable(() => majUi({ zoomLieu: Ld.id, zoomUnite: null }), Ld.nom)}>
                 {cible && <circle r={26} className="lieu-cible" />}
+                {it && it.cible === Ld.id && <circle r={30} className="lieu-menace" />}
                 {obj && <circle r={22} className="lieu-objectif" />}
                 <g className="lieu-forme">{forme}</g>
                 {l.controle === 'ennemi' && <text y={4} textAnchor="middle" className="lieu-force">{l.revele ? l.estimee : '?'}</text>}

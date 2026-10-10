@@ -76,6 +76,10 @@ await page.waitForTimeout(400);
 await capture('13-zoom');
 await page.click('.detachement', { force: true });
 await capture('14-zoom-selection');
+await jeu(page, `window.__jeu.majUi({ zoomUnite: null })`);
+await jeu(page, `window.__jeu.jouer({ type: 'Z_SEMAINE' })`);
+await page.waitForTimeout(300);
+await capture('14-zoom-semaine2');
 
 await page.keyboard.press('h');
 await capture('15-aide');

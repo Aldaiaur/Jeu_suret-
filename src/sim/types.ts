@@ -335,6 +335,8 @@ export interface Zoom {
   evacuesParLieu: Record<string, number>;
   stats: StatsZoom;
   journal: string[];
+  intention: { source: string; cible: string } | null;   // attaque adverse annoncée pour la fin de la semaine
+  friction: string | null;                                // aléa de la semaine (FRICTIONS)
 }
 
 export interface ObjectifEtat { texte: string; atteint: boolean }
@@ -342,6 +344,7 @@ export interface ObjectifEtat { texte: string; atteint: boolean }
 export interface BilanZoom {
   titre: string; theatre: string; semaines: number; anticipe: boolean;
   objectifs: ObjectifEtat[]; taux: number; stats: StatsZoom; baisseMenace: number; effets: string[];
+  etoiles: number;                  // objectifs tous atteints, aucune perte, aucune victime civile
 }
 
 export interface Score { domaines: { nom: string; valeur: number; poids: number }[]; total: number; mention: string }
