@@ -125,7 +125,7 @@ Le prototype est écrit pour la France. Il faut le généraliser :
 | Phase | Contenu | Critère de sortie |
 |---|---|---|
 | 0 ✅ | Migration du prototype en TypeScript, tests en ligne de commande, nouvelle interface, tutoriel | Parties de référence rejouées à l’identique |
-| 1 | France généralisée (modèle `nation`) et robot testeur | Une partie complète jouable et équilibrée par le robot |
+| 1 (en cours) | France généralisée (modèle `nation`) et robot testeur. Faits : cartes régionales, saisons, tactique, identité des forces, robot prudent | Une partie complète jouable et équilibrée par le robot |
 | 2 | Royaume-Uni, la nation la plus proche de la France | Prouve que le modèle est générique |
 | 3 | Monde partagé avec nations IA | Les 6 nations coexistent, dont 5 pilotées par l'IA |
 | 4 | États-Unis et Israël jouables | |
