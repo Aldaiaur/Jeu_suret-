@@ -103,3 +103,42 @@ Lecture : facile et difficile atteignent la cible fixée ; le mode normal reste 
 - **Art** (reporté par le propriétaire) : illustrations des matériels, portraits, insignes, écran d’accueil ; liste dans `docs/illustrations.md`. Les dessins actuels sont des substituts tracés par code.
 - **Sons** : les sons synthétisés sont des substituts sobres ; une banque sonore réelle pourra les remplacer dans `src/ui/sons.ts`.
 - **Validation** : noms des personnages fictifs (homonymies), valeurs « À VÉRIFIER », ressemblance des insignes avec des insignes officiels.
+
+## 10 octobre 2026 — troisième session (branche `dev`)
+
+Consigne du propriétaire : « rattacher les unités, les services, etc. à chaque nation, créer d’abord les nations les plus complètes, approfondir la tension et prendre la meilleure décision ». Décisions détaillées dans `docs/game-design.md` (« Décisions de la troisième session »). Chaque étape passe `npm test`, `npm run typecheck`, `npm run build`, les captures et le parcours du tutoriel. `main` n’a pas été touchée.
+
+### Ce qui a été fait
+
+| Commit | Contenu |
+|---|---|
+| `dd47edc` | **Modèle nation complet et Royaume-Uni jouable.** Tout ce qui distingue une nation est en données ; catalogue mondial à identifiants uniques ; accesseurs dans la simulation et l’interface ; contrôle de cohérence par nation. Royaume-Uni : territoire et carte, 28 unités, quatre services, trois doctrines, convention parlementaire, relation spéciale, opération cyber, 11 personnages, 20 dossiers, 17 matériels. |
+| `0e67953` | **Démarrage** : l’écran de jeu est chargé à part. Premier chargement 2,28 Mo → 490 ko ; accueil interactif 1 459 → 578 ms (processeur ralenti ×4). |
+| `13b2671` | **Israël jouable** : six théâtres propres et leurs cartes, cinq menaces, 22 unités, quatre services, Cabinet de sécurité, campagne entre les guerres, partenaires (États-Unis, Égypte, Jordanie, Russie), 10 personnages, 18 dossiers, 13 matériels ; carte du monde recadrée ; fronts tolérés par l’opinion en données. |
+
+### Tension tranchée : taille du paquet
+
+Le jeu visera Steam (bureau), où le réseau compte peu ; mais l’analyse et l’exécution de 2,2 Mo de JavaScript retardaient l’accueil. Mesure avant de décider : le découpage divise par 2,5 le temps d’accueil sans ralentir l’arrivée sur la carte (préchargement pendant la lecture). Retenu. Écarté : une carte du monde moins détaillée (perte visuelle) et le remplacement de milsymbol (travail lourd pour un gain marginal).
+
+### Chiffres d’équilibre (robot prudent, 45 parties par nation)
+
+| Nation | Facile | Normal | Difficile | Ensemble | Score moyen |
+|---|---|---|---|---|---|
+| France | 0 % | 6,7 % | 33,3 % | 13,3 % | 59,9 |
+| Royaume-Uni | 0 % | 6,7 % | 26,7 % | 11,1 % | 60,0 |
+| Israël | 0 % | 13,3 % | 33,3 % | 15,6 % | 59,9 |
+
+Israël était d’abord trop facile (0 % de défaites) : quatre fois moins d’attaques que la France et un renseignement trop fort. Recalage : croissance et seuils de ses menaces frontalières, capteurs et efficacité des services, et un trait national (au-delà de deux fronts, l’opinion se lasse). Les parties de référence de la France ne changent qu’en libellés du journal (régénérées une fois, tours, issues et scores identiques).
+
+### Ce qui reste à faire
+
+- **Phase 3, monde partagé** : faire jouer les autres nations par l’IA dans le même état mondial.
+- **Russie et Chine** : jauges propres (exposition et déni plausible ; légitimité du Parti), fiches de recherche à compléter. **États-Unis** : fiche à refaire.
+- **Dossiers partagés** : les dossiers liés aux menaces communes (Daech, piraterie, Russie) sont écrits par nation ; un auteur désigné par sa fonction permettrait de les partager.
+- **Tutoriel** du Royaume-Uni et d’Israël.
+
+### Ce qui demande une intervention humaine
+
+- **Art** : 16 matériels utilisent provisoirement la silhouette d’un autre (`docs/illustrations.md`), portraits, insignes, drapeaux.
+- **Relecture sensible** du contenu israélien (Gaza, Liban, Iran) et des dossiers britanniques par un connaisseur, et vérification des noms fictifs contre des homonymes réels.
+- **Recherche** : la fiche du Royaume-Uni a été rédigée de mémoire ; ses chiffres sont à vérifier.

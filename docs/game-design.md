@@ -47,6 +47,7 @@ Pour chaque nation, la **mécanique signature** est le cœur du gameplay. Les d�
 - **Renseignement :** MI6, MI5, GCHQ, Defence Intelligence.
 - **Signature :** **effet de levier.** Une masse militaire limitée, mais un accès privilégié aux États-Unis (*Five Eyes*, relation spéciale). Une partie de la puissance se joue en influence sur le jeu américain.
 - **Fronts :** Levant, flanc est (présence avancée), territoire (terrorisme et Irlande du Nord), Atlantique Nord.
+- **Jouable** (`src/data/royaume-uni.ts`) : 28 unités sans porte-avions, MI6, MI5, GCHQ, DI, convention parlementaire, relation spéciale, 20 dossiers.
 
 ### Russie
 - **Rôle :** Conseil de sécurité de la Fédération.
@@ -67,7 +68,8 @@ Pour chaque nation, la **mécanique signature** est le cœur du gameplay. Les d�
 - **Contrainte :** **coalition gouvernementale.** Chaque décision lourde peut faire tomber le gouvernement. S'y ajoutent le soutien américain (aide militaire, couverture diplomatique) et l'opinion internationale.
 - **Renseignement :** Mossad, Shin Bet, Aman (dont l'unité 8200).
 - **Signature :** **fronts simultanés et délais très courts.** Excellent renseignement, réaction en heures plutôt qu'en mois. Doctrine de « campagne entre les guerres » : frappes limitées pour retarder l'adversaire sans déclencher de guerre ouverte. Le programme nucléaire iranien est la toile de fond (accord de Vienne en juillet 2015).
-- **Fronts :** Liban (Hezbollah), Syrie, Gaza, Cisjordanie, Iran (à distance), Sinaï.
+- **Fronts :** Liban (Hezbollah), Syrie, Gaza, Iran (à distance), Sinaï. La Cisjordanie n’est pas un théâtre du jeu.
+- **Jouable** (`src/data/israel.ts`) : six théâtres propres, 22 unités, Mossad, Shin Bet, Aman, Cabinet de sécurité, campagne entre les guerres, 18 dossiers.
 
 ## 4. Acteurs non jouables
 
@@ -120,20 +122,24 @@ Le prototype est écrit pour la France. Il faut le généraliser :
 - **Théâtres mondiaux :** le graphe actuel de 8 théâtres passe à environ 25-30 théâtres. Les cartes régionales de zoom sont réutilisées.
 - **Traductions :** tous les textes dans des fichiers de langue (français et anglais au lancement).
 
-### 7 bis. Avancement du modèle `nation` (phase 1)
+### 7 bis. Modèle `nation` (fait)
 
-- `src/data/nations.ts` décrit chaque nation jouable et sa **procédure d’emploi de la force** (`ProcedureDef` : durée avant vote, poids du vote, débat préalable, effets d’une autorisation ou d’un refus, textes). Le moteur (`procedure(s)` dans `src/sim/acces.ts`) l’interprète ; l’état de partie porte `nation`.
-- Reste à faire : rattacher unités, services, alliés, doctrines et personnages à la nation (aujourd’hui ceux de la France), puis écrire `GBR` à partir de `nation-GBR.md` (convention parlementaire, vote préalable).
+- Une nation est une entrée de `NATIONS` (`src/data/nations.ts`) : théâtres de la partie, territoire, bases prépositionnées, unités, services, alliés et relations initiales, opérations, doctrines, procédure d’emploi de la force (avec catégories exemptées), effet de levier éventuel sur un allié, nombre de fronts tolérés par l’opinion, cadre de la carte du monde, devise, libellés, briefing.
+- Le monde est un **catalogue partagé** à identifiants uniques : théâtres, cartes régionales, menaces, alliés, opérations. Une menace n’apparaît que si son théâtre de départ fait partie de la partie ; les services qui la renseignent sont listés pour toutes les nations.
+- La simulation et l’interface passent par des accesseurs (`unitesDe`, `theatresDe`, `alliesDe`, `operationsDe`, `doctrinesDe`, `territoire`, `devise`). Un dossier n’est proposé qu’à la nation de son auteur.
+- `verifierDonnees` contrôle chaque nation : références, au moins 15 dossiers, un service capable de renseigner chaque menace de ses théâtres.
+- Nations jouables : **France**, **Royaume-Uni**, **Israël**. Le tutoriel suit la campagne de la France.
+- Prochaine étape (phase 3) : le monde partagé, où les autres nations jouent avec la même simulation.
 
 ## 8. Feuille de route
 
 | Phase | Contenu | Critère de sortie |
 |---|---|---|
 | 0 ✅ | Migration du prototype en TypeScript, tests en ligne de commande, nouvelle interface, tutoriel | Parties de référence rejouées à l’identique |
-| 1 (en cours) | France généralisée (modèle `nation`) et robot testeur. Faits : cartes régionales, saisons, tactique, identité des forces, robot prudent | Une partie complète jouable et équilibrée par le robot |
-| 2 | Royaume-Uni, la nation la plus proche de la France | Prouve que le modèle est générique |
+| 1 ✅ | France généralisée (modèle `nation`) et robot testeur. Cartes régionales, saisons, tactique, identité des forces, robot prudent | Une partie complète jouable et équilibrée par le robot |
+| 2 ✅ | Royaume-Uni, puis Israël (avancé de la phase 4 : fiche de recherche la plus complète, aucun théâtre commun avec la France) | Prouve que le modèle est générique |
 | 3 | Monde partagé avec nations IA | Les 6 nations coexistent, dont 5 pilotées par l'IA |
-| 4 | États-Unis et Israël jouables | |
+| 4 | États-Unis jouables (fiche de recherche à refaire) | |
 | 5 | Russie et Chine jouables (systèmes politiques les plus différents) | |
 | 6 | Campagnes, graphismes, Steam (accès anticipé ?) | |
 
@@ -187,6 +193,16 @@ Une fois déployée, une unité se commande sur la carte régionale (`src/sim/ta
 5. **Difficulté** : cible pour un joueur méthodique (robot prudent) ≈ 0-5 % de défaites en facile, ≈ 15 % en normal, ≈ 30 % en difficile.
 6. **Score** : un domaine « Contrôle du terrain » (part des lieux non tenus par l’adversaire sur les théâtres d’intervention) récompense le travail tactique.
 7. Les autres décisions de la première session (cinq théâtres à crises sur carte, lieux russes et chinois en lecture seule, coefficients saisonniers, capacités de soutien, devises fictives, caractéristiques « À VÉRIFIER ») sont maintenues.
+
+## Décisions de la troisième session (10 octobre 2026, « prendre la meilleure décision »)
+
+1. **Modèle nation** : catalogue mondial partagé, identifiants uniques, listes de la partie tirées de la nation. Préféré à une copie des données par nation (doublons) et à un état global mutable (rejouabilité). Il prépare le monde partagé de la phase 3.
+2. **Nations créées d’abord** : le Royaume-Uni (proche de la France, mêmes théâtres) puis Israël (fiche la plus complète). Russie et Chine attendent : leurs systèmes politiques demandent des jauges propres (exposition, légitimité du Parti) et leurs fiches sont moins fournies. Les États-Unis attendent une fiche refaite.
+3. **Royaume-Uni** : vote des Communes dès le premier mois, forces spéciales exemptées ; effet de levier sur les États-Unis (+12 points, un point de capital et de relation de moins par demande).
+4. **Israël** : le Cabinet de sécurité avalise les engagements terrestres durables ; frappes, forces spéciales et marine en sont exemptées (campagne entre les guerres). Gaza, le Liban, la Syrie et l’Iran se résolvent hors carte : pas de bataille tactique dans des quartiers peuplés ; toute frappe sur un lieu habité a un coût civil. L’Iran n’est frappable que par une décision politique (opération « Frappe préventive »). La Cisjordanie n’est pas un théâtre du jeu.
+5. **Monnaies** : chaque nation affiche la sienne (M€, M£, M ILS) sur une échelle de jeu commune ; les coûts ne sont pas convertis.
+6. **Chargement** : l’écran de jeu (carte du monde, milsymbol) est un morceau séparé, préchargé pendant l’accueil. Accueil interactif en 0,58 s au lieu de 1,46 s (processeur ralenti ×4) ; arrivée sur la carte inchangée.
+7. **Équilibre** visé et atteint pour les trois nations (robot prudent) : 0 % en facile, 7 à 13 % en normal, 27 à 33 % en difficile.
 
 ## Décisions de la première session (historique)
 
