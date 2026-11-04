@@ -7,7 +7,7 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import monde from 'world-atlas/countries-50m.json';
 import { CATEGORIES, MT, TH } from '../../data';
 import { nation, theatresDe, unitesDe, voisinsDe } from '../../sim';
-import { appuiDef, fiabilite, saisonDu, type Etat } from '../../sim';
+import { appuiDef, fiabilite, horlogeVisible, saisonDu, type Etat } from '../../sim';
 import { COULEUR_SAISON } from '../composants/Saison';
 import { AL } from '../../data';
 import { usePartie } from '../contexte';
@@ -197,16 +197,20 @@ function Marqueur({ id, pos, k }: { id: string; pos: [number, number]; k: number
   const frac = m ? m.estimation! / 100 : 0;
   const compo = Object.keys(CATEGORIES).map(c => [c, dep.filter(u => u.categorie === c).length] as const).filter(x => x[1]);
   const nbM = s.menaces.filter(x => x.theatre === id && x.detectee).length;
+  // Menace dont la préparation est presque achevée (horloge lisible par nos services)
+  const imminente = s.menaces.filter(x => x.theatre === id).map(x => ({ x, h: horlogeVisible(s, x) })).find(o => o.h?.precise && o.h.niveau >= o.h.duree - 1);
   const tip = T.nom + '\nMenace estimée : ' + (m ? m.estimation + ' ± ' + m.marge + ' (' + MT[m.type].nom + ')' : 'aucune détectée') +
     '\nMenaces identifiées : ' + nbM + '\nRenseignement : ' + th.rens + ' (fiabilité ' + fiabilite(th.rens) + ')' +
     '\nForces déployées : ' + dep.length + (proj ? ' (+' + proj + ' en route)' : '') + '\nCapacité partenaire : ' + th.partenaire +
     th.appuis.map(a => '\n' + AL[a.allie].nom + ' : ' + appuiDef(a.allie, a.appui).nom + ' (' + a.tours + ' mois)').join('') +
-    (th.crise ? '\nCRISE : ' + th.crise.titre : '') + '\nSaison : ' + saisonDu(id, s.tour).nom + '\n(cliquer pour la carte régionale)';
+    (th.crise ? '\nCRISE : ' + th.crise.titre : '') + (imminente ? '\nAction imminente : ' + MT[imminente.x.type].nom + ' (' + imminente.h!.niveau + '/' + imminente.h!.duree + ')' : '') +
+    '\nSaison : ' + saisonDu(id, s.tour).nom + '\n(cliquer pour la carte régionale)';
   const sa = saisonDu(id, s.tour);
   return (
     <g transform={`translate(${pos[0]},${pos[1]}) scale(${1 / k})`} className={'marqueur' + (sel ? ' sel' : '')} data-tip={tip} data-tuto={ui.selection?.kind === 'theatre' ? undefined : 'theatre-' + id}
       onClick={ev => { ev.stopPropagation(); majUi({ selection: { kind: 'theatre', id } }); }} {...activable(() => majUi({ selection: { kind: 'theatre', id } }), T.nom + ', menace estimée ' + (m ? m.estimation : 'inconnue'))}>
       {th.crise && <circle r={R + 4} className="onde" style={{ stroke: 'var(--rouge)' }} />}
+      {imminente && !th.crise && <g transform={`translate(${-R + 1},${-R + 1})`} className="marqueur-imminent"><circle r={7} /><text y={3.5} textAnchor="middle">!</text></g>}
       {sel && <circle r={R + 10} fill={col} opacity={0.25} filter="url(#lueur)" />}
       <circle r={R + 3} className="marqueur-fond" />
       <circle r={R} fill="none" stroke="var(--trait-2)" strokeWidth={3} />

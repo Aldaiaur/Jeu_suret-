@@ -110,6 +110,7 @@ export const NATION_ISR: NationDef = {
   // Chaque front tenu mobilise des réservistes : l’opinion se lasse au-delà de deux fronts (choix de conception)
   frontsToleres: 2,
   cadre: [24, 22, 62, 40],
+  roles: { chef: 'ISR_PM', defense: 'ISR_DEF', diplomatie: 'ISR_NSC', interieur: 'ISR_SHINBET', rens_ext: 'ISR_MOSSAD', rens_int: 'ISR_SHINBET', etat_major: 'ISR_CEMG', securite: 'ISR_NSC', cyber: 'ISR_AMAN' },
   briefing: {
     date: 'Tel-Aviv, le 15 janvier 2015',
     diffusion: 'Très secret',

@@ -32,6 +32,11 @@ prototype/  Maquette HTML d'origine, conservée comme référence. Ne pas modifi
 - Pas de `Math.random()` dans `src/sim/` : utiliser `alea(s)`, sinon les parties ne sont plus rejouables.
 - `verifierDonnees()` doit rester vide : toute référence croisée dans les données y est contrôlée. Ajouter un contrôle quand on ajoute un nouveau type de référence.
 - Nations : tout ce qui distingue une nation jouable est dans `NATIONS` (`src/data/nations.ts`, une fiche par nation : `france.ts`, `royaume-uni.ts`, `israel.ts`) : théâtres, territoire, bases, unités, services, alliés, opérations, doctrines, procédure d’emploi de la force, briefing. Le monde (théâtres, menaces, cartes, alliés, opérations) est un catalogue partagé à identifiants uniques. Dans `src/sim` et `src/ui`, ne jamais parcourir un catalogue global pour jouer : passer par `unitesDe(s)`, `servicesDe(s)`, `theatresDe(s)`, `alliesDe(s)`, `operationsDe(s)`, `doctrinesDe(s)`, `territoire(s)`, `devise(s)`. Un événement n’est proposé qu’à la nation de son `auteur`.
+- Monde partagé : les puissances non jouées (`src/data/puissances.ts`) décident chaque mois de leurs engagements (`src/sim/monde.ts`, `deciderPuissances`). Leur pression passe par `pressionPuissances`, leur effet sur la croissance par `croissancePuissances`, la coopération par `coalition` et `bonusCoalition`. Une puissance alliée partage la relation de l’allié correspondant : lire et modifier son attitude par `attitude` et `modifierAttitude`, jamais directement.
+- Horloges de menace : une menace proche de son seuil prépare une action (`m.horloge`, `PARAMS.preparationAttaque`) ; l’interface n’en montre que ce que voient les services (`horlogeVisible`).
+- Objectifs de mandat (`src/sim/mandat.ts`) : fixés en janvier sur les estimations des services, évalués en décembre sur les valeurs réelles.
+- Conseiller du mois (`src/sim/conseiller.ts`) : lecture seule, sans aléatoire, à partir de ce que voit le joueur.
+- Interventions : le terrain d’un lieu (`terrainDuLieu`, `TERRAINS`) se déclare dans la carte (`terrain:`) ou se déduit du type et du biome ; chaque intervention propose un objectif secondaire facultatif (`SECONDAIRES`).
 - Chaque théâtre a une carte régionale et des saisons déclarées en données ; un effet saisonnier passe par les accesseurs `saisonDu`, `multPression`, `multFatigue`, `multCout`, `multCroissance` (`src/sim/acces.ts`).
 - Décors des cartes : générés par code (canvas ou SVG), jamais de fichier image lourd ni de ressource réseau.
 
@@ -48,6 +53,7 @@ Quand une évolution **volontaire** des règles ou des données change ces parti
 - Les pertes civiles sont toujours un coût, jamais une stratégie récompensée. Les attentats en métropole restent génériques.
 - Les valeurs non sourcées portent le commentaire `// À VÉRIFIER (...)`. Les résultats de recherche arrivent dans `docs/recherche/resultats/`.
 - Chaque événement a un `auteur` (personnage fictif de `personnages.ts`) qui présente le dossier avec son ton, sa formule d'ouverture et sa signature.
+- Dossiers partagés (`src/data/dossiers-partages.ts`) : l’auteur est une fonction (`@defense`, `@rens_ext`…, voir `RoleAuteur`) que chaque nation associe à son responsable (`roles` de la fiche nation). Le dossier n’est proposé qu’aux nations qui possèdent tout ce qu’il cite, et à celles de sa liste `nations` le cas échéant. Dans le texte, `{auteur}`, `{fonction}` et `{territoire}` sont remplacés ; l’interface lit l’auteur par `auteurDe` et le texte par `texteDossier`.
 - Images : dessinées par code uniquement ; tout besoin d'art réel ou d'image générée est noté dans `docs/illustrations.md` (les images générées par IA doivent être déclarées à Steam).
 
 ## Style

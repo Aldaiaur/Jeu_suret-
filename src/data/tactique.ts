@@ -67,3 +67,40 @@ export const FRICTIONS: FrictionDef[] = [
   { id:'RALLIEMENT', nom:'Ralliement de combattants locaux', texte:'Des notables rallient les forces partenaires : forces locales +10 et une offensive locale de plus.' },
   { id:'EXODE', nom:'Exode de civils', texte:'Une partie des habitants fuit la position adverse la plus peuplée : moins de risques pour les civils.' }
 ];
+
+// ---------------------------------------------------------------------
+// TERRAINS des lieux en intervention de crise. Modificateurs lisibles d'un coup d'œil :
+// raid (puissance du raid), frappe (dégâts ×), collat (risque civil ×), defense (contre une contre-attaque),
+// recoMarge (marge d'estimation après reconnaissance). Valeurs de conception. // À VÉRIFIER (équilibrage)
+// ---------------------------------------------------------------------
+export type TerrainId = 'urbain' | 'desert' | 'montagne' | 'foret' | 'marais' | 'plaine' | 'littoral';
+export interface TerrainDef { id: TerrainId; nom: string; raid: number; frappe: number; collat: number; defense: number; recoMarge: number; description: string }
+export const TERRAINS: Record<TerrainId, TerrainDef> = {
+  urbain:   { id: 'urbain',   nom: 'Ville',               raid: -10, frappe: 0.7,  collat: 1.5, defense: 10, recoMarge: 8,  description: 'Défense facilitée, frappes moins efficaces et risque élevé pour les civils.' },
+  desert:   { id: 'desert',   nom: 'Désert découvert',    raid: 0,   frappe: 1.25, collat: 0.6, defense: 0,  recoMarge: 4,  description: 'Rien pour se cacher : frappes efficaces, positions faciles à reconnaître.' },
+  montagne: { id: 'montagne', nom: 'Montagne',            raid: -12, frappe: 0.8,  collat: 0.7, defense: 12, recoMarge: 8,  description: 'Grottes et crêtes : raids difficiles, position solide.' },
+  foret:    { id: 'foret',    nom: 'Forêt et broussaille', raid: -6, frappe: 0.75, collat: 0.8, defense: 6,  recoMarge: 10, description: 'Couvert dense : reconnaissance et frappes moins précises.' },
+  marais:   { id: 'marais',   nom: 'Marais et mangrove',  raid: -8,  frappe: 0.85, collat: 0.9, defense: 4,  recoMarge: 9,  description: 'Mobilité réduite, positions mal connues.' },
+  plaine:   { id: 'plaine',   nom: 'Plaine et steppe',    raid: 0,   frappe: 1,    collat: 1,   defense: 0,  recoMarge: 5,  description: 'Terrain sans effet particulier.' },
+  littoral: { id: 'littoral', nom: 'Littoral',            raid: -2,  frappe: 1,    collat: 1,   defense: 2,  recoMarge: 5,  description: 'Accès par la mer ; terrain sans autre effet.' }
+};
+// Terrain par défaut d'un lieu hors ville, selon le biome de la carte
+export const TERRAIN_BIOME: Record<string, TerrainId> = {
+  desert_reg: 'desert', steppe_fluviale: 'plaine', collines_levant: 'montagne', littoral_desert: 'desert', mangrove_littoral: 'marais',
+  littoral_aride: 'desert', foret_plaine: 'foret', urbain_bocage: 'plaine', archipel_ocean: 'littoral'
+};
+
+// ---------------------------------------------------------------------
+// OBJECTIFS SECONDAIRES : une occasion facultative par intervention, révélée dès l'ouverture.
+// Ne pas la saisir ne coûte rien ; la réussir rapporte un effet stratégique.
+// ---------------------------------------------------------------------
+export type TypeSecondaire = 'otage' | 'chef' | 'depot';
+export interface SecondaireDef { id: TypeSecondaire; titre: string; texte: string; consigne: string; recompense: { opinion?: number; credibilite?: number; menace?: number; rens?: number; reserve?: number } }
+export const SECONDAIRES: SecondaireDef[] = [
+  { id: 'otage', titre: 'Un journaliste retenu', texte: 'Un journaliste occidental serait détenu à {lieu}.', consigne: 'Évacuer depuis {lieu} (lieu repris ou adversaire réduit à 10).',
+    recompense: { opinion: 4, credibilite: 2 } },
+  { id: 'chef', titre: 'Un chef adverse localisé', texte: 'Une source situe un chef de l’adversaire à {lieu}.', consigne: 'Réussir un raid sur {lieu}.',
+    recompense: { menace: -8, rens: 6 } },
+  { id: 'depot', titre: 'Un dépôt d’armes repéré', texte: 'Un dépôt d’armes et de munitions a été repéré à {lieu}.', consigne: 'Frapper {lieu} ou y réussir un raid : les renforts adverses diminuent aussitôt.',
+    recompense: { menace: -5, reserve: -10 } }
+];

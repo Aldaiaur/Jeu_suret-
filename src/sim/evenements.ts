@@ -1,5 +1,7 @@
 // Événements : conditions de tirage, application des effets, file des événements et crises.
-import { AL, EV, MT, PERS, TH, UN } from '../data';
+import { AL, EV, MT, NATIONS, PUI, TH, UN } from '../data';
+import { dossierDeNation } from './dossiers';
+import { attitude, modifierAttitude } from './monde';
 import { devise, unitesDe } from './acces';
 import type { Action, Effets, Etat, EvenementDef } from './types';
 import { alea, borner } from './outils';
@@ -11,7 +13,7 @@ import { creerCrise } from './crises';
 export function conditionsRemplies(s: Etat, E: EvenementDef): boolean {
   const c = E.cond || {};
   if (c.chaine) return false;
-  if (PERS[E.auteur]?.pays !== s.nation) return false;   // chaque nation a ses dossiers, présentés par ses responsables
+  if (!dossierDeNation(NATIONS[s.nation] || NATIONS.FRA, E)) return false;   // dossiers de la nation, ou partagés si elle a tout ce qu’ils citent
   if ((s.compteurEvenements[E.id] || 0) >= (E.max || 1)) return false;
   if (c.tourMin !== undefined && s.tour < c.tourMin) return false;
   if (c.tourMax !== undefined && s.tour > c.tourMax) return false;
@@ -27,6 +29,16 @@ export function conditionsRemplies(s: Etat, E: EvenementDef): boolean {
   if (c.rensMin && s.theatres[c.rensMin.theatre]?.rens < c.rensMin.val) return false;
   if (c.relationMin && !(s.allies[c.relationMin.allie]?.relation >= c.relationMin.val)) return false;
   if (c.relationMax && !(s.allies[c.relationMax.allie]?.relation <= c.relationMax.val)) return false;
+  const cp = c.puissance;
+  if (cp) {
+    const P = s.monde.puissances[cp.id];
+    if (!P) return false;
+    const niveau = cp.theatre ? (P.engagements[cp.theatre] || 0) : Object.values(P.engagements).reduce((a, x) => a + x, 0);
+    if (cp.min !== undefined && niveau < cp.min) return false;
+    if (cp.max !== undefined && niveau > cp.max) return false;
+    if (cp.attitudeMin !== undefined && attitude(s, cp.id) < cp.attitudeMin) return false;
+    if (cp.attitudeMax !== undefined && attitude(s, cp.id) > cp.attitudeMax) return false;
+  }
   return true;
 }
 
@@ -39,7 +51,7 @@ export function appliquerEffets(s: Etat, e: Effets, res: string[]): string[] {
   if (e.enveloppe) { R.enveloppe = Math.max(20, R.enveloppe + e.enveloppe); res.push('Enveloppe mensuelle (' + devise(s) + ') ' + (e.enveloppe > 0 ? '+' : '') + e.enveloppe); }
   for (const x of (e.menace || [])) {
     const cands = s.menaces.filter(m => m.type === x.type && (!x.theatre || m.theatre === x.theatre)).sort((a, b) => b.force - a.force);
-    if (cands.length) cands[0].force = borner(cands[0].force + x.delta, 0, 100);
+    if (cands.length) { cands[0].force = borner(cands[0].force + x.delta, 0, 100); if (x.delta <= -5) cands[0].horloge = Math.max(0, cands[0].horloge - 1); }
   }
   for (const x of (e.rens || [])) { if (x.delta >= 10 && x.theatre && s.theatres[x.theatre]) s.theatres[x.theatre].rensPermanent += Math.round(x.delta / 2); if (s.theatres[x.theatre]) s.theatres[x.theatre].rensBonus += x.delta; res.push('Renseignement ' + TH[x.theatre].nom + ' ' + (x.delta > 0 ? '+' : '') + x.delta); }
   for (const x of (e.partenaire || [])) { if (s.theatres[x.theatre]) { s.theatres[x.theatre].partenaire = borner(s.theatres[x.theatre].partenaire + x.delta, 0, 60); res.push('Capacité partenaire ' + TH[x.theatre].nom + ' ' + (x.delta > 0 ? '+' : '') + x.delta); } }
@@ -59,6 +71,12 @@ export function appliquerEffets(s: Etat, e: Effets, res: string[]): string[] {
     if (theatre) menace = menacesDans(s, theatre).sort((a, b) => b.force - a.force)[0] || null;
     else { menace = s.menaces.filter(m => m.type === e.crise).sort((a, b) => b.force - a.force)[0] || null; theatre = menace ? menace.theatre : null; }
     if (theatre && menace) creerCrise(s, theatre, menace.id);
+  }
+  for (const x of (e.puissance || [])) {
+    const P = s.monde.puissances[x.id];
+    if (!P) continue;
+    if (x.theatre && x.delta) P.engagements[x.theatre] = borner((P.engagements[x.theatre] || 0) + x.delta, 0, 3);
+    if (x.attitude) { modifierAttitude(s, x.id, x.attitude); res.push('Attitude ' + PUI[x.id].nom + ' ' + (x.attitude > 0 ? '+' : '') + x.attitude); }
   }
   if (e.alea) {
     const ok = alea(s) < e.alea.p;

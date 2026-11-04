@@ -122,6 +122,7 @@ export const NATION_GBR: NationDef = {
     allie: 'USA', base: 0.12, capital: 1, relation: 1,
     description: 'Relation spéciale et Five Eyes : les demandes aux États-Unis aboutissent plus souvent (+12 points) et coûtent un point de capital et un point de relation de moins.'
   },
+  roles: { chef: 'GBR_PM', defense: 'GBR_DEF', diplomatie: 'GBR_FCO', interieur: 'GBR_HOME', rens_ext: 'GBR_SIS', rens_int: 'GBR_MI5', etat_major: 'GBR_CDS', securite: 'GBR_NSA', cyber: 'GBR_GCHQ' },
   briefing: {
     date: 'Londres, le 15 janvier 2015',
     diffusion: 'Diffusion restreinte',

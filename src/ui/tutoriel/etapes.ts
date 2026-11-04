@@ -79,5 +79,13 @@ export const ASTUCES: Astuce[] = [
   { id: 'penurie', titre: 'Soutien insuffisant', texte: 'Un théâtre dépasse sa capacité logistique : vos unités y perdent en efficacité et coûtent plus cher. Rapatriez une unité, annulez une mission, ou renforcez le soutien (A400M, ravitailleurs, escorte de convoi, transport allié).', cible: 'soutien',
     condition: s => s.phase === 'jeu' && Object.keys(s.theatres).some(t => Object.values(s.unites).some(e => e.theatre === t) && soutienTheatre(s, t).ratio < 1) },
   { id: 'actions-epuisees', titre: 'Plus d’action ce mois-ci', texte: 'Vous avez utilisé toutes vos actions. Vous pouvez encore réaffecter les capteurs, puis clôturer le mois.', cible: 'fin-tour',
-    condition: s => s.phase === 'jeu' && s.actionsRestantes === 0 && s.tour <= 3 }
+    condition: s => s.phase === 'jeu' && s.actionsRestantes === 0 && s.tour <= 3 },
+  { id: 'objectifs', titre: 'Objectifs de l’année', texte: 'Le chef de l’exécutif vous fixe trois objectifs, évalués en décembre. Tenus, ils rapportent du capital politique ; manqués, ils en coûtent. Un clic sur un objectif ouvre le théâtre concerné.', cible: 'objectifs',
+    condition: (s, ui) => s.phase === 'jeu' && ui.ongletDroit === 'situation' && s.mandat.objectifs.length > 0 && s.tour >= 1 },
+  { id: 'horloge', titre: 'Une menace prépare une action', texte: 'L’horloge sous la menace montre ses préparatifs. Quand elle est pleine, la menace frappe. Une opération réussie la fait reculer de deux crans ; une pression forte la ralentit.', cible: 'horloge',
+    condition: s => s.phase === 'jeu' && s.menaces.some(m => m.detectee && m.horloge >= 2) },
+  { id: 'monde', titre: 'Vous n’êtes pas seul', texte: 'Les autres puissances s’engagent elles aussi, selon leurs intérêts. Celles qui vous sont favorables forment une coalition (opérations plus sûres) ; d’autres attisent les menaces. L’onglet Monde résume leurs engagements.', cible: 'onglet-monde',
+    condition: s => s.phase === 'jeu' && Object.values(s.monde.puissances).some(p => p.mouvements.length > 0) },
+  { id: 'secondaire', titre: 'Une occasion à saisir', texte: 'Cette intervention offre un objectif facultatif, repéré par une étoile sur la carte. Le saisir rapporte un effet stratégique ; l’ignorer ne coûte rien. Le terrain de chaque lieu (ville, désert, montagne…) modifie raids, frappes et risques pour les civils.', cible: 'objectif-secondaire',
+    condition: s => s.phase === 'zoom' && !!s.zoom?.secondaire }
 ];

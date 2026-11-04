@@ -15,11 +15,9 @@ function Jauge({ lib, val, delta, inverse, tip, tuto, alerte }: PropsJauge) {
   const bon = delta !== null && delta !== 0 && ((delta > 0) !== !!inverse);
   return (
     <div className="jauge" data-tip={tip} data-tuto={tuto}>
-      <div className="jauge-haut">
-        <span className="jauge-lib">{lib}</span>
-        {delta !== null && delta !== 0 && <span className={'jauge-delta ' + (bon ? 'c-vert' : 'c-rouge')}>{delta > 0 ? '▲' : '▼'} {Math.abs(delta)}</span>}
-      </div>
-      <div className="jauge-val chiffres">{Math.round(val)}{alerte && <span className="c-rouge jauge-alerte">{alerte}</span>}</div>
+      <div className="jauge-haut"><span className="jauge-lib">{lib}</span></div>
+      <div className="jauge-val chiffres">{Math.round(val)}{alerte && <span className="c-rouge jauge-alerte">{alerte}</span>}
+        {delta !== null && delta !== 0 && <span className={'jauge-delta ' + (bon ? 'c-vert' : 'c-rouge')}>{delta > 0 ? '▲' : '▼'} {Math.abs(delta)}</span>}</div>
       <div className="barre"><i style={{ width: val + '%', background: `var(--${ton})` }} /></div>
     </div>
   );
@@ -90,6 +88,7 @@ function MenuJeu() {
       {ouvert && (
         <div className="menu-liste">
           {item('Catalogue des forces et matériels', () => majUi({ catalogue: true }))}
+          {item(ui.conseiller ? 'Conseiller du mois : affiché (masquer)' : 'Conseiller du mois : masqué (afficher)', () => majUi({ conseiller: !ui.conseiller }))}
           {item(reglageSon().actif ? 'Son : activé (couper)' : 'Son : coupé (activer)', () => { regler({ actif: !reglageSon().actif }); if (reglageSon().actif) jouerSon('clic'); })}
           {item('Taille de l’interface : ' + Math.round(echelleInterface() * 100) + ' % (changer)', () => { const e = echelleInterface(); regler_echelle(e < 1.05 ? 1.15 : e < 1.25 ? 1.3 : 1); })}
           {reglageSon().actif && item('Volume : ' + Math.round(reglageSon().volume * 100) + ' % (changer)', () => { const v = reglageSon().volume; regler({ volume: v < 0.3 ? 0.35 : v < 0.6 ? 0.7 : 0.15 }); jouerSon('ordre'); })}

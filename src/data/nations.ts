@@ -23,6 +23,7 @@ export const NATIONS: Record<string, NationDef> = {
     allies: { USA: 60, UK: 65, DEU: 65, ITA: 60, JPN: 55, AUS: 55, NGA: 50 },
     categories: { FS: 'Forces spéciales', INT: 'Sécurité intérieure', TERRE: 'Armée de Terre', AIR: 'Armée de l’Air', MER: 'Marine nationale' },
     briefing: BRIEFING_FRA,
+    roles: { chef: 'FRA_PR', defense: 'FRA_DEF', diplomatie: 'FRA_MAE', interieur: 'FRA_INT', rens_ext: 'FRA_DGSE', rens_int: 'FRA_DGSI', etat_major: 'FRA_CEMA', securite: 'FRA_SGDSN', cyber: 'FRA_ANSSI' },
     procedure: {
       nom: 'Article 35', institution: 'du Parlement',
       description: 'Au-delà de quatre mois, une intervention extérieure doit être autorisée par le Parlement. Un refus impose le retrait.',

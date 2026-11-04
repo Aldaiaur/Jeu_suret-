@@ -11,7 +11,7 @@ import { jouerSon, sonAction } from './sons';
 export type Selection = { kind: 'theatre' | 'unite' | 'service' | 'allie'; id: string };
 export type Ecran = 'accueil' | 'briefing' | 'jeu';
 export type OngletGauche = 'forces' | 'renseignement' | 'allies';
-export type OngletDroit = 'situation' | 'rapports' | 'journal';
+export type OngletDroit = 'situation' | 'monde' | 'rapports' | 'journal';
 export type OngletFiche = 'situation' | 'engager' | 'operations' | 'renseignement';
 
 export interface Toast { id: number; titre: string; texte: string; genre: 'info' | 'succes' | 'alerte' }
@@ -38,12 +38,16 @@ export interface UiEtat {
   ongletFiche: OngletFiche;        // onglet de la fiche d'un théâtre : situation, engager, opérations, renseignement
   transition: TransitionMois | null;
   retour: { cle: number; texte: string; unite: string | null } | null;
-  ficheRepliee: boolean;           // fiche de droite réduite à un onglet, pour dégager la carte   // confirmation brève du dernier ordre
+  ficheRepliee: boolean;           // fiche de droite réduite à un onglet, pour dégager la carte
+  conseiller: boolean;             // conseil du mois affiché (préférence mémorisée sur ce poste)
 }
+
+const CLE_CONSEILLER = 'redlines.conseiller';
+function lireConseiller(): boolean { try { return localStorage.getItem(CLE_CONSEILLER) !== 'non'; } catch { return true; } }
 
 const UI_INITIAL: UiEtat = {
   ecran: 'accueil', selection: null, apercu: null, bilan: null, aide: false, catalogue: false, debug: false, refMois: null,
-  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', ongletFiche: 'situation', transition: null, retour: null, ficheRepliee: false
+  zoomLieu: null, zoomUnite: null, uniteRegion: null, ongletGauche: 'forces', ongletDroit: 'situation', ongletFiche: 'situation', transition: null, retour: null, ficheRepliee: false, conseiller: true
 };
 
 interface Contexte {
@@ -92,6 +96,10 @@ export function FournisseurJeu({ children }: { children: ReactNode }) {
   }, []);
   const fermerToast = useCallback((id: number) => setToasts(l => l.filter(t => t.id !== id)), []);
 
+  // Préférence du conseiller : lue au démarrage, mémorisée à chaque changement
+  useEffect(() => { setUi(u => ({ ...u, conseiller: lireConseiller() })); }, []);
+  useEffect(() => { try { localStorage.setItem(CLE_CONSEILLER, ui.conseiller ? 'oui' : 'non'); } catch { /* stockage indisponible */ } }, [ui.conseiller]);
+
   // Sauvegarde automatique à chaque changement d'état
   useEffect(() => {
     try {
@@ -139,13 +147,13 @@ export function FournisseurJeu({ children }: { children: ReactNode }) {
 
   const lancer = useCallback((graine: string, difficulte: string, nation = 'FRA') => {
     setEtat(nouvellePartie(graine, difficulte, nation));
-    setUi({ ...UI_INITIAL, ecran: 'briefing' });
+    setUi(u => ({ ...UI_INITIAL, ecran: 'briefing', conseiller: u.conseiller }));
   }, []);
   const charger = useCallback((s: Etat) => {
     setEtat(migrerEtat(s));
-    setUi({ ...UI_INITIAL, ecran: s.phase === 'doctrine' ? 'briefing' : 'jeu' });
+    setUi(u => ({ ...UI_INITIAL, ecran: s.phase === 'doctrine' ? 'briefing' : 'jeu', conseiller: u.conseiller }));
   }, []);
-  const quitter = useCallback(() => { setEtat(null); setUi(UI_INITIAL); }, []);
+  const quitter = useCallback(() => { setEtat(null); setUi(u => ({ ...UI_INITIAL, conseiller: u.conseiller })); }, []);
   const remplacer = useCallback((s: Etat) => setEtat(s), []);
 
   const possibles = useMemo(() => (etat ? actionsPossibles(etat) : []), [etat]);

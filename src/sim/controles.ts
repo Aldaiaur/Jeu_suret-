@@ -1,11 +1,12 @@
 // Contrôles : cohérence des données, invariants de l'état, outils de débogage, simulation de parties.
 import {
   AL, ALLIES, BIOMES, CARTES_REGIONALES, NATIONS, PERS, IDENTITES, MAT, MATERIELS, MISSIONS, MOBILITE_HELICO, POSTURES, SOUTIEN_UNITE, CATEGORIES, ETATS_UNITE, EV, EVENEMENTS, MENACES, MT,
-  OP, OPERATIONS, TOUS_SERVICES, TOUTES_DOCTRINES, TOUTES_UNITES, TH, THEATRES, TYPES_CAPTEURS, UN
+  OP, OPERATIONS, PUI, PUISSANCES, TOUS_SERVICES, TOUTES_DOCTRINES, TOUTES_UNITES, TH, THEATRES, TYPES_CAPTEURS, UN
 } from '../data';
 import type { Effets, Etat, NationDef } from './types';
 import { cloner, graineVersEntier } from './outils';
 import { alliesDe, appuiDef, capteursLibres, journaliser, servicesDe, theatresDe, unitesDe } from './acces';
+import { dossierDeNation, estPartage, referencesHorsNation, roleDe, ROLES_AUTEUR } from './dossiers';
 import { actionsPossibles } from './actions';
 import { avancerFile } from './evenements';
 
@@ -61,14 +62,29 @@ export function verifierDonnees(): string[] {
     for (const x of (e.relation || [])) if (!AL[x.allie]) err.push(ou + ' : allié inconnu ' + x.allie);
     if (e.appui && (!AL[e.appui.allie] || !appuiDef(e.appui.allie, e.appui.appui))) err.push(ou + ' : appui inconnu');
     if (e.crise && !th(e.crise) && !MT[e.crise]) err.push(ou + ' : crise sur cible inconnue ' + e.crise);
+    for (const x of (e.puissance || [])) { if (!PUI[x.id]) err.push(ou + ' : puissance inconnue ' + x.id); if (x.theatre && !th(x.theatre)) err.push(ou + ' : théâtre inconnu ' + x.theatre); }
     if (e.alea) { verifEffets(e.alea.succes, ou); verifEffets(e.alea.echec, ou); }
   };
+  for (const P of PUISSANCES) {
+    for (const t of [...Object.keys(P.interets), ...Object.keys(P.depart)]) if (!th(t)) err.push('Puissance ' + P.id + ' : théâtre inconnu ' + t);
+    for (const m of [...Object.keys(P.contre), ...Object.keys(P.attise || {})]) if (!MT[m]) err.push('Puissance ' + P.id + ' : menace inconnue ' + m);
+    if (P.allie && !AL[P.allie]) err.push('Puissance ' + P.id + ' : allié inconnu ' + P.allie);
+    if (P.nation && !NATIONS[P.nation]) err.push('Puissance ' + P.id + ' : nation inconnue ' + P.nation);
+    if (Object.values(P.depart).reduce((a, x) => a + x, 0) > P.capacite) err.push('Puissance ' + P.id + ' : engagements de départ au-delà de sa capacité');
+  }
+  ids(PUISSANCES, 'PUISSANCES');
+  for (const N of Object.values(NATIONS)) for (const r of ROLES_AUTEUR) if (!PERS[N.roles[r]] || PERS[N.roles[r]].pays !== N.id) err.push('Nation ' + N.id + ' : fonction ' + r + ' sans personnage de la nation');
   for (const E of EVENEMENTS) {
     if (!E.choix || E.choix.length < 2 || E.choix.length > 3) err.push('Événement ' + E.id + ' : 2 ou 3 choix attendus');
     if (E.choix.every(c => c.requiert)) err.push('Événement ' + E.id + ' : au moins un choix doit être toujours possible');
     for (const c of E.choix) { verifEffets(c.effets, 'Événement ' + E.id); if (c.suite && !EV[c.suite]) err.push('Événement ' + E.id + ' : suite inconnue ' + c.suite); }
-    if (!PERS[E.auteur]) err.push('Événement ' + E.id + ' : auteur inconnu ' + E.auteur);
+    if (estPartage(E)) {
+      if (!ROLES_AUTEUR.includes(roleDe(E)!)) err.push('Événement ' + E.id + ' : fonction d’auteur inconnue ' + E.auteur);
+      for (const n of E.nations || []) if (!NATIONS[n]) err.push('Événement ' + E.id + ' : nation inconnue ' + n);
+      if (!Object.values(NATIONS).some(N => dossierDeNation(N, E))) err.push('Événement ' + E.id + ' : dossier partagé proposé à aucune nation');
+    } else if (!PERS[E.auteur]) err.push('Événement ' + E.id + ' : auteur inconnu ' + E.auteur);
     else if (!NATIONS[PERS[E.auteur].pays]) err.push('Événement ' + E.id + ' : l’auteur doit appartenir à une nation jouable');
+    if (E.cond?.puissance && !PUI[E.cond.puissance.id]) err.push('Événement ' + E.id + ' : puissance inconnue ' + E.cond.puissance.id);
     const k = E.cond || {};
     if (k.menace && !MT[k.menace.type]) err.push('Événement ' + E.id + ' : condition sur menace inconnue');
     for (const r of [k.relationMin, k.relationMax]) if (r && !AL[r.allie]) err.push('Événement ' + E.id + ' : condition sur allié inconnu');
@@ -129,7 +145,7 @@ export function verifierDonnees(): string[] {
 // Une nation ne référence que ses propres théâtres, forces, services et alliés ; ses dossiers aussi.
 function verifierNation(N: NationDef): string[] {
   const err: string[] = [], e = (m: string) => err.push('Nation ' + N.id + ' : ' + m);
-  const T = new Set(N.theatres), U = new Set(N.unites.map(u => u.id)), S = new Set(N.services.map(x => x.id)), A = new Set(Object.keys(N.allies));
+  const T = new Set(N.theatres), S = new Set(N.services.map(x => x.id)), A = new Set(Object.keys(N.allies));
   for (const t of N.theatres) if (!TH[t]) e('théâtre inconnu ' + t);
   if (!T.has(N.territoire) || TH[N.territoire]?.exterieur) e('territoire national invalide ' + N.territoire);
   for (const t of N.theatres) if (t !== N.territoire && !TH[t]?.exterieur) e('un seul théâtre intérieur attendu (' + t + ')');
@@ -147,26 +163,12 @@ function verifierNation(N: NationDef): string[] {
     const cles = Object.keys(m.servicesCles);
     if (m.theatresDepart.some(t => T.has(t)) && cles.length && !cles.some(sv => S.has(sv))) e('menace ' + m.id + ' : aucun service de la nation ne la renseigne');
   }
-  const verif = (x: Effets | undefined, ou: string): void => {
-    if (!x) return;
-    for (const k of ['rens', 'partenaire', 'pression'] as const) for (const y of (x[k] || [])) if (!T.has(y.theatre)) e(ou + ' : théâtre hors partie ' + y.theatre);
-    for (const y of (x.fatigue || [])) if (y.unite && !U.has(y.unite)) e(ou + ' : unité étrangère ' + y.unite);
-    if (x.indispo && !U.has(x.indispo.unite)) e(ou + ' : unité étrangère ' + x.indispo.unite);
-    for (const y of (x.relation || [])) if (!A.has(y.allie)) e(ou + ' : allié absent ' + y.allie);
-    if (x.appui && (!A.has(x.appui.allie) || !T.has(x.appui.theatre))) e(ou + ' : appui hors partie');
-    if (x.allie && !T.has(x.allie.theatre)) e(ou + ' : théâtre hors partie ' + x.allie.theatre);
-    if (x.crise && TH[x.crise] && !T.has(x.crise)) e(ou + ' : crise hors partie ' + x.crise);
-    if (x.alea) { verif(x.alea.succes, ou); verif(x.alea.echec, ou); }
-  };
-  const dossiers = EVENEMENTS.filter(E => PERS[E.auteur]?.pays === N.id);
+  // Dossiers propres : toute référence hors de la nation est une erreur ; dossiers partagés : ils sont simplement écartés
+  const propres = EVENEMENTS.filter(E => !estPartage(E) && PERS[E.auteur]?.pays === N.id);
+  const dossiers = EVENEMENTS.filter(E => dossierDeNation(N, E));
   if (dossiers.length < 15) e('au moins 15 dossiers attendus (' + dossiers.length + ')');
-  for (const E of dossiers) {
-    for (const c of E.choix) { verif(c.effets, 'dossier ' + E.id); if (c.suite && EV[c.suite] && PERS[EV[c.suite].auteur]?.pays !== N.id) e('dossier ' + E.id + ' : suite d’une autre nation'); }
-    const k = E.cond || {};
-    if (k.theatreDeploye && !T.has(k.theatreDeploye)) e('dossier ' + E.id + ' : condition hors partie');
-    if (k.rensMin && !T.has(k.rensMin.theatre)) e('dossier ' + E.id + ' : condition hors partie');
-    for (const r of [k.relationMin, k.relationMax]) if (r && !A.has(r.allie)) e('dossier ' + E.id + ' : condition sur allié absent');
-  }
+  for (const E of propres) for (const m of referencesHorsNation(N, E)) e('dossier ' + E.id + ' : ' + m);
+  for (const E of dossiers) for (const c of E.choix) if (c.suite && EV[c.suite] && !dossierDeNation(N, EV[c.suite])) e('dossier ' + E.id + ' : suite d’une autre nation');
   for (const id in CARTES_REGIONALES) {
     const C = CARTES_REGIONALES[id];
     if (!T.has(C.theatre)) continue;
@@ -182,6 +184,16 @@ export function verifierInvariants(s: Etat, complet: boolean): string[] {
   for (const k of ['opinion', 'capital', 'menaceInt', 'credibilite'] as const) if (!(R[k] >= 0 && R[k] <= 100)) err.push(k + ' hors bornes : ' + R[k]);
   for (const k of ['budget', 'enveloppe', 'surcout'] as const) if (!Number.isFinite(R[k])) err.push(k + ' invalide');
   for (const m of s.menaces) if (!(m.force > 0 && m.force <= 100)) err.push('force de menace invalide ' + m.id + ' : ' + m.force);
+  for (const m of s.menaces) if (!(m.horloge >= 0)) err.push('horloge invalide ' + m.id);
+  for (const id in s.monde.puissances) {
+    const P = PUI[id], e = s.monde.puissances[id].engagements;
+    if (!P) { err.push('puissance inconnue ' + id); continue; }
+    if (P.nation === s.nation) err.push('la nation jouée figure parmi les puissances');
+    if (Object.values(e).some(x => !(x >= 0 && x <= 3))) err.push('engagement hors bornes ' + id);
+    if (Object.values(e).reduce((a, x) => a + x, 0) > P.capacite) err.push('engagements au-delà de la capacité ' + id);
+    if (!(s.monde.puissances[id].attitude >= 0 && s.monde.puissances[id].attitude <= 100)) err.push('attitude invalide ' + id);
+  }
+  if (s.mandat.objectifs.length > 3) err.push('trop d’objectifs de mandat');
   for (const u of unitesDe(s)) {
     const e = s.unites[u.id];
     if (!ETATS_UNITE[e.etat]) err.push('état inconnu ' + u.id);

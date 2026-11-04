@@ -1,10 +1,11 @@
-// Drapeaux simplifiés des nations jouables, dessinés en SVG (aucune ressource externe).
-export type NationJouable = 'FRA' | 'USA' | 'GBR' | 'RUS' | 'CHN' | 'ISR';
+// Drapeaux simplifiés des nations jouables et des puissances du monde partagé, dessinés en SVG (aucune ressource externe).
+export type NationJouable = 'FRA' | 'USA' | 'GBR' | 'RUS' | 'CHN' | 'ISR' | 'IRN';
 
 export function Drapeau({ nation, taille = 14 }: { nation: NationJouable; taille?: number }) {
   const w = taille * 1.5, h = taille;
   const corps = (() => {
     switch (nation) {
+      case 'IRN': return <><rect width="30" height="6.67" fill="#239f40" /><rect y="6.67" width="30" height="6.67" fill="#fff" /><rect y="13.33" width="30" height="6.67" fill="#da0000" /><circle cx="15" cy="10" r="2" fill="none" stroke="#da0000" strokeWidth="0.8" /></>;
       case 'FRA': return <><rect width="10" height="20" fill="#0055a4" /><rect x="10" width="10" height="20" fill="#fff" /><rect x="20" width="10" height="20" fill="#ef4135" /></>;
       case 'RUS': return <><rect width="30" height="6.67" fill="#fff" /><rect y="6.67" width="30" height="6.67" fill="#0039a6" /><rect y="13.33" width="30" height="6.67" fill="#d52b1e" /></>;
       case 'CHN': return <><rect width="30" height="20" fill="#de2910" /><polygon points="5,2.5 5.9,5.2 8.7,5.2 6.4,6.8 7.3,9.5 5,7.9 2.7,9.5 3.6,6.8 1.3,5.2 4.1,5.2" fill="#ffde00" /></>;

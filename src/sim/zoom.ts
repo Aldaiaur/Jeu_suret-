@@ -1,5 +1,6 @@
 // Zoom régional : moteur générique piloté par CARTES_REGIONALES (1 tour local = 1 semaine).
-import { CARTES_REGIONALES, FRICTIONS, TH, UN } from '../data';
+import { CARTES_REGIONALES, FRICTIONS, SECONDAIRES, TERRAINS, TERRAIN_BIOME, TH, UN } from '../data';
+import type { TerrainDef } from '../data/tactique';
 import { unitesDe } from './acces';
 import type { ActionZoom, CarteRegionaleDef, Etat, ObjectifEtat, Zoom, ZoomLieu } from './types';
 import { alea, aleaEntre, aleaInt, borner, choisir } from './outils';
@@ -14,6 +15,11 @@ export function voisinsLieu(C: CarteRegionaleDef, id: string): string[] {
   const r: string[] = [];
   for (const [a, b] of C.liens) { if (a === id) r.push(b); else if (b === id) r.push(a); }
   return r;
+}
+// Terrain d'un lieu : déclaré, sinon ville, sinon celui du biome de la carte
+export function terrainDuLieu(C: CarteRegionaleDef, id: string): TerrainDef {
+  const L = C.lieux.find(l => l.id === id)!;
+  return TERRAINS[L.terrain ?? (L.type === 'ville' ? 'urbain' : TERRAIN_BIOME[C.biome] ?? 'plaine')];
 }
 export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, { zoom: true }>): void {
   const T = TH[theatre], th = s.theatres[theatre], C = CARTES_REGIONALES[T.carteRegionale!];
@@ -52,8 +58,9 @@ export function ouvrirZoom(s: Etat, theatre: string, moy: Extract<MoyensCrise, {
     frappesMax, frappes: frappesMax, recosMax, recos: recosMax, appui: 1,
     forceLocale: Math.round(C.forceLocale.force + th.partenaire * 0.5), reserve,
     forceInitiale: total + reserve, rens, evacuesParLieu: {},
-    stats: { pertes: 0, collat: 0, neutralises: 0, evacues: 0 }, journal: [], intention: null, friction: null
+    stats: { pertes: 0, collat: 0, neutralises: 0, evacues: 0 }, journal: [], intention: null, friction: null, secondaire: null
   };
+  choisirSecondaire(s, sc.objectifs.filter(o => o.lieu).map(o => o.lieu!));
   majEstimationsZoom(s);
   planifierAdversaire(s);
   s.zoom.journal.unshift('Semaine 1 — Activation de la cellule de crise : ' + sc.titre + '.');
@@ -100,9 +107,10 @@ export function evaluerActionZoom(s: Etat, a: ActionZoom, reel: boolean): Evalua
   const forceVue = () => reel ? l.force : (l.revele && l.estimee !== null ? l.estimee : 30);
   if (a.type === 'Z_RAID') {
     const unit = z.unites.find(u => u.id === a.unite)!, U = UN[unit.id];
-    const pow = U.cap.assaut * 4 + U.cap.discretion * 2 + (l.revele ? 10 : -5) - s.unites[unit.id].fatigue / 10;
+    const T = terrainDuLieu(C, a.lieu);
+    const pow = U.cap.assaut * 4 + U.cap.discretion * 2 + (l.revele ? 10 : -5) - s.unites[unit.id].fatigue / 10 + T.raid;
     const p = borner(0.35 + (pow - forceVue()) / 80, 0.1, 0.9);
-    return { pSucces: p, risquePertes: (1 - p) * 0.35, risqueCollat: l.civils * 0.04 };
+    return { pSucces: p, risquePertes: (1 - p) * 0.35, risqueCollat: borner(l.civils * 0.04 * T.collat, 0, 0.9) };
   }
   if (a.type === 'Z_APPUI') {
     const fs = z.unites.filter(u => !u.blesse && (u.lieu === a.lieu || voisinsLieu(C, a.lieu).includes(u.lieu))).length;
@@ -111,9 +119,9 @@ export function evaluerActionZoom(s: Etat, a: ActionZoom, reel: boolean): Evalua
     return { pSucces: borner(0.5 + (att - def) / 80, 0.05, 0.95), risquePertes: 0, risqueCollat: 0, att, def };
   }
   if (a.type === 'Z_FRAPPE') {
-    const f = 1 - l.dispersion * 0.3;
+    const T = terrainDuLieu(C, a.lieu), f = (1 - l.dispersion * 0.3) * T.frappe;
     return { pSucces: 1, degatsMin: Math.round((l.revele ? 10 : 4) * f), degatsMax: Math.round((l.revele ? 25 : 12) * f), risquePertes: 0,
-      risqueCollat: borner(l.civils * 0.08 * (l.revele ? 0.6 : 1.3) + l.dispersion * 0.1, 0, 0.9) };
+      risqueCollat: borner((l.civils * 0.08 * (l.revele ? 0.6 : 1.3) + l.dispersion * 0.1) * T.collat, 0, 0.9) };
   }
   return null;
 }
@@ -134,8 +142,9 @@ export function actZoom(s: Etat, a: ActionZoom): void {
     case 'Z_RECO': {
       const l = z.lieux[a.lieu];
       z.recos--;
-      l.revele = true; l.marge = 5; l.dispersion = Math.max(0, l.dispersion - 1);
-      l.estimee = Math.round(borner(l.force + (alea(s) * 2 - 1) * 5, 0, 150));
+      const mr = terrainDuLieu(C, a.lieu).recoMarge;
+      l.revele = true; l.marge = mr; l.dispersion = Math.max(0, l.dispersion - 1);
+      l.estimee = Math.round(borner(l.force + (alea(s) * 2 - 1) * mr, 0, 150));
       for (const v of voisinsLieu(C, a.lieu)) z.lieux[v].marge = Math.max(5, Math.round(z.lieux[v].marge * 0.7));
       J('Reconnaissance sur ' + nomLieu(z, a.lieu) + ' : effectifs adverses estimés à ' + l.estimee + '.');
       break;
@@ -150,6 +159,7 @@ export function actZoom(s: Etat, a: ActionZoom): void {
       const pc = evf.risqueCollat;
       let t = 'Frappe aérienne sur ' + nomLieu(z, a.lieu) + (l.revele ? '' : ' (objectif mal identifié)') + '.';
       if (alea(s) < pc) { z.stats.collat++; t += ' Victimes civiles signalées.'; }
+      if (d > 0) t += atteindreSecondaire(s, 'depot', a.lieu);
       J(t);
       break;
     }
@@ -165,6 +175,7 @@ export function actZoom(s: Etat, a: ActionZoom): void {
         l.force -= d; z.stats.neutralises += d; l.revele = true; l.marge = Math.min(l.marge, 8);
         t = 'Raid de ' + U.nom + ' sur ' + nomLieu(z, a.lieu) + ' : réussi.';
         if (l.force <= 0) { l.controle = 'neutre'; l.force = 0; t += ' La position adverse est démantelée.'; }
+        t += atteindreSecondaire(s, 'chef', a.lieu) + atteindreSecondaire(s, 'depot', a.lieu);
       } else {
         t = 'Raid de ' + U.nom + ' sur ' + nomLieu(z, a.lieu) + ' : repoussé.';
         if (alea(s) < 0.35) { unit.blesse = true; z.stats.pertes++; t += ' Blessés graves, le détachement est diminué.'; }
@@ -194,7 +205,7 @@ export function actZoom(s: Etat, a: ActionZoom): void {
       unit.aAgi = true;
       z.stats.evacues += l.ressortissants;
       z.evacuesParLieu[a.lieu] = (z.evacuesParLieu[a.lieu] || 0) + l.ressortissants;
-      J(l.ressortissants + ' groupe(s) évacué(s) depuis ' + nomLieu(z, a.lieu) + '.');
+      J(l.ressortissants + ' groupe(s) évacué(s) depuis ' + nomLieu(z, a.lieu) + '.' + atteindreSecondaire(s, 'otage', a.lieu));
       l.ressortissants = 0;
       break;
     }
@@ -272,7 +283,7 @@ function reactionAdverse(s: Etat): void {
 // Défense d'un lieu face à une contre-attaque : fortifications, forces locales, détachements présents
 function defenseLieu(s: Etat, id: string): number {
   const z = s.zoom!, l = z.lieux[id];
-  return l.defense + (l.controle === 'allie' ? z.forceLocale * 0.3 : 0) + z.unites.filter(u => u.lieu === id && !u.blesse).length * 10;
+  return l.defense + terrainDuLieu(CARTES_REGIONALES[z.carte], id).defense + (l.controle === 'allie' ? z.forceLocale * 0.3 : 0) + z.unites.filter(u => u.lieu === id && !u.blesse).length * 10;
 }
 export function probaContreAttaque(s: Etat, source: string, cible: string): number {
   return borner(0.5 + (s.zoom!.lieux[source].force * 0.8 - defenseLieu(s, cible)) / 80, 0.05, 0.9);
@@ -335,9 +346,16 @@ function terminerZoom(s: Etat, anticipe: boolean): void {
   for (const u of z.unites) s.unites[u.id].fatigue = borner(s.unites[u.id].fatigue + 15 + (u.blesse ? 10 : 0), 0, 100);
   s.stats.pertes += z.stats.pertes; s.stats.collat += z.stats.collat;
   if (r >= 0.5) s.stats.crisesReussies++;
+  // Objectif secondaire : récompense stratégique s'il a été saisi
+  const sec = objectifSecondaire(s);
+  if (sec?.atteint) {
+    const R = SECONDAIRES.find(x => x.id === z.secondaire!.type)!.recompense;
+    appliquerEffets(s, { opinion: R.opinion, credibilite: R.credibilite, menace: R.menace && m ? [{ type: m.type, delta: R.menace, theatre: m.theatre }] : undefined,
+      rens: R.rens ? [{ theatre: z.theatre, delta: R.rens }] : undefined }, res);
+  }
   const etoiles = (r === 1 ? 1 : 0) + (z.stats.pertes === 0 ? 1 : 0) + (z.stats.collat === 0 ? 1 : 0);
   s.dernierBilan = { titre: z.titre, theatre: z.theatre, semaines: Math.min(z.semaine, z.maxSemaines), anticipe, objectifs: obj, taux: r,
-    stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res, etoiles };
+    stats: Object.assign({}, z.stats), baisseMenace: m ? baisse : 0, effets: res, etoiles, secondaire: sec ? { texte: sec.titre, atteint: sec.atteint } : undefined };
   const txt = 'Bilan — ' + z.titre + ' : ' + obj.filter(o => o.atteint).length + '/' + obj.length + ' objectifs, ' + z.stats.pertes + ' perte(s), ' + z.stats.collat + ' incident(s) collatéral(aux).';
   decider(s, txt); journaliser(s, txt, r >= 0.5 ? 'succes' : 'alerte');
   // Retour à la situation du théâtre : contrôle et activité adverse issus de l'intervention
@@ -354,4 +372,36 @@ function terminerZoom(s: Etat, anticipe: boolean): void {
   nettoyerMenaces(s);
   calculerRens(s);
   avancerFile(s);
+}
+
+// ---------- Objectif secondaire ----------
+function choisirSecondaire(s: Etat, exclus: string[]): void {
+  const z = s.zoom!, C = CARTES_REGIONALES[z.carte];
+  const cands = C.lieux.filter(l => z.lieux[l.id].controle === 'ennemi' && z.lieux[l.id].force > 0 && !exclus.includes(l.id));
+  if (!cands.length) return;
+  const D = SECONDAIRES[Math.floor(alea(s) * SECONDAIRES.length)];
+  const habites = cands.filter(l => l.civils > 0);
+  const L = choisir(s, D.id === 'otage' && habites.length ? habites : cands);
+  z.secondaire = { type: D.id, lieu: L.id, atteint: false };
+  if (D.id === 'otage') z.lieux[L.id].ressortissants += 1;
+  else { z.lieux[L.id].revele = true; z.lieux[L.id].marge = Math.min(z.lieux[L.id].marge, 10); }
+}
+function atteindreSecondaire(s: Etat, type: string, lieu: string): string {
+  const z = s.zoom!, sec = z.secondaire;
+  if (!sec || sec.atteint || sec.type !== type || sec.lieu !== lieu) return '';
+  sec.atteint = true;
+  const R = SECONDAIRES.find(x => x.id === type)!.recompense;
+  if (R.reserve) z.reserve = Math.max(0, z.reserve + R.reserve);
+  return ' Objectif secondaire atteint : ' + SECONDAIRES.find(x => x.id === type)!.titre.toLowerCase() + '.';
+}
+export function objectifSecondaire(s: Etat): { titre: string; texte: string; consigne: string; lieu: string; atteint: boolean; recompense: string } | null {
+  const z = s.zoom, sec = z?.secondaire;
+  if (!z || !sec) return null;
+  const D = SECONDAIRES.find(x => x.id === sec.type)!, n = nomLieu(z, sec.lieu), R = D.recompense, r: string[] = [];
+  if (R.opinion) r.push('opinion +' + R.opinion);
+  if (R.credibilite) r.push('crédibilité +' + R.credibilite);
+  if (R.menace) r.push('menace ' + R.menace);
+  if (R.rens) r.push('renseignement +' + R.rens);
+  if (R.reserve) r.push('renforts adverses ' + R.reserve);
+  return { titre: D.titre, texte: D.texte.replace('{lieu}', n), consigne: D.consigne.replace(/{lieu}/g, n), lieu: sec.lieu, atteint: sec.atteint, recompense: r.join(', ') };
 }

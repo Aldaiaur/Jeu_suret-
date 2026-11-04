@@ -6,6 +6,9 @@ import { procedure } from '../../sim';
 import { usePartie, type OngletDroit } from '../contexte';
 import { pct } from '../format';
 import { Graphique } from '../composants/Graphique';
+import { Conseiller, ObjectifsMandat, OngletMonde } from './Monde';
+import { horlogeVisible } from '../../sim';
+import { MT } from '../../data';
 
 export function PanneauDroit() {
   const { etat: s, ui, majUi } = usePartie();
@@ -18,11 +21,13 @@ export function PanneauDroit() {
     <aside className="panneau panneau-droit">
       <div className="onglets">
         {onglet('situation', 'Situation')}
+        {onglet('monde', 'Monde')}
         {onglet('rapports', 'Rapports', s.rapports.length)}
         {onglet('journal', 'Journal')}
       </div>
       <div className="panneau-defile">
         {ui.ongletDroit === 'situation' && <Situation />}
+        {ui.ongletDroit === 'monde' && <OngletMonde />}
         {ui.ongletDroit === 'rapports' && <Rapports />}
         {ui.ongletDroit === 'journal' && <Journal />}
       </div>
@@ -49,6 +54,10 @@ function Situation() {
     if (e.etat === 'deployee' && e.fatigue >= 75) ech.push([0, <>{u.nom} : fatigue {Math.round(e.fatigue)}, relève à prévoir</>, 'rouge']);
     for (const p of u.indisponibilites || []) if (p.debut > s.tour && p.debut - s.tour <= 3) ech.push([p.debut - s.tour, <>{u.nom} : arrêt technique dans {p.debut - s.tour} mois</>, 'ambre']);
   }
+  for (const m of s.menaces) {
+    const h = horlogeVisible(s, m);
+    if (h && (h.niveau >= h.duree - 2 || !h.precise)) ech.push([h.precise ? h.duree - h.niveau : 3, <>{h.precise ? MT[m.type].nom + ' prépare une action (' + TH[m.theatre].court + ') : ' + h.niveau + '/' + h.duree : 'Préparatifs signalés : ' + MT[m.type].nom + ' (' + TH[m.theatre].court + ')'}</>, h.precise && h.niveau >= h.duree - 1 ? 'rouge' : 'ambre']);
+  }
   for (const c of s.chaines) { const dans = Math.max(1, c.tour - s.tour); ech.push([dans, <>Suite d’un dossier attendue dans {dans} mois</>, '']); }
   for (const T of theatresDe(s)) {
     const sout = Object.values(s.unites).some(e => e.theatre === T.id) ? soutienTheatre(s, T.id) : null;
@@ -58,6 +67,8 @@ function Situation() {
   if (prevu < 0) ech.push([0, <>Dépassement budgétaire prévu : {prevu.toFixed(1)} {devise(s)}</>, 'rouge']);
   return (
     <>
+      <Conseiller />
+      <ObjectifsMandat />
       <section className="groupe">
         <h3 className="titre-section">Tendances</h3>
         <Graphique historique={s.historique.concat([instantane(s)])} largeur={340} hauteur={150} revelerMenaceExt={!!s.fin} />

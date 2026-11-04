@@ -13,6 +13,7 @@ import { FicheMateriel } from './Catalogue';
 import { Insigne } from '../composants/Insigne';
 import { SymboleHtml } from '../composants/SymboleOtan';
 import { usePartie } from '../contexte';
+import { Horloge, PuissancesTheatre } from './Monde';
 import { COULEURS_CATEGORIE, couleurNiveau, decrireAppui, pct, specialite } from '../format';
 
 export function Fiche() {
@@ -146,12 +147,17 @@ function FicheTheatre({ id }: { id: string }) {
                 <i className="menace-marge" style={{ left: Math.max(0, m.estimation! - m.marge) + '%', width: Math.min(100, m.estimation! + m.marge) - Math.max(0, m.estimation! - m.marge) + '%', background: couleurNiveau(m.estimation) }} />
                 <i className="menace-point" style={{ left: m.estimation + '%', background: couleurNiveau(m.estimation) }} />
               </div>
+              <Horloge m={m} />
               <div className={'menace-pression c-' + q[1]} data-tip="Pression exercée par vos forces, capteurs, partenaires et alliés. Sous faible pression, une menace continue de croître.">Pression {q[0]}</div>
             </div>
           );
         })}
       </Section>
 
+
+      <Section titre="Autres puissances" tuto="fiche-puissances">
+        <PuissancesTheatre theatre={id} />
+      </Section>
 
       <Section titre={'Forces sur le théâtre (' + sur.length + ')'}>
         {!sur.length && <p className="discret">Aucune.</p>}

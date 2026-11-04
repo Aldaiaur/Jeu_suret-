@@ -167,5 +167,10 @@ export const PARAMS = {
   regenerationTours:2, fatigueRepos:15, fatigueDeploiement:6,
   probaEvenement:0.65, toursCriseLibre:2,
   margeMin:4, rensFauxRapport:30,
-  plafondProtection:0.5   // part maximale de la menace intérieure que la protection peut absorber
+  plafondProtection:0.5,  // part maximale de la menace intérieure que la protection peut absorber
+  // Horloge de préparation : une menace à moins de `seuilPreparation` de son seuil d’attaque prépare une action,
+  // qui survient quand l’horloge atteint `preparationAttaque` mois (deux crans par mois au-delà de seuil + 15)
+  preparationAttaque:6, seuilPreparation:5,
+  // Monde partagé : part de la pression des autres puissances qui s’ajoute à celle du joueur
+  facteurPuissances:0.6
 };

@@ -1,5 +1,5 @@
 // Mise en forme partagée par les composants.
-import { AL, CATEGORIES, MOBILITE_HELICO, MT, SOUTIEN_UNITE, TH, UN } from '../data';
+import { AL, CATEGORIES, MOBILITE_HELICO, MT, PUI, SOUTIEN_UNITE, TH, UN } from '../data';
 import { appuiDef, type AppuiDef, type Capacite, type Effets, type UniteDef } from '../sim';
 
 export const pct = (p: number) => Math.round(p * 100) + ' %';
@@ -39,6 +39,10 @@ export function pucesEffets(e: Effets | undefined, dv = 'M€'): Puce[] {
   for (const x of e.relation || []) p('Relation ' + AL[x.allie].nom + ' ' + signe(x.delta), x.delta > 0);
   if (e.appui) p(appuiDef(e.appui.allie, e.appui.appui).nom + ' (' + e.appui.tours + ' mois)', true);
   if (e.crise) p('Ouvre une crise', false);
+  for (const x of e.puissance || []) {
+    if (x.attitude) p('Attitude ' + PUI[x.id].nom + ' ' + signe(x.attitude), x.attitude > 0);
+    if (x.delta && x.theatre) p(PUI[x.id].nom + (x.delta > 0 ? ' renforce' : ' réduit') + ' sa présence (' + TH[x.theatre].nom + ')', null);
+  }
   if (e.alea) p('Issue incertaine : ' + pct(e.alea.p) + ' favorable', null);
   return r;
 }

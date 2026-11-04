@@ -3,6 +3,7 @@ import { AL, CARTES_REGIONALES, MT, OP, TH, UN } from '../data';
 import type { Capacite, Etat, Menace, OperationDef, UniteDef } from './types';
 import { arrondi, borner } from './outils';
 import { appuiDef, bonusTheatre, enIndisponibilite, menaceParId, mods, multPression, nation, nbCapteurs, unitesDans, unitesDe } from './acces';
+import { pressionPuissances } from './monde';
 import { multiplicateurUnite } from './tactique';
 import { rensMenace } from './renseignement';
 import { menaceDeCrise } from './crises';
@@ -18,6 +19,7 @@ export function pressionMenace(s: Etat, m: Menace): number {
   p += (T.sensibilite.renseignement || 0) * th.rens / 10;
   for (const sv in T.pressionServices) p += nbCapteurs(s, sv, m.theatre) * T.pressionServices[sv];
   p += th.pressionOps + th.pressionBonus + th.partenaire * 0.25 + bonusTheatre(s, m.theatre).pression;
+  p += pressionPuissances(s, m);   // autres puissances engagées contre cette menace
   return Math.max(0, p);
 }
 

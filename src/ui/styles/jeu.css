@@ -30,8 +30,8 @@
 .jauges { display: flex; gap: 18px; }
 .jauge { width: 128px; cursor: help; }
 .jauge-haut { display: flex; justify-content: space-between; align-items: baseline; }
-.jauge-lib { white-space: nowrap; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-3); font-weight: 500; }
-.jauge-delta { font: 500 10.5px var(--police-chiffres); animation: apparition 300ms ease; }
+.jauge-lib { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; font-size: 10.5px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--texte-3); font-weight: 500; }
+.jauge-delta { font: 500 11px var(--police-chiffres); margin-left: 6px; vertical-align: 2px; animation: apparition 300ms ease; }
 .jauge-val { font-size: 19px; font-weight: 500; line-height: 1.25; }
 .jauge-alerte { font-size: 11px; margin-left: 4px; }
 
@@ -412,7 +412,7 @@
 .debug-ligne { display: flex; gap: 6px; }
 
 /* ---------- Tutoriel ---------- */
-.tuto { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.tuto { position: fixed; inset: 0; z-index: 95; pointer-events: none; }
 .tuto-projecteur {
   position: fixed; border-radius: 10px; pointer-events: none;
   box-shadow: 0 0 0 2px var(--ambre), 0 0 0 9999px rgba(3, 5, 8, 0.45), 0 0 30px rgba(242, 180, 58, 0.35);
@@ -596,3 +596,88 @@
 .etoiles .pleine { color: var(--ambre); text-shadow: 0 0 12px rgba(240, 180, 60, 0.45); }
 .etoiles .discret { margin-left: 10px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .zoom-fleche line, .lieu-menace { animation: none; } }
+
+/* ==========================================================================
+   Monde partagé, horloges de menace, objectifs de mandat, conseiller
+   ========================================================================== */
+
+/* ---------- Horloge de menace ---------- */
+.horloge { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 11.5px; cursor: help; }
+.horloge-lib { color: var(--ambre); font-weight: 500; min-width: 116px; }
+.horloge.urgente .horloge-lib { color: var(--rouge-vif); }
+.horloge-segments { display: flex; gap: 3px; flex: 1; }
+.horloge-segments i { flex: 1; height: 6px; border-radius: 2px; background: var(--trait-2); transition: background 400ms; }
+.horloge-segments i.plein { background: var(--ambre); }
+.horloge.urgente .horloge-segments i.plein { background: var(--rouge); animation: pulsation 1.6s ease-in-out infinite; }
+.horloge-segments i.flou { background: repeating-linear-gradient(90deg, var(--ambre-fond) 0 3px, transparent 3px 6px); }
+.horloge-val { color: var(--texte-2); font-size: 11px; }
+.horloge.compacte .horloge-lib { min-width: 0; }
+
+/* ---------- Puissances ---------- */
+.niveau-pips { display: inline-flex; gap: 2px; }
+.niveau-pips i { width: 7px; height: 7px; border-radius: 2px; border: 1px solid var(--trait-fort); }
+.niveau-pips i.plein { background: var(--texte-2); border-color: var(--texte-2); }
+.puissances-theatre { display: flex; flex-direction: column; gap: 4px; }
+.puissance-ligne { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--rayon); background: var(--surface-2); border-left: 3px solid var(--trait-fort); cursor: help; }
+.puissance-ligne.coalition { border-left-color: var(--vert); }
+.puissance-ligne.rivale { border-left-color: var(--rouge); }
+.puissance-nom { flex: 1; }
+.carte-puissance { padding: 10px; margin-bottom: 6px; background: var(--surface-2); border: 1px solid var(--trait); border-radius: var(--rayon-l); }
+.carte-puissance-haut { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.carte-puissance-haut b { flex: 1; }
+.carte-puissance .barre { height: 3px; }
+.carte-puissance-theatres { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; align-items: center; }
+.puissance-theatre {
+  display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 7px;
+  background: var(--fond-2); border: 1px solid var(--trait-2); border-radius: 11px;
+  color: var(--texte-2); font: 600 10px var(--police-titre); letter-spacing: 0.08em; cursor: pointer;
+}
+.puissance-theatre:hover { border-color: var(--trait-fort); color: var(--texte); }
+.puissance-mouvement { margin-top: 6px; font-size: 11.5px; color: var(--violet); }
+.journal-ligne.monde { color: var(--violet); }
+
+/* ---------- Objectifs de mandat ---------- */
+.objectif-mandat {
+  display: flex; gap: 8px; align-items: flex-start; width: 100%; padding: 7px 9px; margin-bottom: 4px; text-align: left;
+  background: var(--surface-2); border: 1px solid var(--trait); border-left: 3px solid var(--trait-fort); border-radius: 0 var(--rayon) var(--rayon) 0;
+  color: var(--texte); font: 12.5px var(--police); cursor: pointer;
+}
+.objectif-mandat.ok, .objectif-mandat.reussi { border-left-color: var(--vert); }
+.objectif-mandat.attente { border-left-color: var(--ambre); }
+.objectif-mandat.echoue { border-left-color: var(--rouge); opacity: 0.75; }
+.objectif-mandat-icone { font-weight: 600; width: 12px; flex: none; }
+.objectif-mandat.ok .objectif-mandat-icone, .objectif-mandat.reussi .objectif-mandat-icone { color: var(--vert); }
+.objectif-mandat.attente .objectif-mandat-icone { color: var(--ambre); }
+
+/* ---------- Conseiller ---------- */
+.conseiller { margin-bottom: 16px; padding: 10px 12px 8px; border-radius: var(--rayon-l); background: linear-gradient(180deg, rgba(76, 198, 220, 0.08), transparent); border: 1px solid rgba(76, 198, 220, 0.35); animation: apparition 220ms ease; }
+.conseiller-entete { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+.conseiller-entete .titre-section { margin: 0; color: var(--turquoise); }
+.conseiller-fermer { margin-left: auto; }
+.conseils { list-style: none; margin: 0; padding: 0; counter-reset: conseil; }
+.conseils li { counter-increment: conseil; }
+.conseil {
+  display: grid; grid-template-columns: 18px 1fr; gap: 0 6px; width: 100%; padding: 6px 2px; text-align: left;
+  background: none; border: 0; border-top: 1px solid var(--trait); color: var(--texte); font: 12.5px var(--police); cursor: pointer;
+}
+.conseil::before { content: counter(conseil); grid-row: 1 / 3; font: 600 12px var(--police-chiffres); color: var(--turquoise); }
+.conseil:disabled { cursor: default; }
+.conseil:hover:not(:disabled) .conseil-texte { text-decoration: underline; }
+.conseil-texte { font-weight: 500; }
+.conseil-raison { font-size: 11.5px; color: var(--texte-3); }
+
+/* ---------- Intervention : terrain et objectif secondaire ---------- */
+.lieu-terrain { font: 600 11px var(--police); fill: #e8d9b8; paint-order: stroke; stroke: #0c1014; stroke-width: 3px; pointer-events: none; }
+.lieu-secondaire circle { fill: #2a2108; stroke: var(--ambre); stroke-width: 1.5; }
+.lieu-secondaire text { font: 600 10px var(--police); fill: var(--ambre); }
+.objectif-secondaire {
+  display: flex; gap: 10px; align-items: flex-start; width: 100%; margin-top: 6px; padding: 8px 12px; text-align: left;
+  background: var(--ambre-fond); border: 1px dashed rgba(242, 180, 58, 0.5); border-radius: var(--rayon);
+  color: var(--texte); font: 13px var(--police); cursor: pointer;
+}
+.objectif-secondaire.ok { border-style: solid; border-color: var(--vert); background: var(--vert-fond); }
+.objectif-secondaire-etoile { color: var(--ambre); font-size: 14px; }
+.objectif-secondaire.ok .objectif-secondaire-etoile { color: var(--vert); }
+.zoom-actions-terrain { font: 500 12px var(--police); letter-spacing: 0; text-transform: none; color: var(--texte-3); }
+.marqueur-imminent circle { fill: var(--rouge); stroke: #0c1014; stroke-width: 1.5; animation: pulsation 1.4s ease-in-out infinite; }
+.marqueur-imminent text { font: 700 10px var(--police); fill: #fff; pointer-events: none; }

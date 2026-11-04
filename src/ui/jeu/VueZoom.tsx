@@ -1,7 +1,7 @@
 // Zoom régional : intervention semaine par semaine sur une carte géographique réelle.
 import { useMemo } from 'react';
 import { CARTES_REGIONALES, FRICTIONS, UN } from '../../data';
-import { evaluerActionZoom, nomLieu, objectifsZoom, probaContreAttaque, saisonDu, type ActionZoom } from '../../sim';
+import { evaluerActionZoom, nomLieu, objectifSecondaire, objectifsZoom, probaContreAttaque, saisonDu, terrainDuLieu, type ActionZoom } from '../../sim';
 import { FondRegional, projectionRegionale, type Cadre } from '../composants/FondRegional';
 import { COULEUR_SAISON, EffetSaison, IconeSaison, decrireSaison } from '../composants/Saison';
 import { usePartie } from '../contexte';
@@ -24,6 +24,8 @@ function libelle(a: ActionZoom, z: Parameters<typeof nomLieu>[0]): string {
     default: return a.type;
   }
 }
+// Repère du terrain sur la carte (la plaine, neutre, n'en a pas)
+const GLYPHE_TERRAIN: Record<string, string> = { urbain: '▦', desert: '∴', montagne: '▲', foret: '♣', marais: '≈', littoral: '~', plaine: '' };
 const AIDE_ACTION: Partial<Record<ActionZoom['type'], string>> = {
   Z_RAID: 'Réussite plus probable si la position est reconnue. Échec : risque de blessés.',
   Z_FRAPPE: 'Efficacité réduite si la position n’est pas reconnue ou si l’adversaire est dispersé. Risque collatéral selon la densité civile.',
@@ -38,7 +40,7 @@ export function VueZoom() {
   const z = s.zoom!, C = CARTES_REGIONALES[z.carte];
   const sc = C.scenarios.find(x => x.id === z.scenario)!;
   const lieuxObj = sc.objectifs.filter(o => o.lieu).map(o => o.lieu!);
-  const objectifs = objectifsZoom(s), tousAtteints = objectifs.every(o => o.atteint);
+  const objectifs = objectifsZoom(s), tousAtteints = objectifs.every(o => o.atteint), secondaire = objectifSecondaire(s);
   const it = z.intention, pAttaque = it ? probaContreAttaque(s, it.source, it.cible) : 0, sourceVue = it ? z.lieux[it.source].revele : false;
   const friction = z.friction ? FRICTIONS.find(f => f.id === z.friction) : null;
 
@@ -99,6 +101,13 @@ export function VueZoom() {
         ) : <p className="discret petit">Aucune attaque annoncée cette semaine : profitez-en pour prendre l’initiative.</p>}
         <h3 className="titre-section" style={{ marginTop: 18 }}>Objectifs</h3>
         {objectifs.map((o, i) => <div key={i} className={'objectif ' + (o.atteint ? 'ok' : 'attente')}><span>{o.atteint ? '✓' : '○'}</span>{o.texte}</div>)}
+        {secondaire && (
+          <button className={'objectif-secondaire' + (secondaire.atteint ? ' ok' : '')} onClick={() => majUi({ zoomLieu: secondaire.lieu, zoomUnite: null })}
+            data-tip={'Objectif facultatif : ne pas le saisir ne coûte rien.\nRécompense : ' + secondaire.recompense + '.'} data-tuto="objectif-secondaire">
+            <span className="objectif-secondaire-etoile">★</span>
+            <span><b>{secondaire.titre}</b>{secondaire.atteint ? ' — atteint' : ''}<br /><span className="discret petit">{secondaire.atteint ? secondaire.recompense : secondaire.consigne}</span></span>
+          </button>
+        )}
         <div className="stats-mini">
           <span>Pertes <b className="chiffres">{z.stats.pertes}</b></span>
           <span>Collatéraux <b className="chiffres">{z.stats.collat}</b></span>
@@ -125,7 +134,8 @@ export function VueZoom() {
             const l = z.lieux[Ld.id], [x, y] = pos[Ld.id];
             const sel = selL === Ld.id, obj = lieuxObj.includes(Ld.id), cible = cibles.has(Ld.id);
             const civils = ['nulle', 'faible', 'moyenne', 'dense'][l.civils];
-            const tip = Ld.nom + ' (' + Ld.type + ')\nContrôle : ' + l.controle + '\nPopulation civile : ' + civils +
+            const ter = terrainDuLieu(C, Ld.id);
+            const tip = Ld.nom + ' (' + Ld.type + ')\nTerrain : ' + ter.nom + ' — ' + ter.description + '\nContrôle : ' + l.controle + '\nPopulation civile : ' + civils +
               (l.controle === 'ennemi' ? '\nAdversaire : ' + (l.revele ? 'environ ' + l.estimee + ' ± ' + l.marge : 'position non confirmée') + (l.dispersion ? '\nDispersé parmi les civils' : '') : '') +
               (l.ressortissants ? '\nPersonnes à évacuer : ' + l.ressortissants : '');
             const forme = Ld.type === 'base' ? <rect x={-13} y={-13} width={26} height={26} rx={4} /> : Ld.type === 'zone' ? <polygon points="0,-17 17,0 0,17 -17,0" /> : <circle r={14} />;
@@ -139,6 +149,8 @@ export function VueZoom() {
                 {l.controle === 'ennemi' && <text y={4} textAnchor="middle" className="lieu-force">{l.revele ? l.estimee : '?'}</text>}
                 <text x={etiquettes[Ld.id].x} y={etiquettes[Ld.id].y} textAnchor={etiquettes[Ld.id].ancre} className="lieu-nom">{Ld.nom}</text>
                 {l.dispersion > 0 && <text y={32} textAnchor="middle" className="lieu-alerte">DISPERSÉ</text>}
+                {ter.id !== 'plaine' && <text x={-19} y={-11} textAnchor="middle" className="lieu-terrain">{GLYPHE_TERRAIN[ter.id]}</text>}
+                {secondaire && secondaire.lieu === Ld.id && !secondaire.atteint && <g transform="translate(18,14)" className="lieu-secondaire"><circle r={8} /><text y={3.5} textAnchor="middle">★</text></g>}
                 {l.ressortissants > 0 && <g transform="translate(17,-12)"><circle r={8} className="lieu-evac" /><text y={3.5} textAnchor="middle" className="lieu-evac-texte">{l.ressortissants}</text></g>}
               </g>
             );
@@ -164,7 +176,7 @@ export function VueZoom() {
 
       <footer className="panneau zoom-actions">
         <div className="zoom-actions-titre">
-          {selU ? UN[selU].nom : selL ? nomLieu(z, selL) : 'Sélectionnez un détachement ou un lieu'}
+          {selU ? UN[selU].nom : selL ? <>{nomLieu(z, selL)}<span className="zoom-actions-terrain"> · {terrainDuLieu(C, selL).nom} — {terrainDuLieu(C, selL).description}</span></> : 'Sélectionnez un détachement ou un lieu'}
         </div>
         <div className="zoom-actions-liste">
           {!selL && !selU && <span className="discret">Les raids partent du lieu occupé vers un lieu adjacent. Frappes et reconnaissances visent tout lieu adverse. L’appui local vise un lieu voisin d’une position alliée.</span>}

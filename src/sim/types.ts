@@ -97,6 +97,7 @@ export interface MenaceDef {
   alimentePar: Record<string, number>;
   seuilExpansion: number; expansion: string[]; probExpansion: number;
   seuilAttaque: number;
+  preparation?: number;          // mois de préparation avant une action (PARAMS.preparationAttaque par défaut)
   attaque: Partial<Record<'opinion' | 'capital' | 'credibilite' | 'menaceInt' | 'budget', number>>;
   apresAttaque: number;
   poidsInterieur: number; impactInterieur: number;
@@ -143,6 +144,8 @@ export interface ProcedureDef {
 export interface LevierDef { allie: string; base: number; capital: number; relation: number; description: string }
 export interface ParagrapheBriefing { theatre: string | null; titre: string; texte: string }
 export interface BriefingDef { date: string; diffusion: string; expediteur: string; destinataire: string; introduction: string; paragraphes: ParagrapheBriefing[]; conclusion: string }
+// Fonctions qui présentent les dossiers partagés entre nations (auteur « @fonction »)
+export type RoleAuteur = 'chef' | 'defense' | 'diplomatie' | 'interieur' | 'rens_ext' | 'rens_int' | 'etat_major' | 'securite' | 'cyber';
 export interface NationDef {
   id: string; nom: string; role: string; signature: string;
   devise: string;                  // symbole monétaire des montants affichés (échelle de jeu commune)
@@ -155,11 +158,30 @@ export interface NationDef {
   allies: Record<string, number>;  // allié → relation initiale (ordre d'itération = ordre des clés)
   categories: Record<Categorie, string>;   // libellés des composantes
   procedure: ProcedureDef;
+  roles: Record<RoleAuteur, string>;   // fonction → personnage de la nation (dossiers partagés)
   levier?: LevierDef;
   briefing: BriefingDef;
   frontsToleres?: number;          // théâtres extérieurs tenus sans lassitude de l’opinion (3 par défaut)
   cadre?: [number, number, number, number];   // carte du monde : longitude et latitude minimales, puis maximales
 }
+
+// ---------- Monde partagé : puissances pilotées par l’IA ----------
+// Les nations non jouées agissent dans le même monde : elles s’engagent sur les théâtres selon leurs intérêts
+// et la menace, exercent une pression sur les menaces qu’elles combattent, en attisent d’autres (rivaux).
+export interface PuissanceDef {
+  id: string; nom: string;
+  nation?: string;                     // nation jouable correspondante : absente du monde quand le joueur l’incarne
+  allie?: string;                      // allié correspondant (AL) : sa relation avec le joueur guide la coopération
+  capacite: number;                    // niveaux d’engagement simultanés (somme sur les théâtres)
+  interets: Record<string, number>;    // théâtre → poids (0 à 1)
+  contre: Record<string, number>;      // type de menace → pression exercée par niveau d’engagement
+  attise?: Record<string, number>;     // type de menace → croissance mensuelle ajoutée par niveau (rivaux)
+  style: 'interventionniste' | 'prudent' | 'opportuniste';
+  attitude: Record<string, number>;    // nation jouée → attitude initiale envers le joueur (0 hostile, 100 alliée)
+  depart: Record<string, number>;      // engagements en janvier 2015 (niveaux 0 à 3)
+  description: string;
+}
+export interface EtatPuissance { engagements: Record<string, number>; attitude: number; mouvements: string[] }
 
 export interface DoctrineDef { id: string; nom: string; texte: string; bonus: string; malus: string; mods: Mods }
 
@@ -182,6 +204,8 @@ export interface Effets {
   relation?: { allie: string; delta: number }[];
   appui?: { allie: string; appui: string; theatre: string; tours: number };
   alea?: { p: number; succes: Effets; echec: Effets };
+  // Monde partagé : engagement d’une puissance sur un théâtre (delta de niveau) et attitude envers le joueur
+  puissance?: { id: string; theatre?: string; delta?: number; attitude?: number }[];
 }
 
 export interface Conditions {
@@ -194,6 +218,7 @@ export interface Conditions {
   chaine?: boolean;
   relationMin?: { allie: string; val: number };
   relationMax?: { allie: string; val: number };
+  puissance?: { id: string; theatre?: string; min?: number; max?: number; attitudeMin?: number; attitudeMax?: number };
 }
 
 export interface ChoixDef {
@@ -203,7 +228,9 @@ export interface ChoixDef {
   suite?: string; suiteDelai?: number; suiteP?: number;
 }
 
-export interface EvenementDef { id: string; titre: string; auteur: string; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
+// auteur : identifiant d’un personnage (dossier propre à sa nation) ou « @fonction » (dossier partagé, voir RoleAuteur).
+// Dans le texte, {auteur}, {fonction} et {territoire} sont remplacés pour la nation jouée.
+export interface EvenementDef { id: string; titre: string; auteur: string; nations?: string[]; poids: number; max?: number; cond?: Conditions; texte: string; choix: ChoixDef[] }
 
 export type Controle = 'allie' | 'ennemi' | 'neutre';
 
@@ -211,6 +238,7 @@ export interface LieuDef {
   id: string; nom: string; x?: number; y?: number;
   lon: number; lat: number;
   littoral?: boolean;               // accessible à la Marine (côte ou zone maritime)
+  terrain?: import('../data/tactique').TerrainId;   // terrain en intervention (sinon : ville, ou biome de la carte)
   type: 'ville' | 'base' | 'zone';
   controle: Controle; defense: number; force: [number, number] | null; civils: number;
 }
@@ -256,7 +284,7 @@ export interface CarteRegionaleDef {
 // ---------------------------------------------------------------------
 
 export type Phase = 'doctrine' | 'jeu' | 'evenement' | 'crise' | 'zoom' | 'fin';
-export type GenreJournal = 'info' | 'alerte' | 'succes' | 'crise' | 'evenement' | 'decision' | 'tour';
+export type GenreJournal = 'info' | 'alerte' | 'succes' | 'crise' | 'evenement' | 'decision' | 'tour' | 'monde';
 
 export interface Ressources { budget: number; enveloppe: number; surcout: number; capital: number; opinion: number; menaceInt: number; credibilite: number }
 
@@ -308,7 +336,8 @@ export interface EtatTheatre {
   rapportTactique: string[];        // comptes rendus de la dernière résolution mensuelle
 }
 
-export interface Menace { id: string; type: string; theatre: string; force: number; detectee: boolean; estimation: number | null; marge: number; rapportFaux: boolean }
+// horloge : mois de préparation accumulés vers une action (voir PARAMS.preparationAttaque)
+export interface Menace { id: string; type: string; theatre: string; force: number; detectee: boolean; estimation: number | null; marge: number; rapportFaux: boolean; horloge: number }
 
 export interface Rapport { theatre: string; service: string; fiabilite: string; texte: string }
 export interface EntreeJournal { tour: number; texte: string; genre: GenreJournal }
@@ -337,6 +366,7 @@ export interface Zoom {
   journal: string[];
   intention: { source: string; cible: string } | null;   // attaque adverse annoncée pour la fin de la semaine
   friction: string | null;                                // aléa de la semaine (FRICTIONS)
+  secondaire: { type: import('../data/tactique').TypeSecondaire; lieu: string; atteint: boolean } | null;   // objectif facultatif
 }
 
 export interface ObjectifEtat { texte: string; atteint: boolean }
@@ -345,6 +375,7 @@ export interface BilanZoom {
   titre: string; theatre: string; semaines: number; anticipe: boolean;
   objectifs: ObjectifEtat[]; taux: number; stats: StatsZoom; baisseMenace: number; effets: string[];
   etoiles: number;                  // objectifs tous atteints, aucune perte, aucune victime civile
+  secondaire?: { texte: string; atteint: boolean };
 }
 
 export interface Score { domaines: { nom: string; valeur: number; poids: number }[]; total: number; mention: string }
@@ -354,6 +385,7 @@ export interface Stats {
   operations: number; succes: number; pertes: number; collat: number;
   crisesInterv: number; crisesReussies: number; crisesIgnorees: number;
   attaques: number; dejoues: number; votes: number; votesPerdus: number;
+  attaquesTerritoire: number;
 }
 
 export interface Etat {
@@ -378,7 +410,19 @@ export interface Etat {
   menaceInt100: number;
   fin: Fin | null;
   stats: Stats;
+  monde: { puissances: Record<string, EtatPuissance> };
+  mandat: EtatMandat;
 }
+
+// ---------- Objectifs de mandat : fixés chaque janvier par le chef de l’exécutif, évalués en décembre ----------
+export type TypeObjectifMandat = 'menace_sous' | 'menace_int_sous' | 'aucune_attaque' | 'surcout_max' | 'relation_min' | 'crises_reussies';
+export interface ObjectifMandat {
+  type: TypeObjectifMandat; texte: string; val: number;
+  menace?: string; theatre?: string; allie?: string;
+  depart: { attaquesTerritoire: number; surcout: number; crisesReussies: number };   // compteurs au 1er janvier
+  resultat: 'en_cours' | 'reussi' | 'echoue';
+}
+export interface EtatMandat { annee: number; objectifs: ObjectifMandat[]; bilans: { annee: number; reussis: number; total: number }[] }
 
 // ---------------------------------------------------------------------
 // Actions

@@ -11,3 +11,9 @@ export { evaluerActionZoom, nomLieu, objectifsZoom, probaContreAttaque, voisinsL
 export * from './tactique';
 export { finDeTour, instantane, evaluerFin, calculerScore } from './tour';
 export { forcerEvenement, changerGraine, verifierDonnees, verifierInvariants } from './controles';
+export { auteurDe, dossierDeNation, estPartage, texteDossier } from './dossiers';
+export { attitude, bonusCoalition, coalition, engagement, libelleNiveau, NIVEAU_MAX, puissancesDe, rivaux, SEUIL_COALITION } from './monde';
+export { objectifAtteint, progresObjectif, anneeDuTour } from './mandat';
+export { conseilDuMois, type Conseil } from './conseiller';
+export { horlogeVisible, SEUIL_HORLOGE_PRECISE } from './renseignement';
+export { objectifSecondaire, terrainDuLieu } from './zoom';

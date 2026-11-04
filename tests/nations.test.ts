@@ -1,7 +1,7 @@
 // Modèle nation : chaque nation jouable se lance, se joue jusqu'au bout et ne voit que ses propres données.
 import { describe, expect, it } from 'vitest';
 import * as M from '../src/sim';
-import { NATIONS, PERS, EV } from '../src/data';
+import { NATIONS, EV } from '../src/data';
 import { jouerParties } from './bot-aleatoire';
 import { jouerPrudent } from './bot-prudent';
 
@@ -29,7 +29,7 @@ describe('nations', () => {
       let s = M.appliquerAction(M.nouvellePartie(3, 'facile', id), M.actionsPossibles(M.nouvellePartie(3, 'facile', id))[0]);
       for (let t = 0; t < 24 && !s.fin; t++) {
         while (s.phase !== 'jeu' && !s.fin) {
-          if (s.phase === 'evenement') expect(PERS[EV[s.evenementCourant!].auteur].pays).toBe(id);
+          if (s.phase === 'evenement') expect(M.auteurDe(s, EV[s.evenementCourant!]).pays).toBe(id);
           s = M.appliquerAction(s, M.actionsPossibles(s)[0]);
         }
         if (!s.fin) s = M.finDeTour(s);

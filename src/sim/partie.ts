@@ -5,6 +5,7 @@ import { alea, aleaEntre, borner, choisir, cloner, graineVersEntier } from './ou
 import { alliesDe, journaliser, presents, relationReference, servicesDe, theatresDe, unitesDe } from './acces';
 import { calculerRens, estimerMenaces } from './renseignement';
 import { carteDuTheatre, estAuSol, lieuxInitiaux } from './tactique';
+import { mondeInitial } from './monde';
 
 export function nouvellePartie(graine: string | number, difficulte: string, nationId = 'FRA'): Etat {
   const d = DIFFICULTES[difficulte] ? difficulte : 'normal', na = NATIONS[nationId] ? nationId : 'FRA';
@@ -17,7 +18,9 @@ export function nouvellePartie(graine: string | number, difficulte: string, nati
     file: [], evenementCourant: null, criseCourante: null, zoom: null, dernierBilan: null, dernierResultat: null,
     chaines: [], compteurEvenements: {}, journal: [], rapports: [], decisions: [], historique: [],
     menaceInt100: 0, fin: null,
-    stats: { operations: 0, succes: 0, pertes: 0, collat: 0, crisesInterv: 0, crisesReussies: 0, crisesIgnorees: 0, attaques: 0, dejoues: 0, votes: 0, votesPerdus: 0 }
+    stats: { operations: 0, succes: 0, pertes: 0, collat: 0, crisesInterv: 0, crisesReussies: 0, crisesIgnorees: 0, attaques: 0, dejoues: 0, votes: 0, votesPerdus: 0, attaquesTerritoire: 0 },
+    monde: mondeInitial(na),
+    mandat: { annee: 0, objectifs: [], bilans: [] }
   };
   for (const u of unitesDe(s)) s.unites[u.id] = { etat: u.depart ? 'deployee' : 'disponible', theatre: u.depart || null, fatigue: u.depart ? 20 : 0, compteur: 0, indispo: 0,
     lieu: u.depart && estAuSol(u) ? carteDuTheatre(u.depart).depart : null, posture: 'defensive', mission: null };
@@ -44,7 +47,7 @@ export function nouvellePartie(graine: string | number, difficulte: string, nati
   return s;
 }
 export function ajouterMenace(s: Etat, type: string, theatre: string, force: number, detectee: boolean): Menace {
-  const m: Menace = { id: 'M' + (s.prochainIdMenace++), type, theatre, force: Math.round(borner(force, 1, 100)), detectee: !!detectee, estimation: null, marge: 50, rapportFaux: false };
+  const m: Menace = { id: 'M' + (s.prochainIdMenace++), type, theatre, force: Math.round(borner(force, 1, 100)), detectee: !!detectee, estimation: null, marge: 50, rapportFaux: false, horloge: 0 };
   s.menaces.push(m);
   return m;
 }
@@ -54,6 +57,10 @@ export function migrerEtat(s0: Etat): Etat {
   const s = cloner(s0);
   if (!s.nation) s.nation = 'FRA';
   if (!s.allies) s.allies = {};
+  if (!s.monde) s.monde = mondeInitial(s.nation);
+  if (!s.mandat) s.mandat = { annee: 0, objectifs: [], bilans: [] };
+  for (const m of s.menaces) if (m.horloge === undefined) m.horloge = 0;
+  if (s.stats.attaquesTerritoire === undefined) s.stats.attaquesTerritoire = 0;
   for (const A of alliesDe(s)) if (!s.allies[A.id]) s.allies[A.id] = { relation: relationReference(s, A.id), cooldown: 0 };
   for (const T of theatresDe(s)) {
     if (!s.theatres[T.id]) s.theatres[T.id] = { rens: 0, rensBonus: 0, rensPermanent: 0, partenaire: 0, pressionBonus: 0, pressionOps: 0, toursIntervention: 0, voteFait: false, debat: false, allie: 0, appuis: [], crise: null, lieux: lieuxInitiaux(T.id), rapportTactique: [] };

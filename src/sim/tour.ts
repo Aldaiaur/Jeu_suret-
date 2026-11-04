@@ -14,6 +14,8 @@ import { rapatrier } from './actions';
 import { appliquerEffets, avancerFile, conditionsRemplies, nettoyerMenaces } from './evenements';
 import { creerCrise, menaceDeCrise } from './crises';
 import { ajouterMenace } from './partie';
+import { croissancePuissances, deciderPuissances } from './monde';
+import { evaluerMandat, fixerObjectifs } from './mandat';
 
 export function finDeTour(s: Etat): Etat {
   if (s.phase !== 'jeu' || s.fin) return s;
@@ -85,6 +87,9 @@ export function finDeTour(s: Etat): Etat {
   // 3 bis. Tactique : implantations, postures et missions de chaque théâtre
   resoudreTactique(n);
 
+  // 3 ter. Monde partagé : les autres puissances ajustent leurs engagements
+  deciderPuissances(n);
+
   // 4. Évolution des menaces
   const forcesParType: Record<string, number> = {};
   for (const m of n.menaces) forcesParType[m.type] = (forcesParType[m.type] || 0) + m.force;
@@ -94,6 +99,7 @@ export function finDeTour(s: Etat): Etat {
     const T = MT[m.type], TT = TH[m.theatre];
     let croiss = T.croissance * D.croissanceMult * (TT.exterieur ? md.croissanceExtMult : 1) * multCroissance(m.theatre, mois, m.type);
     for (const t in T.alimentePar) croiss += (forcesParType[t] || 0) * T.alimentePar[t];
+    croiss += croissancePuissances(n, m);
     croiss *= (1 - m.force / 130);
     const delta = croiss - pressionMenace(n, m) * 0.15 + (alea(n) - 0.5) * 3;
     m.force = borner(Math.round((m.force + delta) * 10) / 10, 0, 100);
@@ -108,8 +114,14 @@ export function finDeTour(s: Etat): Etat {
         m.force = Math.max(1, m.force - 3);
       }
     }
-    // Attaque
-    if (m.force >= T.seuilAttaque && alea(n) < 0.06 + (m.force - T.seuilAttaque) / 120) {
+    // Préparation d’une action : l’horloge avance près du seuil, recule sous la pression ou loin du seuil
+    if (m.force >= T.seuilAttaque - PARAMS.seuilPreparation) {
+      if (delta < -1) m.horloge = Math.max(0, m.horloge - 1);
+      else m.horloge += m.force >= T.seuilAttaque + 15 ? 2 : 1;
+    } else m.horloge = Math.max(0, m.horloge - 2);
+    // Attaque, quand la préparation est achevée
+    if (m.horloge >= (T.preparation ?? PARAMS.preparationAttaque)) {
+      m.horloge = 0;
       const rm = rensMenace(n, m);
       if (!TT.exterieur && alea(n) < rm / 140) {
         m.force = Math.max(0, m.force - 8);
@@ -123,6 +135,7 @@ export function finDeTour(s: Etat): Etat {
         m.force = borner(m.force + T.apresAttaque, 1, 100);
         m.detectee = true;
         n.stats.attaques++;
+        if (!TT.exterieur) n.stats.attaquesTerritoire++;
         journaliser(n, 'Action adverse : ' + MT[m.type].nom + ' (' + TT.nom + '). ' + res.join(', ') + '.', 'alerte');
         if (T.crise && alea(n) < 0.45) creerCrise(n, m.theatre, m.id);
       }
@@ -172,6 +185,9 @@ export function finDeTour(s: Etat): Etat {
     if (st.cooldown > 0) st.cooldown--;
   }
 
+  // 7 ter. Décembre : bilan des objectifs de l’année
+  if (mois % 12 === 11) evaluerMandat(n);
+
   // 8. Historique, passage au mois suivant
   n.historique.push(instantane(n));
   n.tour++;
@@ -181,6 +197,9 @@ export function finDeTour(s: Etat): Etat {
   // 9. Fin de partie ?
   const f = evaluerFin(n);
   if (f.fini) { terminer(n, f); return n; }
+
+  // Janvier : nouveaux objectifs de mandat
+  if (n.tour % 12 === 0) fixerObjectifs(n);
 
   // 10. Événements (chaînes puis tirage pondéré)
   const dues = n.chaines.filter(c => c.tour <= n.tour);

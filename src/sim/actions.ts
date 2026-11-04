@@ -10,6 +10,7 @@ import {
 import { calculerRens } from './renseignement';
 import { evaluerAppui, evaluerOperation, moyensCrise, participantsOperation } from './evaluation';
 import { actChoix, appliquerEffets, nettoyerMenaces } from './evenements';
+import { fixerObjectifs } from './mandat';
 import { actCrise, reponsePossible, reponsesCrise } from './crises';
 import { actZoom, actionsZoom } from './zoom';
 import { evaluerFin, terminer } from './tour';
@@ -122,6 +123,7 @@ function actDoctrine(s: Etat, a: ActionDe<'DOCTRINE'>): void {
   calculerRens(s);
   decider(s, 'Doctrine retenue : ' + D.nom + '.');
   journaliser(s, 'Doctrine retenue : ' + D.nom + '.', 'decision');
+  fixerObjectifs(s);   // premiers objectifs de mandat, fixés avec la doctrine
 }
 function actCapteur(s: Etat, a: ActionDe<'CAPTEUR'>): void {
   const aff = s.services[a.service].affectations;
@@ -172,7 +174,7 @@ function actOperation(s: Etat, a: ActionDe<'OPERATION'>): void {
   const succes = alea(s) < ev.pSucces;
   if (succes) {
     s.stats.succes++;
-    if (m) { const d = Math.round(op.degats * (0.6 + alea(s) * 0.8)); m.force = Math.max(0, m.force - d); }
+    if (m) { const d = Math.round(op.degats * (0.6 + alea(s) * 0.8)); m.force = Math.max(0, m.force - d); m.horloge = Math.max(0, m.horloge - 2); }
     appliquerEffets(s, transformerEffetOp(op.effetSucces, a.theatre), res);
     res.unshift('Succès.');
   } else {

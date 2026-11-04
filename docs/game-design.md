@@ -194,6 +194,19 @@ Une fois déployée, une unité se commande sur la carte régionale (`src/sim/ta
 6. **Score** : un domaine « Contrôle du terrain » (part des lieux non tenus par l’adversaire sur les théâtres d’intervention) récompense le travail tactique.
 7. Les autres décisions de la première session (cinq théâtres à crises sur carte, lieux russes et chinois en lecture seule, coefficients saisonniers, capacités de soutien, devises fictives, caractéristiques « À VÉRIFIER ») sont maintenues.
 
+## Décisions de la cinquième session (4 novembre 2026)
+
+Consigne du propriétaire : monde partagé, dossiers partagés et pistes prioritaires (★). Faites : 1, 2, 6, 7, 10 (première étape) et 14.
+
+1. **Monde partagé, première étape** : les sept puissances non jouées (États-Unis, Royaume-Uni, France, Russie, Chine, Israël, Iran) sont des agents légers. Chaque mois, chacune répartit sa capacité d’engagement entre les théâtres qui l’intéressent selon la menace réelle, son style et la présence du joueur ; elle exerce une pression sur les menaces qu’elle combat (60 % de la valeur brute, réglage `facteurPuissances`) ou en attise d’autres. Écartée pour l’instant : faire tourner une simulation complète par nation dans un état mondial unique (refonte de toutes les menaces) ; c’est l’étape suivante, que ce modèle prépare.
+2. **Coalition** : une puissance engagée sur un théâtre, contre une menace présente, et dont l’attitude atteint 55, donne +3 % de réussite aux opérations du joueur (au plus +9 %). Une puissance alliée partage la relation de l’allié : une seule valeur, pas deux.
+3. **Dossiers partagés** : un dossier commun désigne son auteur par une fonction ; il est proposé aux nations qui ont tout ce qu’il cite. Douze dossiers communs, dont sept demandes croisées des autres puissances (déconfliction russe, partage du fardeau, base chinoise à Djibouti, milices pro-iraniennes, frappes israéliennes en Syrie, défense antiaérienne russe, négociation nucléaire).
+4. **Horloges de menace** : une menace à moins de 5 points de son seuil prépare une action en 6 mois (deux crans par mois au-delà de seuil + 15) ; une pression forte la ralentit, une opération réussie la recule de deux crans. Elles remplacent le tirage aléatoire des attaques. L’échéance n’est lisible qu’au-delà de 35 de renseignement sur la menace.
+5. **Objectifs de mandat** : trois par an, fixés sur les estimations de janvier ; tenu : capital +3, opinion +1 ; manqué : capital −3, opinion −1. Une première version à +4/+2 rendait le jeu trop facile (le robot prudent tient environ deux objectifs sur trois).
+6. **Terrain et objectifs secondaires en intervention** : sept terrains (ville, désert, montagne, forêt, marais, plaine, littoral) ; un objectif facultatif par intervention (otage, chef, dépôt d’armes).
+7. **Conseiller du mois** : trois priorités, un conseil par théâtre au plus, désactivable depuis le menu.
+8. **Équilibre** (robot prudent, France, 45 parties) : 13,3 % de défaites avant comme après (0 % en facile et en normal, 40 % en difficile).
+
 ## Pistes pour rendre le jeu prenant (session 4, à arbitrer)
 
 Classées par effet attendu sur l’intérêt, à coût comparable. ★ = recommandé en priorité.

@@ -65,3 +65,11 @@ export function estimerMenaces(s: Etat): void {
     if (th.crise) s.rapports.push({ theatre: T.id, service: serviceSource(s, T.id), fiabilite: fiabilite(th.rens), texte: 'Crise en cours : ' + th.crise.titre + '.' });
   }
 }
+
+// Horloge de préparation telle que la voit le joueur : précise si le renseignement sur la menace est
+// suffisant, réduite à un signalement sinon. Rien si la menace est inconnue ou au repos.
+export const SEUIL_HORLOGE_PRECISE = 35;
+export function horlogeVisible(s: Etat, m: Menace): { niveau: number; duree: number; precise: boolean } | null {
+  if (!m.detectee || m.horloge <= 0) return null;
+  return { niveau: m.horloge, duree: MT[m.type].preparation ?? PARAMS.preparationAttaque, precise: rensMenace(s, m) >= SEUIL_HORLOGE_PRECISE };
+}

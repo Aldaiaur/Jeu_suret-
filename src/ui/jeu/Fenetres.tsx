@@ -1,6 +1,6 @@
 // Fenêtres de décision et de bilan. Une seule à la fois, par ordre de priorité.
-import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, PERS, TH, UN } from '../../data';
-import { devise, theatresDe, unitesDe } from '../../sim';
+import { CARTES_REGIONALES, EV, IDENTITES, MT, NB_TOURS, OP, PARAMS, TH, UN } from '../../data';
+import { auteurDe, devise, texteDossier, theatresDe, unitesDe } from '../../sim';
 import { Portrait } from '../composants/Portrait';
 import { Insigne } from '../composants/Insigne';
 import { IllustrationMateriel } from '../composants/IllustrationMateriel';
@@ -57,7 +57,7 @@ function FenetreEvenement() {
   const { etat: s, jouer } = usePartie();
   const E = EV[s.evenementCourant!];
   const concernees = unitesConcernees(s, E);
-  const A = E.auteur ? PERS[E.auteur] : null;
+  const A = auteurDe(s, E), texte = texteDossier(s, E);
   return (
     <Fenetre tampon="Événement" ton="ambre" titre={E.titre} sousTitre={dateDuTour(s.tour)}>
       {A ? (
@@ -66,11 +66,11 @@ function FenetreEvenement() {
           <div className="dossier-auteur-texte">
             <div className="dossier-auteur-nom">{A.nom}<span className="discret"> · {A.fonction}</span></div>
             {A.ouverture && <p className="dossier-ouverture">« {A.ouverture} »</p>}
-            <p className="texte-dossier">{E.texte}</p>
+            <p className="texte-dossier">{texte}</p>
             <div className="dossier-signature">— {A.signature}</div>
           </div>
         </div>
-      ) : <p className="texte-dossier">{E.texte}</p>}
+      ) : <p className="texte-dossier">{texte}</p>}
       {concernees.length > 0 && (
         <div className="moyens-concernes">
           {concernees.map(id => (
@@ -201,6 +201,7 @@ function FenetreBilanZoom({ b }: { b: BilanZoom }) {
       )}
       <div className="objectifs">
         {b.objectifs.map((o, i) => <div key={i} className={'objectif ' + (o.atteint ? 'ok' : 'ko')}><span>{o.atteint ? '✓' : '✕'}</span>{o.texte}</div>)}
+        {b.secondaire && <div className={'objectif ' + (b.secondaire.atteint ? 'ok' : 'attente')}><span>★</span>Objectif secondaire : {b.secondaire.texte.toLowerCase()}{b.secondaire.atteint ? ' — atteint' : ' — non saisi'}</div>}
       </div>
       <div className="stats-ligne">
         <div><b className="chiffres">{b.stats.neutralises}</b><span>potentiel neutralisé</span></div>

@@ -156,3 +156,26 @@ Consigne : agrandir menus et boutons, catégoriser les actions et expliquer à q
 Équilibre après la refonte des interventions (robot prudent, 45 parties par nation, dans le bruit de mesure) : France 13,3 % de défaites, Royaume-Uni 20 %, Israël 8,9 %.
 
 Pistes classées pour la suite : `docs/game-design.md`, section « Pistes pour rendre le jeu prenant ».
+
+## 4 novembre 2026 — cinquième session (branche `dev`)
+
+Consigne : monde partagé, dossiers partagés et pistes prioritaires. Décisions détaillées dans `docs/game-design.md` (« Décisions de la cinquième session »).
+
+| Contenu | Détail |
+|---|---|
+| **Sous-agents** | Testeur d’équilibrage et vérificateur historique, repris de la branche `claude/focused-johnson-0j701w` et adaptés au projet actuel (`.claude/agents/`). |
+| **Monde partagé** | Sept puissances pilotées par l’IA (`src/data/puissances.ts`, `src/sim/monde.ts`) ; onglet « Monde » ; puissances présentes sur chaque théâtre (coalition ou rivale). |
+| **Dossiers partagés** | Auteur désigné par sa fonction ; douze dossiers communs dont sept demandes croisées des puissances (`src/data/dossiers-partages.ts`). |
+| **Horloges de menace** | Compte à rebours visible sous chaque menace, repère « ! » sur la carte, échéances et conseils. |
+| **Objectifs de mandat** | Trois objectifs par an, suivis dans l’onglet Situation, bilan en décembre. |
+| **Interventions** | Terrain de chaque lieu, objectif secondaire facultatif (étoile sur la carte), bilan. |
+| **Conseiller du mois** | Trois priorités argumentées, désactivable. |
+| **Corrections** | Flèches d’évolution des jauges qui chevauchaient les libellés ; fiche du tutoriel masquée par les notifications. |
+
+Équilibre (robot prudent, France, 45 parties) : 13,3 % de défaites avant comme après. Diagnostic par nation sur 30 parties en difficile : France 23 %, Royaume-Uni 30 %, Israël 17 % (dans le bruit de mesure).
+
+### Ce qui reste à faire
+
+- **Monde partagé, étape suivante** : une simulation complète par nation dans un état mondial unique (les nations jouables pilotées par le robot prudent).
+- Tutoriel du Royaume-Uni et d’Israël ; jauges propres de la Russie et de la Chine ; fiche des États-Unis.
+- Pistes non encore faites : priorité du mois, arcs narratifs par théâtre, désinformation, adversaires à personnalité, cartes d’ordres, médias, échéances électorales, otages, projection des menaces, glisser-déposer, mode daltonien, musique, succès Steam, éditeur.

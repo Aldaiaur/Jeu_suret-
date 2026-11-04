@@ -5,6 +5,7 @@ import type {
   SaisonDef, ServiceDef, TheatreDef, UniteDef
 } from './types';
 import { borner } from './outils';
+import { bonusCoalition } from './monde';
 
 export function dateDuTour(t: number): string { return MOIS[t % 12] + ' ' + (ANNEE_DEPART + Math.floor(t / 12)); }
 
@@ -78,6 +79,7 @@ export function bonusTheatre(s: Etat, t: string): BonusTheatre {
   if (th.allie > 0) { b.rens += 10; b.pression += 6; b.frappesZoom += 1; b.opBonus += 0.05; }
   for (const a of th.appuis) { const ef: EffetsAppui = appuiDef(a.allie, a.appui).effets; for (const k of BONUS_PERIODIQUES) if (ef[k]) b[k] += ef[k]!; }
   b.delai = Math.max(-1, b.delai);
+  b.opBonus += bonusCoalition(s, t);   // renseignement et appuis partagés avec les puissances de la coalition
   return b;
 }
 export function delaiProjection(s: Etat, uniteId: string, theatre: string): number {
