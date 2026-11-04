@@ -12,6 +12,15 @@ export function Briefing() {
   // Une fois la doctrine retenue, la simulation quitte la phase « doctrine » : on passe à la carte
   useEffect(() => { if (s.phase !== 'doctrine') majUi({ ecran: 'jeu' }); }, [s.phase, majUi]);
   const choisir = (id: string) => jouer({ type: 'DOCTRINE', id });
+  // Clavier : Entrée pour passer de la note aux doctrines, 1 à 3 pour choisir une doctrine
+  useEffect(() => {
+    const touche = (ev: KeyboardEvent) => {
+      if (etape === 'note' && ev.key === 'Enter') { ev.preventDefault(); setEtape('doctrine'); }
+      else if (etape === 'doctrine' && /^[1-9]$/.test(ev.key)) { const d = doctrinesDe(s)[Number(ev.key) - 1]; if (d) jouer({ type: 'DOCTRINE', id: d.id }); }
+    };
+    window.addEventListener('keydown', touche);
+    return () => window.removeEventListener('keydown', touche);
+  }, [etape, s, jouer]);
   if (s.phase !== 'doctrine') return null;
 
   return (
@@ -38,7 +47,7 @@ export function Briefing() {
           </div>
           <p className="note-conclusion">{B.conclusion}</p>
           <div className="note-signature">{exp.nom}</div>
-          <div className="note-pied"><button className="btn principal grand" onClick={() => setEtape('doctrine')} >Arrêter la doctrine</button></div>
+          <div className="note-pied"><button className="btn principal grand" onClick={() => setEtape('doctrine')}>Arrêter la doctrine <span className="touche">↵</span></button></div>
         </article>
       ) : (
         <div className="doctrines">
@@ -47,7 +56,7 @@ export function Briefing() {
           <div className="doctrines-grille">
             {doctrinesDe(s).map((d, i) => (
               <button key={d.id} className="doctrine" onClick={() => choisir(d.id)} style={{ animationDelay: i * 70 + 'ms' }} data-tuto={'doctrine-' + d.id}>
-                <span className="doctrine-num">0{i + 1}</span>
+                <span className="doctrine-num">0{i + 1} <span className="touche">{i + 1}</span></span>
                 <span className="doctrine-nom">{d.nom}</span>
                 <span className="doctrine-texte">{d.texte}</span>
                 <span className="doctrine-effet c-vert">+ {d.bonus}</span>
